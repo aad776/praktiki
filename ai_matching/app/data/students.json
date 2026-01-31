@@ -1,0 +1,122 @@
+[
+  {
+    "id": 1,
+    "skills": {"Python": 3, "SQL": 2, "React": 1},
+    "year": 3,
+    "location": "Delhi"
+  },
+  {
+    "id": 2,
+    "skills": {"Java": 3, "Spring": 2, "SQL": 2},
+    "year": 4,
+    "location": "Mumbai"
+  },
+  {
+    "id": 3,
+    "skills": {"Python": 2, "Machine Learning": 2, "Pandas": 2},
+    "year": 3,
+    "location": "Delhi"
+  },
+  {
+    "id": 4,
+    "skills": {"React": 3, "JavaScript": 3, "CSS": 2},
+    "year": 2,
+    "location": "Remote"
+  },
+  {
+    "id": 5,
+    "skills": {"C++": 3, "DSA": 3, "Algorithms": 2},
+    "year": 4,
+    "location": "Bangalore"
+  },
+  {
+    "id": 6,
+    "skills": {"Python": 3, "Django": 2, "SQL": 2},
+    "year": 3,
+    "location": "Delhi"
+  },
+  {
+    "id": 7,
+    "skills": {"JavaScript": 3, "Node.js": 2, "MongoDB": 2},
+    "year": 3,
+    "location": "Remote"
+  },
+  {
+    "id": 8,
+    "skills": {"Data Analysis": 3, "Excel": 3, "SQL": 2},
+    "year": 2,
+    "location": "Mumbai"
+  },
+  {
+    "id": 9,
+    "skills": {"Python": 2, "Flask": 2, "APIs": 2},
+    "year": 3,
+    "location": "Delhi"
+  },
+  {
+    "id": 10,
+    "skills": {"UI/UX": 3, "Figma": 3, "Design Systems": 2},
+    "year": 2,
+    "location": "Remote"
+  },
+  {
+    "id": 11,
+    "skills": {"Cyber Security": 2, "Networking": 2, "Linux": 2},
+    "year": 4,
+    "location": "Pune"
+  },
+  {
+    "id": 12,
+    "skills": {"Python": 3, "Deep Learning": 2, "TensorFlow": 2},
+    "year": 4,
+    "location": "Bangalore"
+  },
+  {
+    "id": 13,
+    "skills": {"Android": 3, "Kotlin": 2, "Firebase": 2},
+    "year": 3,
+    "location": "Remote"
+  },
+  {
+    "id": 14,
+    "skills": {"iOS": 2, "Swift": 2, "UI Design": 1},
+    "year": 3,
+    "location": "Delhi"
+  },
+  {
+    "id": 15,
+    "skills": {"DevOps": 2, "Docker": 2, "AWS": 2},
+    "year": 4,
+    "location": "Bangalore"
+  },
+  {
+    "id": 16,
+    "skills": {"Game Development": 2, "Unity": 2, "C#": 2},
+    "year": 2,
+    "location": "Remote"
+  },
+  {
+    "id": 17,
+    "skills": {"Python": 2, "Data Science": 2, "Statistics": 2},
+    "year": 3,
+    "location": "Mumbai"
+  },
+  {
+    "id": 18,
+    "skills": {"HTML": 3, "CSS": 3, "JavaScript": 2},
+    "year": 1,
+    "location": "Delhi"
+  },
+  {
+    "id": 19,
+    "skills": {"Blockchain": 2, "Solidity": 2, "Ethereum": 1},
+    "year": 4,
+    "location": "Remote"
+  },
+  {
+    "id": 20,
+    "skills": {"Product Management": 2, "Market Research": 2, "Analytics": 2},
+    "year": 4,
+    "location": "Mumbai"
+  }
+]

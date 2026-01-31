@@ -1,0 +1,69 @@
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+.venv/
+venv/
+ENV/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Alembic
+alembic/versions/__pycache__/
+
+# Logs
+logs/
+*.log
+
+# Uploads (local development)
+uploads/
+
+# ML models (large files)
+*.pkl
+*.pt
+*.pth
+*.h5
+*.onnx
+
+# Database
+*.db
+*.sqlite3
+
+# Secrets
+*.pem
+*.key
+credentials.json

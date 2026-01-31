@@ -1,0 +1,97 @@
+[
+  {
+    "id": 101,
+    "required_skills": {"Python": 2, "Django": 2, "SQL": 2},
+    "min_year": 2,
+    "location": "Delhi",
+    "is_remote": false
+  },
+  {
+    "id": 102,
+    "required_skills": {"React": 2, "JavaScript": 2},
+    "min_year": 3,
+    "location": "Remote",
+    "is_remote": true
+  },
+  {
+    "id": 103,
+    "required_skills": {"Python": 3, "Machine Learning": 1},
+    "min_year": 3,
+    "location": "Delhi",
+    "is_remote": false
+  },
+  {
+    "id": 104,
+    "required_skills": {"Java": 2, "Spring": 2},
+    "min_year": 3,
+    "location": "Bangalore",
+    "is_remote": false
+  },
+  {
+    "id": 105,
+    "required_skills": {"SQL": 2, "PowerBI": 1},
+    "min_year": 2,
+    "location": "Mumbai",
+    "is_remote": false
+  },
+  {
+    "id": 106,
+    "required_skills": {"Node.js": 2, "JavaScript": 2},
+    "min_year": 2,
+    "location": "Remote",
+    "is_remote": true
+  },
+  {
+    "id": 107,
+    "required_skills": {"UI/UX": 2, "Figma": 2},
+    "min_year": 2,
+    "location": "Remote",
+    "is_remote": true
+  },
+  {
+    "id": 108,
+    "required_skills": {"Android": 2, "Kotlin": 2},
+    "min_year": 3,
+    "location": "Delhi",
+    "is_remote": false
+  },
+  {
+    "id": 109,
+    "required_skills": {"Cyber Security": 2, "Networking": 2},
+    "min_year": 4,
+    "location": "Delhi",
+    "is_remote": false
+  },
+  {
+    "id": 110,
+    "required_skills": {"Python": 1, "Data Analysis": 2},
+    "min_year": 2,
+    "location": "Bangalore",
+    "is_remote": false
+  },
+  {    "id": 111,
+    "required_skills": {"Ruby": 2, "Rails": 2},
+    "min_year": 3,
+    "location": "Remote",
+    "is_remote": true
+  },
+  {  "id": 112,
+    "required_skills": {"Java": 3, "Spring": 2},
+    "min_year": 3,
+    "location": "Mumbai",
+    "is_remote": false
+  },
+  {  "id": 113,
+    "required_skills": {"PHP": 2, "Laravel": 2},
+    "min_year": 2,
+    "location": "Delhi",
+    "is_remote": false
+  },
+  {  "id": 114,
+    "required_skills": {"Java": 3, "Spring": 2, "SQL": 2},
+    "min_year": 3,
+    "location": "Remote",
+    "is_remote": true
+  }
+]
+
