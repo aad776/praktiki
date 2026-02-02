@@ -6,7 +6,7 @@ from logging.config import fileConfig
 from db.session import Base
 from sqlalchemy import engine_from_config
 from sqlalchemy import pool
-from core.settings import  settings
+from utils.settings import  settings
 from alembic import context
 from models.student_profile import StudentProfile
 from models.user import User

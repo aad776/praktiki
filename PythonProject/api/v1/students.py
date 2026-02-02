@@ -35,6 +35,9 @@ def get_my_profile(
     profile = db.query(StudentProfile).filter(StudentProfile.user_id == current_user.id).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Student profile not found")
+    profile.email = current_user.email
+    if not profile.full_name:
+        profile.full_name = current_user.full_name
     return profile
 
 @router.post("/me", response_model=StudentProfileOut)

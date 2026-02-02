@@ -34,7 +34,11 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)
 
     if new_user.role == "student":
-        new_profile = StudentProfile(user_id=new_user.id, is_apaar_verified=False)
+        new_profile = StudentProfile(
+            user_id=new_user.id, 
+            is_apaar_verified=False,
+            full_name=new_user.full_name
+        )
         db.add(new_profile)
         db.commit()
 

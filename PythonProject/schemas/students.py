@@ -62,6 +62,7 @@ class StudentProfileUpdate(BaseModel):
 class StudentProfileOut(BaseModel):
     id: int
     user_id: int
+    email: Optional[EmailStr] = None
     apaar_id: Optional[str]
     is_apaar_verified: bool
     

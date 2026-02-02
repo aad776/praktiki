@@ -5,7 +5,7 @@ from .security import (
     pwd_context
 )
 from .settings import settings
-from .dependencies import get_current_user, oauth2_scheme, get_db
+# from .dependencies import get_current_user, oauth2_scheme, get_db
 from .exceptions import (
     CredentialsException,
     NotFoundException,
@@ -19,9 +19,9 @@ __all__ = [
     "create_access_token",
     "pwd_context",
     "settings",
-    "get_current_user",
-    "oauth2_scheme",
-    "get_db",
+    # "get_current_user",
+    # "oauth2_scheme",
+    # "get_db",
     "CredentialsException",
     "NotFoundException",
     "ForbiddenException",

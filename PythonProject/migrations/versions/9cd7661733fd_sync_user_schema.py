@@ -42,37 +42,37 @@ def upgrade() -> None:
     # Let's apply the User changes.
     # Because there are existing rows, we cannot add non-nullable columns directly.
     # 1. Add columns as nullable first
-    op.add_column('users', sa.Column('email', sa.String(), nullable=True))
-    op.add_column('users', sa.Column('hashed_password', sa.String(), nullable=True))
-    op.add_column('users', sa.Column('full_name', sa.String(), nullable=True))
+    # op.add_column('users', sa.Column('email', sa.String(), nullable=True))
+    # op.add_column('users', sa.Column('hashed_password', sa.String(), nullable=True))
+    # op.add_column('users', sa.Column('full_name', sa.String(), nullable=True))
     
-    op.add_column('users', sa.Column('is_email_verified', sa.Boolean(), nullable=True))
-    op.add_column('users', sa.Column('verification_token', sa.String(), nullable=True))
-    op.add_column('users', sa.Column('verification_token_expires', sa.DateTime(timezone=True), nullable=True))
-    op.add_column('users', sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True))
+    # op.add_column('users', sa.Column('is_email_verified', sa.Boolean(), nullable=True))
+    # op.add_column('users', sa.Column('verification_token', sa.String(), nullable=True))
+    # op.add_column('users', sa.Column('verification_token_expires', sa.DateTime(timezone=True), nullable=True))
+    # op.add_column('users', sa.Column('created_at', sa.DateTime(timezone=True), server_default=sa.text('now()'), nullable=True))
     
     # 2. Populate new columns with data from old columns or defaults
     # For email, we use username if it looks like email, or just dummy
-    op.execute("UPDATE users SET email = username WHERE email IS NULL")
+    # op.execute("UPDATE users SET email = username WHERE email IS NULL")
     # If username was not email, this might be bad, but it's dev env.
     
     # For hashed_password, we copy password_hash
-    op.execute("UPDATE users SET hashed_password = password_hash WHERE hashed_password IS NULL")
+    # op.execute("UPDATE users SET hashed_password = password_hash WHERE hashed_password IS NULL")
     
     # For full_name, we use username as fallback
-    op.execute("UPDATE users SET full_name = username WHERE full_name IS NULL")
+    # op.execute("UPDATE users SET full_name = username WHERE full_name IS NULL")
     
     # 3. Now alter columns to be non-nullable if needed
-    op.alter_column('users', 'email', nullable=False)
-    op.alter_column('users', 'hashed_password', nullable=False)
-    op.alter_column('users', 'full_name', nullable=False)
+    # op.alter_column('users', 'email', nullable=False)
+    # op.alter_column('users', 'hashed_password', nullable=False)
+    # op.alter_column('users', 'full_name', nullable=False)
 
     # Drop old columns if they exist
-    op.drop_index('ix_users_username', table_name='users')
-    op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
-    op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
-    op.drop_column('users', 'password_hash')
-    op.drop_column('users', 'username')
+    # op.drop_index('ix_users_username', table_name='users')
+    # op.create_index(op.f('ix_users_email'), 'users', ['email'], unique=True)
+    # op.create_index(op.f('ix_users_id'), 'users', ['id'], unique=False)
+    # op.drop_column('users', 'password_hash')
+    # op.drop_column('users', 'username')
     
     # Ignoring internship changes for now to avoid side effects, we just want login to work
     # If internships table needs update, we can do it later or uncomment below if we are sure
