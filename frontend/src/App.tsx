@@ -4,6 +4,7 @@ import { Layout } from './components/Layout';
 import { PageLoader } from './components/LoadingSpinner';
 
 // Pages
+import { HomePage } from './pages/HomePage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
@@ -32,7 +33,8 @@ export function App() {
     <Layout>
       <Routes>
         {/* Public Routes */}
-        <Route path="/" element={<LoginPage />} />
+        <Route path="/" element={<HomePage />} />
+        <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
@@ -84,8 +86,8 @@ export function App() {
           }
         />
 
-        {/* Catch all - redirect to login */}
-        <Route path="*" element={<LoginPage />} />
+        {/* Catch all - redirect to home */}
+        <Route path="*" element={<HomePage />} />
       </Routes>
     </Layout>
   );
