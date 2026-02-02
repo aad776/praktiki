@@ -15,17 +15,17 @@ export function HomePage() {
             
             {/* Left Content */}
             <div className="max-w-2xl animate-fadeIn">
-              <div className="inline-flex items-center gap-2 rounded-full bg-teal-50 px-3 py-1 text-sm font-medium text-teal-700 mb-6 border border-teal-100">
+              <div className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-4 py-1.5 text-sm font-medium text-brand-700 mb-6 border border-brand-100">
                 <span className="relative flex h-2 w-2">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
                 </span>
                 Now Live for 2025 Internships
               </div>
               
               <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-6 leading-tight">
                 Find Your Dream <br />
-                <span className="text-teal-600">Internship Today</span>
+                <span className="gradient-text">Internship Today</span>
               </h1>
               
               <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-lg">
@@ -35,14 +35,17 @@ export function HomePage() {
               
               <div className="flex flex-wrap items-center gap-4 mb-10">
                 <button 
-                  onClick={() => navigate("/login?mode=signup")}
-                  className="px-8 py-3.5 bg-teal-600 text-white rounded-xl font-semibold hover:bg-teal-700 transition-all shadow-lg hover:shadow-teal-200 hover:-translate-y-0.5"
+                  onClick={() => navigate("/signup")}
+                  className="btn-primary px-8 py-3.5"
                 >
                   Get Started
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                  </svg>
                 </button>
                 <button 
                   onClick={() => navigate("/browse-internships")}
-                  className="px-8 py-3.5 bg-white text-slate-700 border border-slate-200 rounded-xl font-semibold hover:bg-slate-50 transition-all hover:border-slate-300"
+                  className="btn-secondary px-8 py-3.5"
                 >
                   Browse Jobs
                 </button>
@@ -195,7 +198,7 @@ export function HomePage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
                 <div className="col-span-1 md:col-span-1">
                     <div className="flex items-center gap-2 mb-4">
-                        <div className="bg-teal-600 text-white p-1 rounded">
+                        <div className="bg-brand-600 text-white p-1.5 rounded-lg">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
                         </div>
                         <span className="text-xl font-bold text-white">Praktiki</span>
