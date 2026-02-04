@@ -9,6 +9,7 @@ class UserCreate(BaseModel):
     full_name: str
     password: str
     role: str = "student"
+    apaar_id: Optional[str] = Field(None, pattern=r"^\d{12}$", description="12 digit APAAR ID (required for students)")
 
 
 # 2. Signup/Login Output
@@ -37,6 +38,9 @@ class StudentProfileUpdate(BaseModel):
     current_city: Optional[str] = None
     gender: Optional[str] = None
     languages: Optional[str] = None
+    
+    # APAAR ID - can be updated by existing users
+    apaar_id: Optional[str] = Field(None, pattern=r"^\d{12}$", description="12 digit APAAR ID")
     
     profile_type: Optional[str] = None
     university_name: Optional[str] = None

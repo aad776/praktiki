@@ -24,13 +24,21 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
     user_exists = db.query(User).filter(User.email == user_in.email).first()
     if user_exists:
         raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Check if APAAR ID is already used (if provided)
+    if user_in.apaar_id:
+        apaar_exists = db.query(User).filter(User.apaar_id == user_in.apaar_id).first()
+        if apaar_exists:
+            raise HTTPException(status_code=400, detail="APAAR ID already registered")
 
     new_user = User(
         email=user_in.email,
         full_name=user_in.full_name,
         hashed_password=get_password_hash(user_in.password),
         role="student",
-        is_email_verified=True
+        is_email_verified=True,
+        apaar_id=user_in.apaar_id,
+        is_apaar_verified=False  # Will be verified separately
     )
     db.add(new_user)
     db.commit()
@@ -40,7 +48,8 @@ def signup(user_in: UserCreate, db: Session = Depends(get_db)):
         new_profile = StudentProfile(
             user_id=new_user.id, 
             is_apaar_verified=False,
-            full_name=new_user.full_name
+            full_name=new_user.full_name,
+            apaar_id=user_in.apaar_id  # Store in profile as well
         )
         db.add(new_profile)
         db.commit()
@@ -242,9 +251,7 @@ def verify_otp(
             raise HTTPException(status_code=400, detail="Invalid or expired OTP")
         
         current_user.is_phone_verified = True
-        # Also update the profile if it exists
-        if current_user.employer_profile:
-            current_user.employer_profile.is_phone_verified = True
+        # Phone verification status is stored on User model, not profile
             
         current_user.phone_otp_code = None
         current_user.phone_otp_expires = None

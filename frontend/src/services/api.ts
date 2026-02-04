@@ -18,7 +18,7 @@ async function apiRequest<T>(
   options: RequestOptions = {}
 ): Promise<T> {
   const { params, ...fetchOptions } = options;
-  
+
   // Build URL with query params
   let url = `${API_BASE_URL}${endpoint}`;
   if (params) {
@@ -57,6 +57,18 @@ async function apiRequest<T>(
   });
 
   if (!response.ok) {
+    // Handle 401 Unauthorized - token expired or invalid
+    if (response.status === 401) {
+      console.warn('Token expired or invalid, clearing auth state');
+      localStorage.removeItem(config.auth.tokenKey);
+      localStorage.removeItem(config.auth.roleKey);
+      // Redirect to login page
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
+      throw new Error('Session expired. Please log in again.');
+    }
+
     let errorMessage = `Request failed with status ${response.status}`;
     try {
       const errorData = await response.json();
@@ -82,7 +94,7 @@ const api = {
   get: <T>(endpoint: string, params?: Record<string, string>): Promise<T> => {
     return apiRequest<T>(endpoint, { method: 'GET', params });
   },
-  
+
   post: <T>(endpoint: string, data?: unknown, options?: Omit<RequestOptions, 'body'>): Promise<T> => {
     const body = data instanceof FormData ? data : data ? JSON.stringify(data) : undefined;
     return apiRequest<T>(endpoint, {
@@ -91,7 +103,7 @@ const api = {
       ...(options || {}),
     });
   },
-  
+
   put: <T>(endpoint: string, data?: unknown, options?: Omit<RequestOptions, 'body'>): Promise<T> => {
     const body = data instanceof FormData ? data : data ? JSON.stringify(data) : undefined;
     return apiRequest<T>(endpoint, {
@@ -100,11 +112,11 @@ const api = {
       ...(options || {}),
     });
   },
-  
+
   delete: <T>(endpoint: string): Promise<T> => {
     return apiRequest<T>(endpoint, { method: 'DELETE' });
   },
-  
+
   patch: <T>(endpoint: string, data?: unknown, options?: Omit<RequestOptions, 'body'>): Promise<T> => {
     const body = data instanceof FormData ? data : data ? JSON.stringify(data) : undefined;
     return apiRequest<T>(endpoint, {

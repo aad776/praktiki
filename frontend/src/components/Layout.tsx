@@ -1,6 +1,7 @@
 import { ReactNode, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { InternshipMegaMenu } from './InternshipMegaMenu';
 
 interface LayoutProps {
   children: ReactNode;
@@ -13,7 +14,6 @@ const roleNavConfig = {
     navItems: [
       { path: '/student', label: 'Dashboard', icon: 'home' },
       { path: '/student/setup', label: 'Profile', icon: 'user' },
-      { path: '/posted-internships', label: 'Browse Internship', icon: 'search' },
     ],
   },
   employer: {
@@ -104,6 +104,9 @@ export function Layout({ children }: LayoutProps) {
 
                 {/* Desktop Navigation Links */}
                 <div className="hidden md:flex items-center ml-8 gap-1">
+                  {/* Internship Mega Menu for Students */}
+                  {role === 'student' && <InternshipMegaMenu />}
+
                   {navItems.map(item => (
                     <Link
                       key={item.path}
@@ -201,6 +204,20 @@ export function Layout({ children }: LayoutProps) {
 
               {/* Navigation Links */}
               <div className="px-2 py-3 space-y-1">
+                {/* Mobile version of Internship Link for students */}
+                {role === 'student' && (
+                  <Link
+                    to="/posted-internships"
+                    onClick={() => setMobileNavOpen(false)}
+                    className="flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium text-slate-600 hover:bg-slate-50"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    Internships
+                  </Link>
+                )}
+
                 {navItems.map(item => (
                   <Link
                     key={item.path}

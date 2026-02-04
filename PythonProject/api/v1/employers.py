@@ -177,17 +177,68 @@ def update_application_status(
     db.commit()
     return {"message": f"Application status updated to {status_update.status}"}
 
-@router.get("/profile", response_model=EmployerProfileOut)
+@router.get("/profile")
 def get_employer_profile(
         current_user: User = Depends(get_current_user),
         db: Session = Depends(get_db)
 ):
+    """
+    Get employer profile with consolidated verification status.
+    Returns profile data + user verification flags + computed is_profile_complete.
+    """
     if current_user.role != "employer":
         raise HTTPException(status_code=403, detail="Access denied")
+    
     profile = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
     if not profile:
         raise HTTPException(status_code=404, detail="Employer profile not found")
-    return profile
+    
+    # Check if profile is complete (all required fields filled)
+    required_fields = [
+        profile.company_name,
+        profile.contact_number,
+        profile.designation,
+        profile.city,
+        profile.industry
+    ]
+    is_profile_complete = all(f and str(f).strip() != "" for f in required_fields)
+    
+    # Determine overall verification status
+    # For development: only require profile complete
+    # For production: uncomment to also require email + phone verified
+    is_fully_verified = is_profile_complete
+    # Production check:
+    # is_fully_verified = (
+    #     is_profile_complete and 
+    #     bool(current_user.is_email_verified) and 
+    #     bool(current_user.is_phone_verified)
+    # )
+    
+    return {
+        "id": profile.id,
+        "user_id": profile.user_id,
+        "company_name": profile.company_name or "",
+        "contact_number": profile.contact_number or "",
+        "designation": profile.designation or "",
+        "organization_description": profile.organization_description or "",
+        "city": profile.city or "",
+        "industry": profile.industry or "",
+        "employee_count": profile.employee_count or "",
+        "logo_url": profile.logo_url or "",
+        "website_url": profile.website_url or "",
+        "license_document_url": profile.license_document_url or "",
+        "social_media_link": profile.social_media_link or "",
+        "is_verified": profile.is_verified or False,
+        # Include user verification status
+        "is_email_verified": current_user.is_email_verified or False,
+        "is_phone_verified": current_user.is_phone_verified or False,
+        # Computed flags for frontend convenience
+        "is_profile_complete": is_profile_complete,
+        "is_fully_verified": is_fully_verified,
+        # User's full name and email for display
+        "full_name": current_user.full_name or "",
+        "email": current_user.email or ""
+    }
 
 @router.put("/profile", response_model=EmployerProfileOut)
 def update_employer_profile(
@@ -252,6 +303,69 @@ def get_my_posted_internships(
 
     employer = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
     return db.query(Internship).filter(Internship.employer_id == employer.id).all()
+
+
+@router.get("/internships/{internship_id}")
+def get_internship_details(
+        internship_id: int,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    """Get full internship details with employer information for employer preview."""
+    if current_user.role != "employer":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    employer = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
+    if not employer:
+        raise HTTPException(status_code=404, detail="Employer profile not found")
+    
+    # Get internship - ensure it belongs to this employer
+    internship = db.query(Internship).filter(
+        Internship.id == internship_id,
+        Internship.employer_id == employer.id
+    ).first()
+    
+    if not internship:
+        raise HTTPException(status_code=404, detail="Internship not found")
+    
+    return {
+        "internship": {
+            "id": internship.id,
+            "title": internship.title,
+            "description": internship.description,
+            "location": internship.location,
+            "mode": internship.mode,
+            "duration_weeks": internship.duration_weeks,
+            "start_date": internship.start_date,
+            "end_date": None,  # Add if model has it
+            "is_flexible_time": False,  # Add if model has it
+            "stipend_amount": internship.stipend_amount,
+            "stipend_currency": "INR",
+            "stipend_cycle": "month",
+            "deadline": internship.deadline,
+            "skills_required": internship.skills,
+            "qualifications": internship.qualifications,
+            "benefits": internship.benefits,
+            "openings": internship.openings or 1,
+            "contact_name": internship.contact_name,
+            "contact_email": internship.contact_email,
+            "contact_phone": internship.contact_phone,
+            "application_link": internship.application_link,
+            "application_email": internship.application_email
+        },
+        "employer": {
+            "id": employer.id,
+            "company_name": employer.company_name,
+            "organization_description": employer.organization_description,
+            "city": employer.city,
+            "industry": employer.industry,
+            "employee_count": employer.employee_count,
+            "logo_url": employer.logo_url,
+            "website_url": employer.website_url,
+            "is_verified": employer.is_verified or False,
+            "contact_number": employer.contact_number
+        }
+    }
 
 
 @router.get("/internships/{internship_id}/applications")

@@ -37,7 +37,7 @@ class EmployerProfileOut(BaseModel):
     license_document_url: Optional[str] = None
     social_media_link: Optional[str] = None
     is_verified: bool = False
-    is_phone_verified: bool = False
+    # Note: is_phone_verified and is_email_verified are on User model, returned via /profile endpoint
 
     class Config:
         from_attributes = True

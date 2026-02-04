@@ -47,83 +47,90 @@ app.include_router(institute_router, prefix="/institutes", tags=["Institutes"])
 
 @app.on_event("startup")
 def ensure_optional_columns():
-    """Ensure newly added optional columns exist in SQLite without requiring Alembic migrations."""
-    with engine.connect() as conn:
-        def has_column(table: str, column: str) -> bool:
-            result = conn.execute(text(f"PRAGMA table_info('{table}')"))
-            cols = {row[1] for row in result.fetchall()}
-            return column in cols
-
-        def add_column(table: str, column_sql: str):
-            conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column_sql}"))
-
-        # employer_profiles
-        employer_cols = [
-            ("designation", "VARCHAR"),
-            ("organization_description", "TEXT"),
-            ("city", "VARCHAR"),
-            ("industry", "VARCHAR"),
-            ("employee_count", "VARCHAR"),
-            ("logo_url", "VARCHAR"),
-            ("website_url", "VARCHAR"),
-            ("license_document_url", "VARCHAR"),
-            ("social_media_link", "VARCHAR"),
-            ("is_verified", "BOOLEAN DEFAULT 0"),
-            ("is_phone_verified", "BOOLEAN DEFAULT 0"),
-            ("phone_otp_code", "VARCHAR"),
-            ("phone_otp_expires", "VARCHAR"),
-            ("email_otp_code", "VARCHAR"),
-            ("email_otp_expires", "VARCHAR")
-        ]
-        for name, sqltype in employer_cols:
-            if not has_column("employer_profiles", name):
-                add_column("employer_profiles", f"{name} {sqltype}")
-
-        # student_resumes
-        resume_cols = [
-            ("education_entries", "TEXT"),
-            ("skills_categorized", "TEXT"),
-            ("title", "VARCHAR"),
-            ("linkedin", "VARCHAR"),
-            ("profile_picture", "VARCHAR"),
-        ]
-        for name, sqltype in resume_cols:
-            if not has_column("student_resumes", name):
-                add_column("student_resumes", f"{name} {sqltype}")
-        # internship
-        internship_cols = [
-            ("stipend_amount", "INTEGER"),
-            ("deadline", "VARCHAR"),
-            ("start_date", "VARCHAR"),
-            ("skills", "VARCHAR"),
-            ("openings", "INTEGER DEFAULT 1"),
-            ("qualifications", "VARCHAR"),
-            ("benefits", "VARCHAR"),
-            ("contact_name", "VARCHAR"),
-            ("contact_email", "VARCHAR"),
-            ("contact_phone", "VARCHAR"),
-            ("application_link", "VARCHAR"),
-            ("application_email", "VARCHAR")
-        ]
-        for name, sqltype in internship_cols:
-            if not has_column("internships", name):
-                add_column("internships", f"{name} {sqltype}")
-
-        # users
-        user_cols = [
-            ("is_email_verified", "BOOLEAN DEFAULT 0"),
-            ("is_phone_verified", "BOOLEAN DEFAULT 0"),
-            ("phone_number", "VARCHAR"),
-            ("email_otp_code", "VARCHAR"),
-            ("email_otp_expires", "DATETIME"),
-            ("phone_otp_code", "VARCHAR"),
-            ("phone_otp_expires", "DATETIME")
-        ]
-        for name, sqltype in user_cols:
-            if not has_column("users", name):
-                add_column("users", f"{name} {sqltype}")
-
+    """Ensure newly added optional columns exist without requiring Alembic migrations.
+    Works with both SQLite and PostgreSQL.
+    """
+    from sqlalchemy import inspect
+    from sqlalchemy.exc import ProgrammingError, OperationalError
+    
+    # First, create all tables from models
     Base.metadata.create_all(bind=engine)
+    
+    # Use SQLAlchemy inspector to check columns (database-agnostic)
+    inspector = inspect(engine)
+    
+    def has_column(table: str, column: str) -> bool:
+        try:
+            columns = inspector.get_columns(table)
+            return any(c['name'] == column for c in columns)
+        except Exception:
+            return False
+    
+    def add_column_safely(table: str, column_name: str, column_type: str):
+        """Try to add a column, ignoring if it already exists."""
+        try:
+            with engine.connect() as conn:
+                conn.execute(text(f"ALTER TABLE {table} ADD COLUMN {column_name} {column_type}"))
+                conn.commit()
+                print(f"Added column {column_name} to {table}")
+        except (ProgrammingError, OperationalError) as e:
+            # Column likely already exists
+            pass
+    
+    # employer_profiles
+    employer_cols = [
+        ("designation", "VARCHAR(255)"),
+        ("organization_description", "TEXT"),
+        ("city", "VARCHAR(255)"),
+        ("industry", "VARCHAR(255)"),
+        ("employee_count", "VARCHAR(255)"),
+        ("logo_url", "VARCHAR(500)"),
+        ("website_url", "VARCHAR(500)"),
+        ("license_document_url", "VARCHAR(500)"),
+        ("social_media_link", "VARCHAR(500)"),
+        ("is_verified", "BOOLEAN DEFAULT FALSE"),
+    ]
+    for name, sqltype in employer_cols:
+        if not has_column("employer_profiles", name):
+            add_column_safely("employer_profiles", name, sqltype)
+
+    # internships
+    internship_cols = [
+        ("status", "VARCHAR(50) DEFAULT 'active'"),
+        ("stipend_amount", "INTEGER"),
+        ("deadline", "VARCHAR(255)"),
+        ("start_date", "VARCHAR(255)"),
+        ("skills", "VARCHAR(500)"),
+        ("openings", "INTEGER DEFAULT 1"),
+        ("qualifications", "TEXT"),
+        ("benefits", "VARCHAR(500)"),
+        ("contact_name", "VARCHAR(255)"),
+        ("contact_email", "VARCHAR(255)"),
+        ("contact_phone", "VARCHAR(255)"),
+        ("application_link", "VARCHAR(500)"),
+        ("application_email", "VARCHAR(255)")
+    ]
+    for name, sqltype in internship_cols:
+        if not has_column("internships", name):
+            add_column_safely("internships", name, sqltype)
+
+    # users
+    user_cols = [
+        ("is_email_verified", "BOOLEAN DEFAULT FALSE"),
+        ("is_phone_verified", "BOOLEAN DEFAULT FALSE"),
+        ("phone_number", "VARCHAR(255)"),
+        ("email_otp_code", "VARCHAR(255)"),
+        ("email_otp_expires", "TIMESTAMP"),
+        ("phone_otp_code", "VARCHAR(255)"),
+        ("phone_otp_expires", "TIMESTAMP"),
+        ("apaar_id", "VARCHAR(12)"),
+        ("is_apaar_verified", "BOOLEAN DEFAULT FALSE")
+    ]
+    for name, sqltype in user_cols:
+        if not has_column("users", name):
+            add_column_safely("users", name, sqltype)
+    
+    print("Database schema check complete.")
 
 
 @app.get("/", tags=["Health"])

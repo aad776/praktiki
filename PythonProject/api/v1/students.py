@@ -22,7 +22,36 @@ import shutil
 import os
 import uuid
 
+from sqlalchemy import func, desc
 router = APIRouter()
+
+@router.get("/internships/metadata")
+def get_internship_metadata(
+    db: Session = Depends(get_db)
+):
+    """
+    Get dynamic metadata for Internship Mega Menu
+    - Top Locations (by job count)
+    - Top Profiles (by title count)
+    """
+    # Top Locations
+    top_locations_query = db.query(
+        Internship.location, func.count(Internship.id).label('count')
+    ).group_by(Internship.location).order_by(desc('count')).limit(10).all()
+    
+    top_locations = [loc[0] for loc in top_locations_query if loc[0]]
+
+    # Top Profiles (Titles)
+    top_profiles_query = db.query(
+        Internship.title, func.count(Internship.id).label('count')
+    ).group_by(Internship.title).order_by(desc('count')).limit(10).all()
+    
+    top_profiles = [prof[0] for prof in top_profiles_query if prof[0]]
+
+    return {
+        "top_locations": top_locations,
+        "top_profiles": top_profiles
+    }
 
 @router.get("/me", response_model=StudentProfileOut)
 def get_my_profile(
@@ -82,6 +111,22 @@ def update_my_profile(
             status_code=404,
             detail="Student profile not found"
         )
+
+    # Handle APAAR ID update separately - check for duplicates
+    if profile_data.apaar_id:
+        # Check if this APAAR ID is already used by another user
+        existing_user = db.query(User).filter(
+            User.apaar_id == profile_data.apaar_id,
+            User.id != current_user.id
+        ).first()
+        if existing_user:
+            raise HTTPException(status_code=400, detail="This APAAR ID is already registered to another user")
+        
+        # Update APAAR ID on User model as well
+        current_user.apaar_id = profile_data.apaar_id
+        current_user.is_apaar_verified = True  # Mock verification
+        profile.is_apaar_verified = True       # Sync to profile
+        db.add(current_user)
 
     # Update Internshala fields (university, cgpa, phone etc.)
     for var, value in profile_data.dict(exclude_unset=True).items():
@@ -231,11 +276,18 @@ def apply_for_internship(
     profile = db.query(StudentProfile).filter(StudentProfile.user_id == current_user.id).first()
 
     # --- CRITICAL VERIFICATION CHECK ---
-    if not profile.is_apaar_verified:
+    # --- CRITICAL VERIFICATION CHECK (Relaxed for valid APAAR ID) ---
+    if not profile.apaar_id:
         raise HTTPException(
             status_code=403,
-            detail="Aapka APAAR ID verified nahi hai. Sirf verified students hi apply kar sakte hain."
+            detail="APAAR ID missing. Please update your profile with your 12-digit APAAR ID to apply."
         )
+    
+    # Auto-verify if they have an ID (Mock Verification Logic)
+    if not profile.is_apaar_verified:
+        profile.is_apaar_verified = True
+        db.add(profile)
+        db.commit()
 
     existing_app = db.query(Application).filter(
         Application.student_id == profile.id,

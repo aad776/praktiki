@@ -35,22 +35,25 @@ export function SignupPage() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [step, setStep] = useState(1);
-  
+
   // Common fields
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  
+
   // Employer specific
   const [companyName, setCompanyName] = useState('');
   const [companyContact, setCompanyContact] = useState('');
-  
+
   // Institute specific
   const [instituteName, setInstituteName] = useState('');
   const [aisheCode, setAisheCode] = useState('');
   const [instituteContact, setInstituteContact] = useState('');
-  
+
+  // Student specific
+  const [apaarId, setApaarId] = useState('');
+
   const navigate = useNavigate();
   const toast = useToast();
 
@@ -75,7 +78,15 @@ export function SignupPage() {
       toast.error('Passwords do not match.');
       return false;
     }
-    
+
+    // Student validation
+    if (role === 'student') {
+      if (!apaarId.trim() || apaarId.length !== 12) {
+        toast.error('Please enter a valid 12-digit APAAR ID.');
+        return false;
+      }
+    }
+
     if (role === 'employer') {
       if (!companyName.trim()) {
         toast.error('Please enter your company name.');
@@ -86,7 +97,7 @@ export function SignupPage() {
         return false;
       }
     }
-    
+
     if (role === 'institute') {
       if (!instituteName.trim()) {
         toast.error('Please enter your institute name.');
@@ -101,7 +112,7 @@ export function SignupPage() {
         return false;
       }
     }
-    
+
     return true;
   };
 
@@ -113,7 +124,7 @@ export function SignupPage() {
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    
+
     if (!validateStep2()) return;
 
     setLoading(true);
@@ -129,6 +140,7 @@ export function SignupPage() {
       if (role === 'student') {
         endpoint = '/auth/signup';
         payload.role = 'student';
+        payload.apaar_id = apaarId.trim();
       } else if (role === 'employer') {
         endpoint = '/auth/signup/employer';
         payload.company_name = companyName.trim();
@@ -141,10 +153,10 @@ export function SignupPage() {
       }
 
       await api.post(endpoint, payload);
-      
+
       toast.success('Account created! 🎉 Please login to continue.');
       navigate('/login');
-      
+
     } catch (err) {
       const error = err as ApiError;
       toast.error(error.message || 'Signup failed. Please try again.');
@@ -371,6 +383,40 @@ export function SignupPage() {
                   </svg>
                   Back
                 </button>
+
+                {/* Student Specific Fields */}
+                {role === 'student' && (
+                  <>
+                    <div className="input-group">
+                      <label htmlFor="apaarId" className="label">
+                        APAAR ID <span className="text-rose-500">*</span>
+                      </label>
+                      <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                          <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                          </svg>
+                        </div>
+                        <input
+                          id="apaarId"
+                          type="text"
+                          value={apaarId}
+                          onChange={(e) => setApaarId(e.target.value.replace(/\D/g, '').slice(0, 12))}
+                          placeholder="123456789012"
+                          className="input pl-12"
+                          maxLength={12}
+                          required
+                        />
+                      </div>
+                      <p className="mt-1.5 text-xs text-slate-500">
+                        12-digit APAAR ID is required to apply for internships.
+                        <a href="https://apaar.education.gov.in" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline ml-1">
+                          Get your APAAR ID
+                        </a>
+                      </p>
+                    </div>
+                  </>
+                )}
 
                 {/* Employer Specific Fields */}
                 {role === 'employer' && (

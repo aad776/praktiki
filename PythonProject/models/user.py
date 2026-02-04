@@ -16,6 +16,10 @@ class User(Base):
     is_phone_verified = Column(Boolean, default=False)
     phone_number = Column(String, nullable=True)
     
+    # APAAR ID - Automated Permanent Academic Account Registry (12-digit unique ID for students)
+    apaar_id = Column(String(12), unique=True, nullable=True, index=True)
+    is_apaar_verified = Column(Boolean, default=False)
+    
     email_otp_code = Column(String, nullable=True)
     email_otp_expires = Column(DateTime(timezone=True), nullable=True)
     phone_otp_code = Column(String, nullable=True)

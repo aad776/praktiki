@@ -17,11 +17,10 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
         {steps.map((step, index) => (
           <div key={step.id} className="flex-1 flex flex-col items-center relative">
             <div
-              className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold z-10 transition-all duration-300 ${
-                step.id <= currentStep
-                  ? "bg-blue-600 text-white shadow-lg scale-110"
-                  : "bg-gray-200 text-gray-500"
-              }`}
+              className={`w-10 h-10 rounded-full flex items-center justify-center text-lg font-bold z-10 transition-all duration-300 ${step.id <= currentStep
+                ? "bg-blue-600 text-white shadow-lg scale-110"
+                : "bg-gray-200 text-gray-500"
+                }`}
             >
               {step.icon}
             </div>
@@ -31,9 +30,8 @@ const StepIndicator = ({ currentStep }: { currentStep: number }) => {
             {/* Progress Bar Line */}
             {index < steps.length - 1 && (
               <div
-                className={`absolute top-5 left-1/2 w-full h-1 -z-0 transition-colors duration-300 ${
-                  step.id < currentStep ? "bg-blue-600" : "bg-gray-200"
-                }`}
+                className={`absolute top-5 left-1/2 w-full h-1 -z-0 transition-colors duration-300 ${step.id < currentStep ? "bg-blue-600" : "bg-gray-200"
+                  }`}
               ></div>
             )}
           </div>
@@ -59,9 +57,12 @@ export const EmployerProfileSetup = () => {
     designation: "",
     contactNumber: "",
     isMobileVerified: false,
+    isEmailVerified: false,
     otp: "",
     otpSent: false,
-    
+    emailOtp: "",
+    emailOtpSent: false,
+
     // Step 2
     companyName: "",
     isIndependent: false,
@@ -70,7 +71,7 @@ export const EmployerProfileSetup = () => {
     industry: "",
     employeeCount: "",
     logoUrl: "", // Mock URL or file name
-    
+
     // Step 3
     verificationMethod: "license", // license, social, website
     licenseDocumentUrl: "",
@@ -79,28 +80,30 @@ export const EmployerProfileSetup = () => {
     isVerified: false
   });
 
+  const [profileLoading, setProfileLoading] = useState(true);
+
   useEffect(() => {
-    // Pre-fill user data
-    if (user) {
-      const names = user.full_name?.split(" ") || ["", ""];
-      setFormData((prev) => ({
-        ...prev,
-        firstName: names[0] || "",
-        lastName: names.slice(1).join(" ") || "",
-        email: user.email || "",
-      }));
-      
-      // Fetch existing profile if any
-      fetchProfile();
-    }
-  }, [user]);
+    // Fetch existing profile if any (this now returns user info too)
+    fetchProfile();
+  }, []);
 
   const fetchProfile = async () => {
+    setProfileLoading(true);
     try {
-      const res = await api.get<Record<string, any>>("/employers/profile");
-      const data = res;
+      const data = await api.get<Record<string, any>>("/employers/profile");
+
+      // Split full_name into first/last for display
+      const names = (data.full_name || "").split(" ");
+      const firstName = names[0] || "";
+      const lastName = names.slice(1).join(" ") || "";
+
       setFormData((prev) => ({
         ...prev,
+        // Pre-fill from user data (now included in profile response)
+        firstName: firstName,
+        lastName: lastName,
+        email: data.email || "",
+        // Pre-fill from profile data
         companyName: data.company_name || "",
         contactNumber: data.contact_number || "",
         designation: data.designation || "",
@@ -112,11 +115,29 @@ export const EmployerProfileSetup = () => {
         websiteUrl: data.website_url || "",
         licenseDocumentUrl: data.license_document_url || "",
         socialMediaLink: data.social_media_link || "",
-        isVerified: data.is_verified || false
+        isVerified: data.is_verified || false,
+        // Pre-fill verification status
+        isMobileVerified: data.is_phone_verified || false,
+        isEmailVerified: data.is_email_verified || false,
       }));
     } catch (err) {
       // Profile might not exist yet, which is fine
-      console.log("No existing profile found");
+      console.log("No existing profile found, using signup data");
+      // Try to get basic user info from /auth/me
+      try {
+        const me = await api.get<Record<string, any>>("/auth/me");
+        const names = (me.full_name || "").split(" ");
+        setFormData((prev) => ({
+          ...prev,
+          firstName: names[0] || "",
+          lastName: names.slice(1).join(" ") || "",
+          email: me.email || "",
+        }));
+      } catch (e) {
+        console.log("Could not fetch user info either");
+      }
+    } finally {
+      setProfileLoading(false);
     }
   };
 
@@ -136,6 +157,7 @@ export const EmployerProfileSetup = () => {
     try {
       await api.post("/auth/request-otp", { type: "phone" });
       setFormData(prev => ({ ...prev, otpSent: true }));
+      setError("");
     } catch (e: any) {
       setError(e.message);
     }
@@ -145,6 +167,27 @@ export const EmployerProfileSetup = () => {
     try {
       await api.post("/auth/verify-otp", { type: "phone", code: formData.otp });
       setFormData(prev => ({ ...prev, isMobileVerified: true }));
+      setError("");
+    } catch (e: any) {
+      setError(e.message);
+    }
+  };
+
+  const sendEmailOtp = async () => {
+    try {
+      await api.post("/auth/request-otp", { type: "email" });
+      setFormData(prev => ({ ...prev, emailOtpSent: true }));
+      setError("");
+    } catch (e: any) {
+      setError(e.message);
+    }
+  };
+
+  const verifyEmailOtp = async () => {
+    try {
+      await api.post("/auth/verify-otp", { type: "email", code: formData.emailOtp });
+      setFormData(prev => ({ ...prev, isEmailVerified: true }));
+      setError("");
     } catch (e: any) {
       setError(e.message);
     }
@@ -154,52 +197,64 @@ export const EmployerProfileSetup = () => {
     setLoading(true);
     setError("");
     try {
-        // Prepare payload matching backend schema
-        const payload = {
-            contact_number: formData.contactNumber,
-            designation: formData.designation,
-            company_name: formData.companyName,
-            organization_description: formData.organizationDescription,
-            city: formData.city,
-            industry: formData.industry,
-            employee_count: formData.employeeCount,
-            logo_url: formData.logoUrl,
-            website_url: formData.websiteUrl,
-            license_document_url: formData.licenseDocumentUrl,
-            social_media_link: formData.socialMediaLink,
-            // Note: is_verified is set by admin usually, but for this demo we might auto-verify or request verification
-            // The backend update endpoint doesn't allow setting is_verified directly (security), 
-            // but we can assume submitting these docs initiates verification.
-        };
+      // Prepare payload matching backend schema
+      const payload = {
+        contact_number: formData.contactNumber,
+        designation: formData.designation,
+        company_name: formData.companyName,
+        organization_description: formData.organizationDescription,
+        city: formData.city,
+        industry: formData.industry,
+        employee_count: formData.employeeCount,
+        logo_url: formData.logoUrl,
+        website_url: formData.websiteUrl,
+        license_document_url: formData.licenseDocumentUrl,
+        social_media_link: formData.socialMediaLink,
+        // Note: is_verified is set by admin usually, but for this demo we might auto-verify or request verification
+        // The backend update endpoint doesn't allow setting is_verified directly (security), 
+        // but we can assume submitting these docs initiates verification.
+      };
 
-        // Check if profile exists (update) or create (the backend handles update on existing user_id)
-        // Since my backend uses PUT /profile to update and assumes profile exists (or 404),
-        // but wait, I didn't add a POST /profile for creation if it doesn't exist.
-        // The Signup flow usually creates a basic profile.
-        // If not, I should handle it. 
-        // Let's assume for now the user has a basic profile from registration (company name, contact).
-        // If not, I'll need to use PUT and if 404, maybe handle creation?
-        // Actually, my backend code for `update_employer_profile` returns 404 if not found.
-        // I should probably fix that to create if not exists or ensure registration creates it.
-        // Let's assume registration creates it or I will modify backend to create on PUT if missing (upsert).
-        
-        // For now, let's use API client (auth handled automatically)
-        await api.put("/employers/profile", payload);
+      // Check if profile exists (update) or create (the backend handles update on existing user_id)
+      // Since my backend uses PUT /profile to update and assumes profile exists (or 404),
+      // but wait, I didn't add a POST /profile for creation if it doesn't exist.
+      // The Signup flow usually creates a basic profile.
+      // If not, I should handle it. 
+      // Let's assume for now the user has a basic profile from registration (company name, contact).
+      // If not, I'll need to use PUT and if 404, maybe handle creation?
+      // Actually, my backend code for `update_employer_profile` returns 404 if not found.
+      // I should probably fix that to create if not exists or ensure registration creates it.
+      // Let's assume registration creates it or I will modify backend to create on PUT if missing (upsert).
 
-        navigate("/employer");
+      // For now, let's use API client (auth handled automatically)
+      await api.put("/employers/profile", payload);
+
+      navigate("/employer");
     } catch (err: any) {
-        console.error(err);
-        setError(err.response?.data?.detail || "Failed to save profile");
+      console.error(err);
+      setError(err.response?.data?.detail || "Failed to save profile");
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
+
+  // Show loading state while fetching profile
+  if (profileLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-10 px-4">
       <div className="max-w-4xl mx-auto">
         <h1 className="text-3xl font-bold text-center text-gray-800 mb-10">Complete Your Employer Profile</h1>
-        
+
         <StepIndicator currentStep={step} />
 
         <div className="bg-white rounded-2xl shadow-xl p-8 transition-all duration-300">
@@ -213,7 +268,7 @@ export const EmployerProfileSetup = () => {
           {step === 1 && (
             <div className="space-y-6 animate-fadeIn">
               <h2 className="text-2xl font-semibold text-gray-800 border-b pb-4 mb-6">Personal Details</h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
@@ -235,14 +290,48 @@ export const EmployerProfileSetup = () => {
                 </div>
               </div>
 
+              {/* Email with verification */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  disabled
-                  className="w-full px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-500 cursor-not-allowed"
-                />
+                <div className="flex gap-4">
+                  <input
+                    type="email"
+                    value={formData.email}
+                    disabled
+                    className="flex-1 px-4 py-3 bg-gray-100 border border-gray-300 rounded-lg text-gray-500 cursor-not-allowed"
+                  />
+                  {!formData.isEmailVerified && (
+                    <button
+                      onClick={sendEmailOtp}
+                      className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                    >
+                      {formData.emailOtpSent ? "Resend" : "Verify Email"}
+                    </button>
+                  )}
+                </div>
+                {formData.emailOtpSent && !formData.isEmailVerified && (
+                  <div className="mt-4 flex gap-4 items-center animate-slideDown">
+                    <input
+                      type="text"
+                      placeholder="Enter Email OTP"
+                      value={formData.emailOtp}
+                      onChange={(e) => handleInputChange("emailOtp", e.target.value)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg w-40"
+                    />
+                    <button
+                      onClick={verifyEmailOtp}
+                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    >
+                      Submit OTP
+                    </button>
+                    <span className="text-sm text-gray-500">Use 1234</span>
+                  </div>
+                )}
+                {formData.isEmailVerified && (
+                  <p className="mt-2 text-green-600 font-medium flex items-center gap-2">
+                    ✓ Email Verified
+                  </p>
+                )}
               </div>
 
               <div>
@@ -256,6 +345,7 @@ export const EmployerProfileSetup = () => {
                 />
               </div>
 
+              {/* Mobile with verification */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Mobile Number</label>
                 <div className="flex gap-4">
@@ -271,42 +361,55 @@ export const EmployerProfileSetup = () => {
                   />
                   {!formData.isMobileVerified && (
                     <button
-                        onClick={sendOtp}
-                        className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
+                      onClick={sendOtp}
+                      className="px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors"
                     >
-                        {formData.otpSent ? "Resend" : "Verify"}
+                      {formData.otpSent ? "Resend" : "Verify"}
                     </button>
                   )}
                 </div>
                 {formData.otpSent && !formData.isMobileVerified && (
-                    <div className="mt-4 flex gap-4 items-center animate-slideDown">
-                        <input 
-                            type="text" 
-                            placeholder="Enter OTP" 
-                            value={formData.otp}
-                            onChange={(e) => handleInputChange("otp", e.target.value)}
-                            className="px-4 py-2 border border-gray-300 rounded-lg w-40"
-                        />
-                        <button 
-                            onClick={verifyOtp}
-                            className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
-                        >
-                            Submit OTP
-                        </button>
-                        <span className="text-sm text-gray-500">Use 1234</span>
-                    </div>
+                  <div className="mt-4 flex gap-4 items-center animate-slideDown">
+                    <input
+                      type="text"
+                      placeholder="Enter OTP"
+                      value={formData.otp}
+                      onChange={(e) => handleInputChange("otp", e.target.value)}
+                      className="px-4 py-2 border border-gray-300 rounded-lg w-40"
+                    />
+                    <button
+                      onClick={verifyOtp}
+                      className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700"
+                    >
+                      Submit OTP
+                    </button>
+                    <span className="text-sm text-gray-500">Use 1234</span>
+                  </div>
                 )}
                 {formData.isMobileVerified && (
-                    <p className="mt-2 text-green-600 font-medium flex items-center gap-2">
-                        ✓ Verified
-                    </p>
+                  <p className="mt-2 text-green-600 font-medium flex items-center gap-2">
+                    ✓ Mobile Verified
+                  </p>
                 )}
+              </div>
+
+              {/* Verification Status Summary */}
+              <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <h4 className="font-medium text-gray-700 mb-2">Verification Status</h4>
+                <div className="flex gap-4">
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${formData.isEmailVerified ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    Email: {formData.isEmailVerified ? '✓ Verified' : 'Pending'}
+                  </span>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${formData.isMobileVerified ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                    Phone: {formData.isMobileVerified ? '✓ Verified' : 'Pending'}
+                  </span>
+                </div>
               </div>
 
               <div className="flex justify-end pt-6">
                 <button
                   onClick={handleNext}
-                  disabled={!formData.contactNumber || !formData.designation} // Basic validation
+                  disabled={!formData.contactNumber || !formData.designation}
                   className="px-8 py-3 bg-blue-600 text-white font-semibold rounded-lg shadow-md hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-all transform hover:-translate-y-1"
                 >
                   Next
@@ -340,7 +443,7 @@ export const EmployerProfileSetup = () => {
                   className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500"
                 />
                 <label htmlFor="independent" className="text-gray-700">
-                    I am an independent practitioner (freelancer, etc.)
+                  I am an independent practitioner (freelancer, etc.)
                 </label>
               </div>
 
@@ -357,61 +460,61 @@ export const EmployerProfileSetup = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
-                    <input
+                  <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                  <input
                     type="text"
                     value={formData.city}
                     onChange={(e) => handleInputChange("city", e.target.value)}
                     placeholder="e.g. Mumbai"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    />
+                  />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Industry</label>
-                    <input
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Industry</label>
+                  <input
                     type="text"
                     value={formData.industry}
                     onChange={(e) => handleInputChange("industry", e.target.value)}
                     placeholder="Select industry"
                     className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-                    />
+                  />
                 </div>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">No. of employees</label>
                 <select
-                    value={formData.employeeCount}
-                    onChange={(e) => handleInputChange("employeeCount", e.target.value)}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
+                  value={formData.employeeCount}
+                  onChange={(e) => handleInputChange("employeeCount", e.target.value)}
+                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white"
                 >
-                    <option value="">Select an option</option>
-                    <option value="0-10">0-10</option>
-                    <option value="11-50">11-50</option>
-                    <option value="51-200">51-200</option>
-                    <option value="201-500">201-500</option>
-                    <option value="500+">500+</option>
+                  <option value="">Select an option</option>
+                  <option value="0-10">0-10</option>
+                  <option value="11-50">11-50</option>
+                  <option value="51-200">51-200</option>
+                  <option value="201-500">201-500</option>
+                  <option value="500+">500+</option>
                 </select>
               </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Organization Logo (Recommended)</label>
                 <div className="relative border-2 border-dashed border-blue-300 rounded-lg p-6 text-center bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer">
-                    <p className="text-blue-600 font-medium mb-1">Upload Logo</p>
-                    <p className="text-xs text-gray-500">Max file size: 1Mb. types: jpeg, png</p>
-                    {/* Mock File Input */}
-                    <input 
-                        type="file" 
-                        className="hidden" 
-                        id="logo-upload"
-                        onChange={(e) => {
-                            if(e.target.files?.[0]) {
-                                handleInputChange("logoUrl", "https://via.placeholder.com/150?text=" + e.target.files[0].name);
-                                alert("Logo uploaded successfully (mock)");
-                            }
-                        }} 
-                    />
-                    <label htmlFor="logo-upload" className="absolute inset-0 cursor-pointer"></label>
+                  <p className="text-blue-600 font-medium mb-1">Upload Logo</p>
+                  <p className="text-xs text-gray-500">Max file size: 1Mb. types: jpeg, png</p>
+                  {/* Mock File Input */}
+                  <input
+                    type="file"
+                    className="hidden"
+                    id="logo-upload"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        handleInputChange("logoUrl", "https://via.placeholder.com/150?text=" + e.target.files[0].name);
+                        alert("Logo uploaded successfully (mock)");
+                      }
+                    }}
+                  />
+                  <label htmlFor="logo-upload" className="absolute inset-0 cursor-pointer"></label>
                 </div>
                 {formData.logoUrl && <p className="mt-2 text-sm text-green-600">Logo selected: {formData.logoUrl}</p>}
               </div>
@@ -438,7 +541,7 @@ export const EmployerProfileSetup = () => {
           {step === 3 && (
             <div className="space-y-6 animate-fadeIn">
               <h2 className="text-2xl font-semibold text-gray-800 border-b pb-4 mb-6">Account Verification</h2>
-              
+
               <div className="bg-blue-50 p-4 rounded-lg text-blue-800 mb-6">
                 Get your organization verified by submitting the details below to start posting internships/jobs.
               </div>
@@ -446,92 +549,92 @@ export const EmployerProfileSetup = () => {
               <div className="space-y-4">
                 {/* Option 1: License */}
                 <div className={`border p-4 rounded-lg cursor-pointer transition-all ${formData.verificationMethod === 'license' ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
-                    onClick={() => handleInputChange("verificationMethod", "license")}
+                  onClick={() => handleInputChange("verificationMethod", "license")}
                 >
-                    <div className="flex items-center gap-3 mb-2">
-                        <input 
-                            type="radio" 
-                            name="verification" 
-                            checked={formData.verificationMethod === 'license'}
-                            onChange={() => handleInputChange("verificationMethod", "license")}
-                            className="w-5 h-5 text-blue-600"
-                        />
-                        <span className="font-medium text-gray-800">I have a business/practice license</span>
+                  <div className="flex items-center gap-3 mb-2">
+                    <input
+                      type="radio"
+                      name="verification"
+                      checked={formData.verificationMethod === 'license'}
+                      onChange={() => handleInputChange("verificationMethod", "license")}
+                      className="w-5 h-5 text-blue-600"
+                    />
+                    <span className="font-medium text-gray-800">I have a business/practice license</span>
+                  </div>
+                  {formData.verificationMethod === 'license' && (
+                    <div className="ml-8 mt-2 animate-fadeIn">
+                      <p className="text-sm text-gray-600 mb-3">Upload official document</p>
+                      <button className="w-full py-2 border-2 border-dashed border-blue-400 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
+                        Upload file
+                      </button>
                     </div>
-                    {formData.verificationMethod === 'license' && (
-                        <div className="ml-8 mt-2 animate-fadeIn">
-                            <p className="text-sm text-gray-600 mb-3">Upload official document</p>
-                            <button className="w-full py-2 border-2 border-dashed border-blue-400 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors">
-                                Upload file
-                            </button>
-                        </div>
-                    )}
+                  )}
                 </div>
 
                 {/* Option 2: Social Media */}
                 <div className={`border p-4 rounded-lg cursor-pointer transition-all ${formData.verificationMethod === 'social' ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
-                    onClick={() => handleInputChange("verificationMethod", "social")}
+                  onClick={() => handleInputChange("verificationMethod", "social")}
                 >
-                    <div className="flex items-center gap-3 mb-2">
-                        <input 
-                            type="radio" 
-                            name="verification" 
-                            checked={formData.verificationMethod === 'social'}
-                            onChange={() => handleInputChange("verificationMethod", "social")}
-                            className="w-5 h-5 text-blue-600"
-                        />
-                        <span className="font-medium text-gray-800">I have an active social media page</span>
+                  <div className="flex items-center gap-3 mb-2">
+                    <input
+                      type="radio"
+                      name="verification"
+                      checked={formData.verificationMethod === 'social'}
+                      onChange={() => handleInputChange("verificationMethod", "social")}
+                      className="w-5 h-5 text-blue-600"
+                    />
+                    <span className="font-medium text-gray-800">I have an active social media page</span>
+                  </div>
+                  {formData.verificationMethod === 'social' && (
+                    <div className="ml-8 mt-2 animate-fadeIn">
+                      <p className="text-sm text-gray-600 mb-3">Connect your organization/founder's LinkedIn or other social media profile (with minimum ~1000 followers).</p>
+                      <div className="flex gap-4">
+                        <button className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2">
+                          <span>Instagram</span>
+                        </button>
+                        <button className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2">
+                          <span>LinkedIn</span>
+                        </button>
+                        <button className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2">
+                          <span>YouTube</span>
+                        </button>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Paste your profile link here"
+                        value={formData.socialMediaLink}
+                        onChange={(e) => handleInputChange("socialMediaLink", e.target.value)}
+                        className="w-full mt-3 px-4 py-2 border border-gray-300 rounded-lg"
+                      />
                     </div>
-                    {formData.verificationMethod === 'social' && (
-                        <div className="ml-8 mt-2 animate-fadeIn">
-                            <p className="text-sm text-gray-600 mb-3">Connect your organization/founder's LinkedIn or other social media profile (with minimum ~1000 followers).</p>
-                            <div className="flex gap-4">
-                                <button className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2">
-                                    <span>Instagram</span>
-                                </button>
-                                <button className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2">
-                                    <span>LinkedIn</span>
-                                </button>
-                                <button className="flex-1 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2">
-                                    <span>YouTube</span>
-                                </button>
-                            </div>
-                            <input 
-                                type="text" 
-                                placeholder="Paste your profile link here" 
-                                value={formData.socialMediaLink}
-                                onChange={(e) => handleInputChange("socialMediaLink", e.target.value)}
-                                className="w-full mt-3 px-4 py-2 border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                    )}
+                  )}
                 </div>
 
                 {/* Option 3: Website */}
                 <div className={`border p-4 rounded-lg cursor-pointer transition-all ${formData.verificationMethod === 'website' ? 'border-blue-500 ring-1 ring-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'}`}
-                    onClick={() => handleInputChange("verificationMethod", "website")}
+                  onClick={() => handleInputChange("verificationMethod", "website")}
                 >
-                    <div className="flex items-center gap-3 mb-2">
-                        <input 
-                            type="radio" 
-                            name="verification" 
-                            checked={formData.verificationMethod === 'website'}
-                            onChange={() => handleInputChange("verificationMethod", "website")}
-                            className="w-5 h-5 text-blue-600"
-                        />
-                        <span className="font-medium text-gray-800">I have an active and functional website</span>
+                  <div className="flex items-center gap-3 mb-2">
+                    <input
+                      type="radio"
+                      name="verification"
+                      checked={formData.verificationMethod === 'website'}
+                      onChange={() => handleInputChange("verificationMethod", "website")}
+                      className="w-5 h-5 text-blue-600"
+                    />
+                    <span className="font-medium text-gray-800">I have an active and functional website</span>
+                  </div>
+                  {formData.verificationMethod === 'website' && (
+                    <div className="ml-8 mt-2 animate-fadeIn">
+                      <input
+                        type="text"
+                        placeholder="Enter website URL (e.g. https://mycompany.com)"
+                        value={formData.websiteUrl}
+                        onChange={(e) => handleInputChange("websiteUrl", e.target.value)}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                      />
                     </div>
-                    {formData.verificationMethod === 'website' && (
-                        <div className="ml-8 mt-2 animate-fadeIn">
-                            <input 
-                                type="text" 
-                                placeholder="Enter website URL (e.g. https://mycompany.com)" 
-                                value={formData.websiteUrl}
-                                onChange={(e) => handleInputChange("websiteUrl", e.target.value)}
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                            />
-                        </div>
-                    )}
+                  )}
                 </div>
               </div>
 
@@ -553,9 +656,9 @@ export const EmployerProfileSetup = () => {
             </div>
           )}
         </div>
-        
+
         <p className="text-center text-gray-500 mt-8 text-sm">
-            Need help? Call us at <span className="text-blue-600 font-medium">+91 8448444852</span>, available from Mon to Fri, 10 AM - 6 PM.
+          Need help? Call us at <span className="text-blue-600 font-medium">+91 8448444852</span>, available from Mon to Fri, 10 AM - 6 PM.
         </p>
       </div>
     </div>
