@@ -132,17 +132,21 @@ export const EmployerProfileSetup = () => {
     if (step > 1) setStep(step - 1);
   };
 
-  const sendOtp = () => {
-    // Mock OTP send
-    setFormData(prev => ({ ...prev, otpSent: true }));
-    alert("OTP sent to " + formData.contactNumber);
+  const sendOtp = async () => {
+    try {
+      await api.post("/auth/request-otp", { type: "phone" });
+      setFormData(prev => ({ ...prev, otpSent: true }));
+    } catch (e: any) {
+      setError(e.message);
+    }
   };
 
-  const verifyOtp = () => {
-    if (formData.otp === "1234") { // Mock OTP
-        setFormData(prev => ({ ...prev, isMobileVerified: true }));
-    } else {
-        alert("Invalid OTP (Use 1234)");
+  const verifyOtp = async () => {
+    try {
+      await api.post("/auth/verify-otp", { type: "phone", code: formData.otp });
+      setFormData(prev => ({ ...prev, isMobileVerified: true }));
+    } catch (e: any) {
+      setError(e.message);
     }
   };
 

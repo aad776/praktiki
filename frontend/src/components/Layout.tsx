@@ -21,7 +21,8 @@ const roleNavConfig = {
     icon: '🏢',
     navItems: [
       { path: '/employer', label: 'Dashboard', icon: 'home' },
-      { path: '/employer/profile', label: 'Company Profile', icon: 'building' },
+      { path: '/employer/status', label: 'Company Status', icon: 'building' },
+      { path: '/employer/applications', label: 'Applications', icon: 'users' },
     ],
   },
   institute: {

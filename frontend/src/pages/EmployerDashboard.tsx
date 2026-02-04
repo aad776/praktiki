@@ -1,42 +1,44 @@
 import { useEffect, useState, FormEvent } from "react";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import { useAuth } from "../context/AuthContext";
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+import api from "../services/api";
+import { MapContainer, TileLayer, useMapEvents, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
 // Fix Leaflet marker icon issue
-// @ts-ignore
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+import markerIcon from 'leaflet/dist/images/marker-icon.png';
+import markerShadow from 'leaflet/dist/images/marker-shadow.png';
+
+const DefaultIcon = L.icon({
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41]
 });
+L.Marker.prototype.options.icon = DefaultIcon;
 
-function LocationPicker({ position, setPosition, setLocation }: { 
-    position: [number, number], 
-    setPosition: (pos: [number, number]) => void,
-    setLocation: (loc: string) => void
-}) {
-  useMapEvents({
-    click(e) {
-      const { lat, lng } = e.latlng;
-      setPosition([lat, lng]);
-      // Simple reverse geocoding placeholder or manual input reminder
-      // In a real app, you'd call a reverse geocoding API here
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`)
-        .then(res => res.json())
-        .then(data => {
-            if (data.display_name) {
-                setLocation(data.display_name);
-            }
-        });
-    },
-  });
+function LocationPicker({ position, setPosition, setLocation }: any) {
+    useMapEvents({
+        click(e) {
+            const { lat, lng } = e.latlng;
+            setPosition([lat, lng]);
+            // Reverse geocode
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data.display_name) {
+                        setLocation(data.display_name);
+                    }
+                });
+        },
+    });
 
-  return <Marker position={position} />;
+    return position ? (
+        <Marker position={position}>
+            <Popup>Selected Location</Popup>
+        </Marker>
+    ) : null;
 }
 
 interface Internship {
@@ -147,34 +149,57 @@ export function EmployerDashboard() {
   const [isVerified, setIsVerified] = useState(false);
   const [showPostModal, setShowPostModal] = useState(false);
 
-  function createClient() {
-    return axios.create({
-      baseURL: "",
-      headers: token ? { Authorization: `Bearer ${token}` } : {}
-    });
-  }
-
   useEffect(() => {
     if (!token) return;
-    const client = createClient();
-    client.get("/employers/my-internships").then((res) => setInternships(res.data));
     
-    // Check verification status
-    client.get("/employers/profile").then(res => {
-        setIsVerified(res.data.is_verified);
-    }).catch(err => {
-        console.log("Profile fetch error:", err);
-        setIsVerified(false);
+    // Fetch internships
+    api.get<Internship[]>('/employers/my-internships').then(res => setInternships(res)).catch(err => {
+      console.error("Failed to fetch internships:", err);
     });
+    
+    Promise.all([
+      api.get<any>('/employers/profile'),
+      api.get<any>('/auth/me')
+    ])
+      .then(([profile, me]) => {
+        // A profile is "complete" if key fields are present
+        const requiredFields = [
+          profile.company_name,
+          profile.contact_number,
+          profile.designation,
+          profile.city,
+          profile.industry
+        ];
+        const isProfileComplete = requiredFields.every(v => v && String(v).trim() !== "");
+        
+        // Final verification requires complete profile AND email/phone verified
+        // IMPORTANT: We use the backend's verified flags from /auth/me
+        const ok = isProfileComplete && Boolean(me.is_email_verified) && Boolean(me.is_phone_verified);
+        
+        console.log("Verification check details:", { 
+          profileData: profile,
+          meData: me,
+          requiredFields,
+          isProfileComplete, 
+          is_email_verified: me.is_email_verified, 
+          is_phone_verified: me.is_phone_verified,
+          final: ok 
+        });
+        
+        setIsVerified(ok);
+      })
+      .catch((err) => {
+        console.error("Dashboard verification check failed:", err);
+        setIsVerified(false);
+      });
 
     // Initial load of applications for all internships to make it "real-time"
     const loadAllApps = async () => {
       try {
-        const res = await client.get("/employers/my-internships");
-        const jobs = res.data;
+        const jobs = await api.get<Internship[]>('/employers/my-internships');
         for (const job of jobs) {
-          const appRes = await client.get(`/employers/internships/${job.id}/applications`);
-          setApplicationsByInternship(prev => ({ ...prev, [job.id]: appRes.data }));
+          const apps = await api.get<Application[]>(`/employers/internships/${job.id}/applications`);
+          setApplicationsByInternship(prev => ({ ...prev, [job.id]: apps }));
         }
       } catch (e) {
         console.error("Auto-load applications failed", e);
@@ -193,6 +218,7 @@ export function EmployerDashboard() {
 
     if (!isVerified) {
         setError("You must complete your profile and be verified to post internships.");
+        console.log("Post blocked: isVerified is false");
         return;
     }
 
@@ -212,33 +238,34 @@ export function EmployerDashboard() {
     setLoading(true);
 
     const jobData = {
-      title,
-      description,
-      location,
-      mode,
-      duration_weeks: duration,
-      stipend_amount: stipendAmount === "" ? null : stipendAmount,
-      deadline,
-      start_date: startDate,
-      skills: skills.split(",").map(s => s.trim()).filter(s => s !== ""),
-      openings,
-      qualifications,
-      benefits: benefits.split(",").map(s => s.trim()).filter(s => s !== ""),
-      contact_name: contactName,
-      contact_email: contactEmail,
-      contact_phone: contactPhone,
-      application_link: applicationLink,
-      application_email: applicationEmail
+      title: title || "",
+      description: description || "",
+      location: location || "",
+      mode: mode || "remote",
+      duration_weeks: Number(duration) || 8,
+      stipend_amount: stipendAmount === "" || isNaN(stipendAmount as number) ? null : Number(stipendAmount),
+      deadline: deadline || null,
+      start_date: startDate || null,
+      skills: typeof skills === 'string' ? skills.split(",").map(s => s.trim()).filter(s => s !== "") : [],
+      openings: Number(openings) || 1,
+      qualifications: qualifications || "",
+      benefits: typeof benefits === 'string' ? benefits.split(",").map(s => s.trim()).filter(s => s !== "") : [],
+      contact_name: contactName || "",
+      contact_email: contactEmail || "",
+      contact_phone: contactPhone || "",
+      application_link: applicationLink || "",
+      application_email: applicationEmail || ""
     };
 
+    console.log("Posting Internship Data:", jobData);
+
     try {
-      const client = createClient();
-      await client.post("/employers/internships", jobData);
+      await api.post('/employers/internships', jobData);
       setMessage("Internship posted successfully!");
       setShowPostModal(false);
       // Refresh internships
-      const res = await client.get("/employers/my-internships");
-      setInternships(res.data);
+      const internships = await api.get<Internship[]>('/employers/my-internships');
+      setInternships(internships);
       // Clear form
       setTitle("");
       setDescription("");
@@ -262,7 +289,7 @@ export function EmployerDashboard() {
       setTimeout(() => setMessage(null), 3000);
     } catch (err: any) {
       console.error("Failed to post internship:", err);
-      const errorMsg = err.response?.data?.detail || "Could not post internship. Please try again later.";
+      const errorMsg = err.message || "Could not post internship. Please try again later.";
       setError(errorMsg);
     } finally {
       setLoading(false);
@@ -276,17 +303,16 @@ export function EmployerDashboard() {
     // Don't clear existing error here, as it might be from another operation
 
     try {
-      const client = createClient();
-      const res = await client.get(`/employers/internships/${internshipId}/applications`);
+      const apps = await api.get<Application[]>(`/employers/internships/${internshipId}/applications`);
       setApplicationsByInternship((prev) => ({
         ...prev,
-        [internshipId]: res.data
+        [internshipId]: apps
       }));
       // Clear error if successful
       setError(null);
     } catch (err: any) {
       console.error("Failed to load applications:", err);
-      const errorMsg = err.response?.data?.detail || "Could not load applications. Please try again later.";
+      const errorMsg = err.message || "Could not load applications. Please try again later.";
       setError(errorMsg);
     } finally {
       setLoadingId(null);
@@ -300,15 +326,14 @@ export function EmployerDashboard() {
     setError(null);
 
     try {
-      const client = createClient();
-      const res = await client.get(`/employers/internships/${internshipId}/recommended-students`);
+      const recs = await api.get<RecommendedStudent[]>(`/employers/internships/${internshipId}/recommended-students`);
       setRecommendationsByInternship((prev) => ({
         ...prev,
-        [internshipId]: res.data
+        [internshipId]: recs
       }));
     } catch (err: any) {
       console.error("Failed to load recommendations:", err);
-      const errorMsg = err.response?.data?.detail || "Could not load recommendations. Please try again later.";
+      const errorMsg = err.message || "Could not load recommendations. Please try again later.";
       setError(errorMsg);
     } finally {
       setLoadingRecsId(null);
@@ -322,22 +347,21 @@ export function EmployerDashboard() {
     setError(null);
 
     try {
-      const client = createClient();
-      await client.put(`/employers/applications/${applicationId}/status`, { status });
+      await api.put(`/employers/applications/${applicationId}/status`, { status });
       setMessage(`Application ${status} successfully!`);
       
       // Refresh applications list
-      const res = await client.get(`/employers/internships/${internshipId}/applications`);
+      const apps = await api.get<Application[]>(`/employers/internships/${internshipId}/applications`);
       setApplicationsByInternship((prev) => ({
         ...prev,
-        [internshipId]: res.data
+        [internshipId]: apps
       }));
       
       // Clear message after 3 seconds
       setTimeout(() => setMessage(null), 3000);
     } catch (err: any) {
       console.error("Failed to update application status:", err);
-      const errorMsg = err.response?.data?.detail || "Could not update status. Please try again later.";
+      const errorMsg = err.message || "Could not update status. Please try again later.";
       setError(errorMsg);
     } finally {
       setUpdatingStatusId(null);
@@ -431,8 +455,10 @@ export function EmployerDashboard() {
               <div className="text-center p-8 bg-slate-50 rounded-xl border border-slate-100">
                 <p className="text-slate-600 mb-6">Create a new internship listing to find the best talent.</p>
                 <button
-                    onClick={() => setShowPostModal(true)}
-                    className="inline-flex justify-center items-center rounded-xl bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white px-6 py-3 text-sm font-bold shadow-lg shadow-teal-500/30 hover:shadow-teal-500/40 transform hover:-translate-y-0.5 transition-all w-full"
+                    onClick={() => {
+                        setShowPostModal(true);
+                    }}
+                    className="inline-flex justify-center items-center rounded-xl px-6 py-3 text-sm font-bold shadow-lg transform transition-all w-full bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white shadow-teal-500/30 hover:shadow-teal-500/40 hover:-translate-y-0.5"
                 >
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                     Post New Internship
@@ -555,14 +581,14 @@ export function EmployerDashboard() {
                                 </div>
                                 <p className="text-slate-500 text-xs mt-0.5">{app.student.university_name || 'University not specified'}</p>
                                 <div className="flex flex-wrap gap-1 mt-2">
-                                    {app.student.skills?.split(',').slice(0, 3).map((skill, i) => (
+                                    {(app.student.skills?.split(',') || []).slice(0, 3).map((skill, i) => (
                                         <span key={i} className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">
                                             {skill.trim()}
                                         </span>
                                     ))}
-                                    {app.student.skills?.split(',').length > 3 && (
+                                    {(app.student.skills?.split(',') || []).length > 3 && (
                                         <span className="text-[9px] bg-slate-50 text-slate-400 px-1.5 py-0.5 rounded font-medium">
-                                            +{app.student.skills.split(',').length - 3}
+                                            +{(app.student.skills?.split(',') || []).length - 3}
                                         </span>
                                     )}
                                 </div>
@@ -614,14 +640,14 @@ export function EmployerDashboard() {
                                                 </div>
                                                 <p className="text-slate-500 text-xs mt-0.5">{app.student.university_name || 'University not specified'}</p>
                                                 <div className="flex flex-wrap gap-1 mt-2">
-                                                    {app.student.skills?.split(',').slice(0, 3).map((skill, i) => (
+                                                    {(app.student.skills?.split(',') || []).slice(0, 3).map((skill, i) => (
                                                         <span key={i} className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">
                                                             {skill.trim()}
                                                         </span>
                                                     ))}
-                                                    {app.student.skills?.split(',').length > 3 && (
+                                                    {(app.student.skills?.split(',') || []).length > 3 && (
                                                         <span className="text-[9px] bg-slate-50 text-slate-400 px-1.5 py-0.5 rounded font-medium">
-                                                            +{app.student.skills.split(',').length - 3}
+                                                            +{(app.student.skills?.split(',') || []).length - 3}
                                                         </span>
                                                     )}
                                                 </div>
@@ -666,14 +692,14 @@ export function EmployerDashboard() {
                                                 </div>
                                                 <p className="text-slate-500 text-xs mt-0.5">{app.student.university_name || 'University not specified'}</p>
                                                 <div className="flex flex-wrap gap-1 mt-2">
-                                                    {app.student.skills?.split(',').slice(0, 3).map((skill, i) => (
+                                                    {(app.student.skills?.split(',') || []).slice(0, 3).map((skill, i) => (
                                                         <span key={i} className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">
                                                             {skill.trim()}
                                                         </span>
                                                     ))}
-                                                    {app.student.skills?.split(',').length > 3 && (
+                                                    {(app.student.skills?.split(',') || []).length > 3 && (
                                                         <span className="text-[9px] bg-slate-50 text-slate-400 px-1.5 py-0.5 rounded font-medium">
-                                                            +{app.student.skills.split(',').length - 3}
+                                                            +{(app.student.skills?.split(',') || []).length - 3}
                                                         </span>
                                                     )}
                                                 </div>
@@ -841,8 +867,17 @@ export function EmployerDashboard() {
                             </button>
                         </div>
                         <div className="h-48 w-full rounded-xl overflow-hidden border border-slate-200 mb-4 z-0">
-                            <MapContainer center={mapPosition} zoom={13} style={{ height: '100%', width: '100%' }}>
-                                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                            <MapContainer 
+                                center={mapPosition} 
+                                zoom={13} 
+                                style={{ height: '100%', width: '100%' }}
+                            >
+                                {/* Use CartoDB tile server which is more reliable */}
+                                <TileLayer 
+                                    url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png" 
+                                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>' 
+                                    subdomains={['a', 'b', 'c', 'd']}
+                                />
                                 <LocationPicker position={mapPosition} setPosition={setMapPosition} setLocation={setLocation} />
                             </MapContainer>
                         </div>
@@ -866,7 +901,13 @@ export function EmployerDashboard() {
                             <input
                                 type="number"
                                 value={duration}
-                                onChange={(e) => setDuration(parseInt(e.target.value))}
+                                onChange={(e) => {
+                                    const value = parseInt(e.target.value);
+                                    // Only set value if it's a valid number and within range
+                                    if (!isNaN(value) && value >= 1 && value <= 52) {
+                                        setDuration(value);
+                                    }
+                                }}
                                 min="1"
                                 max="52"
                                 className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
@@ -877,7 +918,18 @@ export function EmployerDashboard() {
                             <input
                                 type="number"
                                 value={stipendAmount}
-                                onChange={(e) => setStipendAmount(e.target.value === "" ? "" : Number(e.target.value))}
+                                onChange={(e) => {
+                                    const value = e.target.value;
+                                    if (value === "") {
+                                        setStipendAmount("");
+                                    } else {
+                                        const numValue = Number(value);
+                                        // Only set value if it's a valid number
+                                        if (!isNaN(numValue)) {
+                                            setStipendAmount(numValue);
+                                        }
+                                    }
+                                }}
                                 className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
                                 placeholder="e.g. 5000"
                             />
@@ -992,8 +1044,15 @@ export function EmployerDashboard() {
                             <input
                                 type="number"
                                 value={openings}
-                                onChange={(e) => setOpenings(parseInt(e.target.value))}
+                                onChange={(e) => {
+                                    const value = parseInt(e.target.value);
+                                    // Only set value if it's a valid number and within range
+                                    if (!isNaN(value) && value >= 1 && value <= 100) {
+                                        setOpenings(value);
+                                    }
+                                }}
                                 min="1"
+                                max="100"
                                 className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
                             />
                         </div>

@@ -11,6 +11,10 @@ import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { StudentDashboard } from './pages/StudentDashboard';
 import { StudentProfileSetup } from './pages/StudentProfileSetup';
 import { EmployerDashboard } from './pages/EmployerDashboard';
+import { EmployerInternshipDetails } from './pages/EmployerInternshipDetails';
+import { EmployerProfileSetup } from './pages/EmployerProfileSetup';
+import { EmployerStatus } from './pages/EmployerStatus';
+import { EmployerApplications } from './pages/EmployerApplications';
 import { InstituteDashboard } from './pages/InstituteDashboard';
 import { InternshipDetails } from './pages/InternshipDetails';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
@@ -81,6 +85,38 @@ export function App() {
           element={
             <ProtectedRoute allowedRoles={['employer']}>
               <EmployerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/internship/:id"
+          element={
+            <ProtectedRoute allowedRoles={['employer']}>
+              <EmployerInternshipDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/setup"
+          element={
+            <ProtectedRoute allowedRoles={['employer']}>
+              <EmployerProfileSetup />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/status"
+          element={
+            <ProtectedRoute allowedRoles={['employer']}>
+              <EmployerStatus />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/applications"
+          element={
+            <ProtectedRoute allowedRoles={['employer']}>
+              <EmployerApplications />
             </ProtectedRoute>
           }
         />

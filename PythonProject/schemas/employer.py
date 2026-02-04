@@ -37,6 +37,7 @@ class EmployerProfileOut(BaseModel):
     license_document_url: Optional[str] = None
     social_media_link: Optional[str] = None
     is_verified: bool = False
+    is_phone_verified: bool = False
 
     class Config:
         from_attributes = True
@@ -47,6 +48,18 @@ class InternshipCreate(BaseModel):
     location: str
     mode: str  # remote, onsite, hybrid
     duration_weeks: int
+    stipend_amount: Optional[float] = None
+    deadline: Optional[str] = None
+    start_date: Optional[str] = None
+    skills: Optional[List[str]] = None
+    openings: Optional[int] = 1
+    qualifications: Optional[str] = None
+    benefits: Optional[List[str]] = None
+    contact_name: Optional[str] = None
+    contact_email: Optional[str] = None
+    contact_phone: Optional[str] = None
+    application_link: Optional[str] = None
+    application_email: Optional[str] = None
 
 
 class InternshipOut(BaseModel):
@@ -63,3 +76,26 @@ class InternshipOut(BaseModel):
 
 class ApplicationStatusUpdate(BaseModel):
     status: str
+
+class BulkApplicationStatusUpdate(BaseModel):
+    application_ids: List[int]
+    status: str
+
+class DashboardMetrics(BaseModel):
+    total_applicants: int
+    completed_internships: int
+    accepted_applications: int
+    rejected_applications: int
+    ongoing_programs: int
+
+class ApplicationOut(BaseModel):
+    id: int
+    student_id: int
+    internship_id: int
+    status: str
+    applied_at: str
+    student_name: Optional[str] = None
+    internship_title: Optional[str] = None
+
+    class Config:
+        from_attributes = True

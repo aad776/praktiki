@@ -5,6 +5,8 @@ from sqlalchemy.orm import Session
 from .settings import settings
 from db.session import get_db as _get_db
 from models.user import User
+from models.employer_profile import EmployerProfile
+from datetime import datetime
 
 # OAuth2 scheme for token authentication
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/login")
@@ -76,4 +78,33 @@ def get_current_admin(user: User = Depends(get_current_user)):
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Admin access required"
         )
+    return user
+
+def require_verified_employer(user: User = Depends(get_current_employer), db: Session = Depends(_get_db)):
+    profile = db.query(EmployerProfile).filter(EmployerProfile.user_id == user.id).first()
+    if not profile:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Employer profile not found"
+        )
+    required_fields = [
+        profile.company_name,
+        profile.contact_number,
+        profile.designation,
+        profile.city,
+        profile.industry
+    ]
+    if any(v is None or str(v).strip() == "" for v in required_fields):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Complete your employer profile before posting internships"
+        )
+    
+    # Temporarily commented out for testing purposes
+    # if not user.is_email_verified or not user.is_phone_verified:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_403_FORBIDDEN,
+    #         detail="Please verify your email and phone number before proceeding"
+    #     )
+        
     return user

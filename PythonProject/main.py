@@ -5,7 +5,8 @@ Main FastAPI application entry point
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
-from db.session import engine
+from db.session import engine, Base
+from models import *
 
 # Import routers
 from api.v1.auth import router as auth_router
@@ -25,17 +26,18 @@ app = FastAPI(
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5174",
-        "http://localhost:3000",
-    ],
+    allow_origins=["*"],  # Temporarily allow all for debugging
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.middleware("http")
+async def log_requests(request, call_next):
+    print(f"Incoming request: {request.method} {request.url}")
+    response = await call_next(request)
+    print(f"Response status: {response.status_code}")
+    return response
 
 # Include routers
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
@@ -66,7 +68,12 @@ def ensure_optional_columns():
             ("website_url", "VARCHAR"),
             ("license_document_url", "VARCHAR"),
             ("social_media_link", "VARCHAR"),
-            ("is_verified", "BOOLEAN DEFAULT 0")
+            ("is_verified", "BOOLEAN DEFAULT 0"),
+            ("is_phone_verified", "BOOLEAN DEFAULT 0"),
+            ("phone_otp_code", "VARCHAR"),
+            ("phone_otp_expires", "VARCHAR"),
+            ("email_otp_code", "VARCHAR"),
+            ("email_otp_expires", "VARCHAR")
         ]
         for name, sqltype in employer_cols:
             if not has_column("employer_profiles", name):
@@ -83,6 +90,40 @@ def ensure_optional_columns():
         for name, sqltype in resume_cols:
             if not has_column("student_resumes", name):
                 add_column("student_resumes", f"{name} {sqltype}")
+        # internship
+        internship_cols = [
+            ("stipend_amount", "INTEGER"),
+            ("deadline", "VARCHAR"),
+            ("start_date", "VARCHAR"),
+            ("skills", "VARCHAR"),
+            ("openings", "INTEGER DEFAULT 1"),
+            ("qualifications", "VARCHAR"),
+            ("benefits", "VARCHAR"),
+            ("contact_name", "VARCHAR"),
+            ("contact_email", "VARCHAR"),
+            ("contact_phone", "VARCHAR"),
+            ("application_link", "VARCHAR"),
+            ("application_email", "VARCHAR")
+        ]
+        for name, sqltype in internship_cols:
+            if not has_column("internships", name):
+                add_column("internships", f"{name} {sqltype}")
+
+        # users
+        user_cols = [
+            ("is_email_verified", "BOOLEAN DEFAULT 0"),
+            ("is_phone_verified", "BOOLEAN DEFAULT 0"),
+            ("phone_number", "VARCHAR"),
+            ("email_otp_code", "VARCHAR"),
+            ("email_otp_expires", "DATETIME"),
+            ("phone_otp_code", "VARCHAR"),
+            ("phone_otp_expires", "DATETIME")
+        ]
+        for name, sqltype in user_cols:
+            if not has_column("users", name):
+                add_column("users", f"{name} {sqltype}")
+
+    Base.metadata.create_all(bind=engine)
 
 
 @app.get("/", tags=["Health"])

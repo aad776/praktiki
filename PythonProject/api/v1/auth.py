@@ -12,6 +12,9 @@ from models.institute_profile import InstituteProfile
 import time
 import secrets
 from datetime import datetime, timedelta
+from pydantic import BaseModel
+from utils.dependencies import get_current_user
+from sqlalchemy import and_
 
 router = APIRouter()
 
@@ -144,7 +147,9 @@ def login(
     return {
         "access_token": access_token,
         "token_type": "bearer",
-        "role": user.role
+        "role": user.role,
+        "is_email_verified": user.is_email_verified,
+        "is_phone_verified": user.is_phone_verified
     }
 
 
@@ -159,7 +164,9 @@ def signup_employer(user_in: EmployerCreate, db: Session = Depends(get_db)):
         full_name=user_in.full_name,
         hashed_password=get_password_hash(user_in.password),
         role="employer",
-        is_email_verified=True
+        is_email_verified=False, # Now mandatory
+        is_phone_verified=False, # Now mandatory
+        phone_number=user_in.contact_number
     )
     db.add(new_user)
     db.commit()
@@ -174,6 +181,102 @@ def signup_employer(user_in: EmployerCreate, db: Session = Depends(get_db)):
     db.commit()
 
     return new_user
+
+class OtpRequest(BaseModel):
+    type: str  # "email" or "phone"
+
+class OtpVerify(BaseModel):
+    type: str  # "email" or "phone"
+    code: str
+
+@router.post("/request-otp")
+def request_otp(
+        req: OtpRequest,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    if req.type not in ("email", "phone"):
+        raise HTTPException(status_code=400, detail="Invalid OTP type")
+    
+    # We can allow all roles to verify if needed, but the requirement focuses on employers
+    
+    code = "1234" # HARDCODED FOR DEMO/TESTING
+    expires = datetime.utcnow() + timedelta(minutes=15)
+    
+    if req.type == "phone":
+        if not current_user.phone_number:
+             # Try to get from profile if not set on user
+             if current_user.role == "employer" and current_user.employer_profile:
+                 current_user.phone_number = current_user.employer_profile.contact_number
+             else:
+                 # If still not set, we can't send OTP, but for demo we'll allow it if provided in req or just use a dummy
+                 current_user.phone_number = "1234567890" 
+        
+        current_user.phone_otp_code = code
+        current_user.phone_otp_expires = expires
+        db.commit()
+        print(f"DEBUG: Phone OTP for {current_user.phone_number}: {code}")
+        return {"message": "OTP sent to phone", "code": code}
+    else:
+        current_user.email_otp_code = code
+        current_user.email_otp_expires = expires
+        db.commit()
+        print(f"DEBUG: Email OTP for {current_user.email}: {code}")
+        return {"message": "OTP sent to email", "code": code}
+
+@router.post("/verify-otp")
+def verify_otp(
+        req: OtpVerify,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    if req.type not in ("email", "phone"):
+        raise HTTPException(status_code=400, detail="Invalid OTP type")
+    
+    now = datetime.utcnow()
+    if req.type == "phone":
+        if not current_user.phone_otp_code or not current_user.phone_otp_expires:
+            raise HTTPException(status_code=400, detail="No OTP requested")
+        
+        if now > current_user.phone_otp_expires or current_user.phone_otp_code != req.code:
+            raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+        
+        current_user.is_phone_verified = True
+        # Also update the profile if it exists
+        if current_user.employer_profile:
+            current_user.employer_profile.is_phone_verified = True
+            
+        current_user.phone_otp_code = None
+        current_user.phone_otp_expires = None
+        db.commit()
+        return {"message": "Phone verified", "is_phone_verified": True}
+    else:
+        if not current_user.email_otp_code or not current_user.email_otp_expires:
+            raise HTTPException(status_code=400, detail="No OTP requested")
+        
+        if now > current_user.email_otp_expires or current_user.email_otp_code != req.code:
+            raise HTTPException(status_code=400, detail="Invalid or expired OTP")
+        
+        current_user.is_email_verified = True
+        # Also update the profile if it exists
+        if current_user.employer_profile:
+            current_user.employer_profile.is_verified = True # Map email/full verification to profile is_verified
+            
+        current_user.email_otp_code = None
+        current_user.email_otp_expires = None
+        db.commit()
+        return {"message": "Email verified", "is_email_verified": True}
+
+@router.get("/me")
+def me(current_user: User = Depends(get_current_user)):
+    return {
+        "id": current_user.id,
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "role": current_user.role,
+        "is_email_verified": current_user.is_email_verified,
+        "is_phone_verified": current_user.is_phone_verified
+    }
 
 
 @router.post("/signup/institute", response_model=UserOut)

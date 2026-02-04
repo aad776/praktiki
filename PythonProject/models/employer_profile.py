@@ -19,5 +19,6 @@ class EmployerProfile(Base):
     license_document_url = Column(String, nullable=True)
     social_media_link = Column(String, nullable=True)
     is_verified = Column(Boolean, default=False)
-
+    # Verification fields moved to User model
+    
     user = relationship("User", back_populates="employer_profile")

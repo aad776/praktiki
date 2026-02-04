@@ -13,6 +13,14 @@ class User(Base):
     full_name = Column(String, nullable=False)
     role = Column(String, default="student")
     is_email_verified = Column(Boolean, default=False)
+    is_phone_verified = Column(Boolean, default=False)
+    phone_number = Column(String, nullable=True)
+    
+    email_otp_code = Column(String, nullable=True)
+    email_otp_expires = Column(DateTime(timezone=True), nullable=True)
+    phone_otp_code = Column(String, nullable=True)
+    phone_otp_expires = Column(DateTime(timezone=True), nullable=True)
+    
     verification_token = Column(String, nullable=True)
     verification_token_expires = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

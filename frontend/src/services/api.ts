@@ -2,6 +2,8 @@
  * Base API configuration and utilities
  */
 
+import { config } from '../config';
+
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 interface RequestOptions extends RequestInit {
@@ -26,16 +28,28 @@ async function apiRequest<T>(
 
   // Set default headers (avoid setting Content-Type for FormData)
   const isFormData = fetchOptions.body instanceof FormData;
-  const headers: HeadersInit = {
+  const headers: Record<string, string> = {
     ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
-    ...fetchOptions.headers,
   };
 
   // Add auth token if available
-  const token = localStorage.getItem('access_token');
-  if (token) {
-    (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
+  let token = localStorage.getItem(config.auth.tokenKey);
+  if (token && token !== 'null' && token !== 'undefined') {
+    token = token.trim();
+    headers['Authorization'] = `Bearer ${token}`;
   }
+
+  // Merge custom headers
+  if (fetchOptions.headers) {
+    Object.assign(headers, fetchOptions.headers);
+  }
+
+  console.log('Final API Request:', {
+    url,
+    method: fetchOptions.method || 'GET',
+    headers,
+    hasBody: !!fetchOptions.body
+  });
 
   const response = await fetch(url, {
     ...fetchOptions,
@@ -43,8 +57,19 @@ async function apiRequest<T>(
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || `Request failed with status ${response.status}`);
+    let errorMessage = `Request failed with status ${response.status}`;
+    try {
+      const errorData = await response.json();
+      if (errorData.detail) {
+        errorMessage = errorData.detail;
+      } else if (errorData.message) {
+        errorMessage = errorData.message;
+      }
+    } catch (e) {
+      // If response is not JSON, use status text
+      errorMessage = response.statusText || errorMessage;
+    }
+    throw new Error(errorMessage);
   }
 
   return response.json();
@@ -79,20 +104,29 @@ const api = {
   delete: <T>(endpoint: string): Promise<T> => {
     return apiRequest<T>(endpoint, { method: 'DELETE' });
   },
+  
+  patch: <T>(endpoint: string, data?: unknown, options?: Omit<RequestOptions, 'body'>): Promise<T> => {
+    const body = data instanceof FormData ? data : data ? JSON.stringify(data) : undefined;
+    return apiRequest<T>(endpoint, {
+      method: 'PATCH',
+      body,
+      ...(options || {}),
+    });
+  },
 };
 
 /**
  * Set auth token in localStorage
  */
 export function setAuthToken(token: string): void {
-  localStorage.setItem('access_token', token);
+  localStorage.setItem(config.auth.tokenKey, token);
 }
 
 /**
  * Clear auth token from localStorage
  */
 export function clearAuthToken(): void {
-  localStorage.removeItem('access_token');
+  localStorage.removeItem(config.auth.tokenKey);
 }
 
 // Export types for error handling
