@@ -15,6 +15,7 @@ import { InstituteDashboard } from './pages/InstituteDashboard';
 import { InternshipDetails } from './pages/InternshipDetails';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { BrowseInternshipsPage } from './pages/BrowseInternship';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 export function App() {
@@ -62,6 +63,14 @@ export function App() {
           element={
             <ProtectedRoute allowedRoles={['student']}>
               <InternshipDetails />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/posted-internships"
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <BrowseInternshipsPage />
             </ProtectedRoute>
           }
         />

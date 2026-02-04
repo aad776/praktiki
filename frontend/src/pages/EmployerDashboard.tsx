@@ -1,15 +1,47 @@
-import { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
-import api, { ApiError } from '../lib/api';
-import { PageLoader, ButtonSpinner } from '../components/LoadingSpinner';
+import { useEffect, useState, FormEvent } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
+import { useAuth } from "../context/AuthContext";
+import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 
-// Types
+// Fix Leaflet marker icon issue
+// @ts-ignore
+delete L.Icon.Default.prototype._getIconUrl;
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+  iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+});
+
+function LocationPicker({ position, setPosition, setLocation }: { 
+    position: [number, number], 
+    setPosition: (pos: [number, number]) => void,
+    setLocation: (loc: string) => void
+}) {
+  useMapEvents({
+    click(e) {
+      const { lat, lng } = e.latlng;
+      setPosition([lat, lng]);
+      // Simple reverse geocoding placeholder or manual input reminder
+      // In a real app, you'd call a reverse geocoding API here
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&accept-language=en`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.display_name) {
+                setLocation(data.display_name);
+            }
+        });
+    },
+  });
+
+  return <Marker position={position} />;
+}
+
 interface Internship {
   id: number;
-  employer_id: number;
   title: string;
-  description: string;
   location: string;
   mode: string;
   duration_weeks: number;
@@ -17,415 +49,986 @@ interface Internship {
 
 interface Application {
   id: number;
-  student_id: number;
   internship_id: number;
   status: string;
   applied_at: string;
+  student: {
+    id: number;
+    first_name: string | null;
+    last_name: string | null;
+    university_name: string | null;
+    skills: string | null;
+  };
 }
 
-interface InternshipForm {
-  title: string;
-  description: string;
-  location: string;
-  mode: string;
-  duration_weeks: number;
+interface RecommendedStudent {
+  student_id: number;
+  student_name: string;
+  match_score: number;
+  matching_skills: string[];
+  missing_skills: string[];
+  explanation: {
+    matched_skills: string[];
+    missing_skills: string[];
+    rule_based_score: number;
+    embedding_score: number;
+    weights: {
+      rule: number;
+      embedding: number;
+    };
+  };
+  cross_encoder_score?: number;
 }
-
-const initialForm: InternshipForm = {
-  title: '',
-  description: '',
-  location: '',
-  mode: 'remote',
-  duration_weeks: 8,
-};
 
 export function EmployerDashboard() {
-  const { user, refreshUser } = useAuth();
-  const toast = useToast();
-
-  // State
+  const { token, logout } = useAuth();
   const [internships, setInternships] = useState<Internship[]>([]);
-  const [applications, setApplications] = useState<Record<number, Application[]>>({});
-  const [pageLoading, setPageLoading] = useState(true);
-  const [posting, setPosting] = useState(false);
-  const [updatingId, setUpdatingId] = useState<number | null>(null);
-  
-  // Form state
-  const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState<InternshipForm>(initialForm);
-  
-  // Selected internship for viewing applications
-  const [selectedInternship, setSelectedInternship] = useState<number | null>(null);
+  const [applicationsByInternship, setApplicationsByInternship] = useState<
+    Record<number, Application[]>
+  >({});
+  const [recommendationsByInternship, setRecommendationsByInternship] = useState<
+    Record<number, RecommendedStudent[]>
+  >({});
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [location, setLocation] = useState("");
+  const [mode, setMode] = useState("remote");
+  const [duration, setDuration] = useState(8);
+  const [skills, setSkills] = useState("");
+  const [stipendAmount, setStipendAmount] = useState<number | "">("");
+  const [deadline, setDeadline] = useState("");
+  const [openings, setOpenings] = useState(1);
+  const [startDate, setStartDate] = useState("");
+  const [qualifications, setQualifications] = useState("");
+  const [benefits, setBenefits] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [contactEmail, setContactEmail] = useState("");
+  const [contactPhone, setContactPhone] = useState("");
+  const [applicationEmail, setApplicationEmail] = useState("");
+  const [applicationLink, setApplicationLink] = useState("");
+  const [mapPosition, setMapPosition] = useState<[number, number]>([28.7041, 77.1025]); // Default to Delhi, India
+  const [isLocating, setIsLocating] = useState(false);
 
-  // Fetch data
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const response = await api.get<Internship[]>('/employers/my-internships');
-        setInternships(response.data);
-        
-        // Fetch applications for each internship
-        const appsMap: Record<number, Application[]> = {};
-        for (const internship of response.data) {
-          try {
-            const appsRes = await api.get<Application[]>(`/employers/internships/${internship.id}/applications`);
-            appsMap[internship.id] = appsRes.data;
-          } catch {
-            appsMap[internship.id] = [];
-          }
+  const handleGetCurrentLocation = () => {
+    setIsLocating(true);
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          const { latitude, longitude } = pos.coords;
+          setMapPosition([latitude, longitude]);
+          // Reverse geocode with English language
+          fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=en`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.display_name) {
+                    setLocation(data.display_name);
+                }
+            })
+            .finally(() => setIsLocating(false));
+        },
+        (err) => {
+          console.error("Geolocation error:", err);
+          setIsLocating(false);
+          setError("Could not get your current location. Please enter it manually.");
         }
-        setApplications(appsMap);
-      } catch (err) {
-        const error = err as ApiError;
-        toast.error(error.message || 'Failed to load internships');
-      } finally {
-        setPageLoading(false);
+      );
+    } else {
+      setIsLocating(false);
+      setError("Geolocation is not supported by your browser.");
+    }
+  };
+
+  const [loading, setLoading] = useState(false);
+  const [loadingId, setLoadingId] = useState<number | null>(null);
+  const [loadingRecsId, setLoadingRecsId] = useState<number | null>(null);
+  const [updatingStatusId, setUpdatingStatusId] = useState<number | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [isVerified, setIsVerified] = useState(false);
+  const [showPostModal, setShowPostModal] = useState(false);
+
+  function createClient() {
+    return axios.create({
+      baseURL: "",
+      headers: token ? { Authorization: `Bearer ${token}` } : {}
+    });
+  }
+
+  useEffect(() => {
+    if (!token) return;
+    const client = createClient();
+    client.get("/employers/my-internships").then((res) => setInternships(res.data));
+    
+    // Check verification status
+    client.get("/employers/profile").then(res => {
+        setIsVerified(res.data.is_verified);
+    }).catch(err => {
+        console.log("Profile fetch error:", err);
+        setIsVerified(false);
+    });
+
+    // Initial load of applications for all internships to make it "real-time"
+    const loadAllApps = async () => {
+      try {
+        const res = await client.get("/employers/my-internships");
+        const jobs = res.data;
+        for (const job of jobs) {
+          const appRes = await client.get(`/employers/internships/${job.id}/applications`);
+          setApplicationsByInternship(prev => ({ ...prev, [job.id]: appRes.data }));
+        }
+      } catch (e) {
+        console.error("Auto-load applications failed", e);
       }
     };
+    loadAllApps();
 
-    fetchData();
-  }, [toast]);
+    // Set up polling for applications every 30 seconds
+    const interval = setInterval(loadAllApps, 30000);
+    return () => clearInterval(interval);
+  }, [token]);
 
-  // Handle form change
-  const handleFormChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setForm(prev => ({
-      ...prev,
-      [name]: name === 'duration_weeks' ? parseInt(value) || 0 : value,
-    }));
-  };
-
-  // Create internship
-  const handleCreateInternship = async (e: React.FormEvent) => {
+  async function handlePostJob(e: FormEvent) {
     e.preventDefault();
+    if (!token) return;
+
+    if (!isVerified) {
+        setError("You must complete your profile and be verified to post internships.");
+        return;
+    }
+
+    // Validate required fields
+    if (!title.trim()) {
+      setError("Please enter a job title.");
+      return;
+    }
     
-    if (!form.title.trim()) {
-      toast.error('Please enter a title');
-      return;
-    }
-    if (!form.description.trim()) {
-      toast.error('Please enter a description');
-      return;
-    }
-    if (!form.location.trim()) {
-      toast.error('Please enter a location');
+    if (!location.trim()) {
+      setError("Please enter a location.");
       return;
     }
 
-    setPosting(true);
-    try {
-      const response = await api.post<Internship>('/employers/internships', form);
-      setInternships(prev => [response.data, ...prev]);
-      setApplications(prev => ({ ...prev, [response.data.id]: [] }));
-      setForm(initialForm);
-      setShowForm(false);
-      toast.success('Internship posted successfully!');
-    } catch (err) {
-      const error = err as ApiError;
-      toast.error(error.message || 'Failed to post internship');
-    } finally {
-      setPosting(false);
-    }
-  };
+    setMessage(null);
+    setError(null);
+    setLoading(true);
 
-  // Update application status
-  const handleUpdateStatus = async (applicationId: number, status: string, internshipId: number) => {
-    setUpdatingId(applicationId);
+    const jobData = {
+      title,
+      description,
+      location,
+      mode,
+      duration_weeks: duration,
+      stipend_amount: stipendAmount === "" ? null : stipendAmount,
+      deadline,
+      start_date: startDate,
+      skills: skills.split(",").map(s => s.trim()).filter(s => s !== ""),
+      openings,
+      qualifications,
+      benefits: benefits.split(",").map(s => s.trim()).filter(s => s !== ""),
+      contact_name: contactName,
+      contact_email: contactEmail,
+      contact_phone: contactPhone,
+      application_link: applicationLink,
+      application_email: applicationEmail
+    };
+
     try {
-      await api.put(`/employers/applications/${applicationId}/status`, { status });
+      const client = createClient();
+      await client.post("/employers/internships", jobData);
+      setMessage("Internship posted successfully!");
+      setShowPostModal(false);
+      // Refresh internships
+      const res = await client.get("/employers/my-internships");
+      setInternships(res.data);
+      // Clear form
+      setTitle("");
+      setDescription("");
+      setLocation("");
+      setMode("remote");
+      setDuration(8);
+      setStipendAmount("");
+      setDeadline("");
+      setStartDate("");
+      setSkills("");
+      setOpenings(1);
+      setQualifications("");
+      setBenefits("");
+      setContactName("");
+      setContactEmail("");
+      setContactPhone("");
+      setApplicationEmail("");
+      setApplicationLink("");
       
-      // Update local state
-      setApplications(prev => ({
+      // Clear message after 3 seconds
+      setTimeout(() => setMessage(null), 3000);
+    } catch (err: any) {
+      console.error("Failed to post internship:", err);
+      const errorMsg = err.response?.data?.detail || "Could not post internship. Please try again later.";
+      setError(errorMsg);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function loadApplications(internshipId: number) {
+    if (!token) return;
+    setLoadingId(internshipId);
+    setMessage(null);
+    // Don't clear existing error here, as it might be from another operation
+
+    try {
+      const client = createClient();
+      const res = await client.get(`/employers/internships/${internshipId}/applications`);
+      setApplicationsByInternship((prev) => ({
         ...prev,
-        [internshipId]: prev[internshipId].map(app =>
-          app.id === applicationId ? { ...app, status } : app
-        ),
+        [internshipId]: res.data
+      }));
+      // Clear error if successful
+      setError(null);
+    } catch (err: any) {
+      console.error("Failed to load applications:", err);
+      const errorMsg = err.response?.data?.detail || "Could not load applications. Please try again later.";
+      setError(errorMsg);
+    } finally {
+      setLoadingId(null);
+    }
+  }
+
+  async function loadRecommendations(internshipId: number) {
+    if (!token) return;
+    setLoadingRecsId(internshipId);
+    setMessage(null);
+    setError(null);
+
+    try {
+      const client = createClient();
+      const res = await client.get(`/employers/internships/${internshipId}/recommended-students`);
+      setRecommendationsByInternship((prev) => ({
+        ...prev,
+        [internshipId]: res.data
+      }));
+    } catch (err: any) {
+      console.error("Failed to load recommendations:", err);
+      const errorMsg = err.response?.data?.detail || "Could not load recommendations. Please try again later.";
+      setError(errorMsg);
+    } finally {
+      setLoadingRecsId(null);
+    }
+  }
+
+  async function updateStatus(applicationId: number, status: string, internshipId: number) {
+    if (!token) return;
+    setUpdatingStatusId(applicationId);
+    setMessage(null);
+    setError(null);
+
+    try {
+      const client = createClient();
+      await client.put(`/employers/applications/${applicationId}/status`, { status });
+      setMessage(`Application ${status} successfully!`);
+      
+      // Refresh applications list
+      const res = await client.get(`/employers/internships/${internshipId}/applications`);
+      setApplicationsByInternship((prev) => ({
+        ...prev,
+        [internshipId]: res.data
       }));
       
-      toast.success(`Application ${status}`);
-    } catch (err) {
-      const error = err as ApiError;
-      toast.error(error.message || 'Failed to update status');
+      // Clear message after 3 seconds
+      setTimeout(() => setMessage(null), 3000);
+    } catch (err: any) {
+      console.error("Failed to update application status:", err);
+      const errorMsg = err.response?.data?.detail || "Could not update status. Please try again later.";
+      setError(errorMsg);
     } finally {
-      setUpdatingId(null);
+      setUpdatingStatusId(null);
     }
-  };
+  }
 
-  // Format date
-  const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-  };
-
-  if (pageLoading) {
-    return <PageLoader label="Loading dashboard..." />;
+  function formatDate(value: string) {
+    const d = new Date(value);
+    if (Number.isNaN(d.getTime())) return value;
+    return d.toLocaleDateString();
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">Employer Dashboard</h1>
-          <p className="text-slate-600">Manage your internship postings and applications</p>
-        </div>
-        <button
-          onClick={() => setShowForm(true)}
-          className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 
-            transition-colors font-medium"
-        >
-          + Post New Internship
-        </button>
+    <div className="min-h-screen bg-slate-50 relative overflow-hidden">
+      {/* Background Decor */}
+      <div className="absolute top-0 left-0 w-full h-full overflow-hidden z-0 pointer-events-none">
+         <div className="absolute -top-[20%] -right-[10%] w-[60%] h-[60%] rounded-full bg-teal-100/50 blur-3xl"></div>
+         <div className="absolute top-[40%] -left-[10%] w-[40%] h-[40%] rounded-full bg-blue-100/40 blur-3xl"></div>
       </div>
 
-      {/* Create Internship Modal */}
-      {showForm && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-slate-900">Post New Internship</h2>
-              <button
-                onClick={() => setShowForm(false)}
-                className="text-slate-400 hover:text-slate-600 text-2xl"
-              >
-                ×
-              </button>
+      <div className="mx-auto max-w-7xl px-4 py-8 relative z-10 space-y-6">
+      <header className="flex items-center justify-between bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-sm">
+        <div>
+          <div className="flex items-center gap-2 mb-1">
+            <div className="bg-teal-600 p-1.5 rounded-lg text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4 8 4v14"/><path d="M17 21v-8.5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0-.5.5V21"/><path d="M9 10a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-1z"/><path d="M5 21h14"/></svg>
             </div>
-
-            <form onSubmit={handleCreateInternship} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Title *</label>
-                <input
-                  type="text"
-                  name="title"
-                  value={form.title}
-                  onChange={handleFormChange}
-                  placeholder="e.g. Software Engineering Intern"
-                  className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm
-                    focus:outline-none focus:ring-2 focus:ring-slate-900"
-                  required
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Description *</label>
-                <textarea
-                  name="description"
-                  value={form.description}
-                  onChange={handleFormChange}
-                  placeholder="Describe the role, responsibilities, and requirements..."
-                  rows={4}
-                  className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm
-                    focus:outline-none focus:ring-2 focus:ring-slate-900 resize-none"
-                  required
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Location *</label>
-                  <input
-                    type="text"
-                    name="location"
-                    value={form.location}
-                    onChange={handleFormChange}
-                    placeholder="e.g. Bangalore"
-                    className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm
-                      focus:outline-none focus:ring-2 focus:ring-slate-900"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Mode</label>
-                  <select
-                    name="mode"
-                    value={form.mode}
-                    onChange={handleFormChange}
-                    className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm
-                      focus:outline-none focus:ring-2 focus:ring-slate-900"
-                  >
-                    <option value="remote">Remote</option>
-                    <option value="onsite">Onsite</option>
-                    <option value="hybrid">Hybrid</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Duration (weeks)</label>
-                <input
-                  type="number"
-                  name="duration_weeks"
-                  value={form.duration_weeks}
-                  onChange={handleFormChange}
-                  min="1"
-                  max="52"
-                  className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm
-                    focus:outline-none focus:ring-2 focus:ring-slate-900"
-                />
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowForm(false)}
-                  className="flex-1 px-4 py-2 border border-slate-300 text-slate-700 rounded-lg
-                    hover:bg-slate-50 transition-colors font-medium"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={posting}
-                  className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800
-                    transition-colors font-medium disabled:opacity-50 flex items-center justify-center gap-2"
-                >
-                  {posting && <ButtonSpinner />}
-                  {posting ? 'Posting...' : 'Post Internship'}
-                </button>
-              </div>
-            </form>
+            <span className="font-bold text-slate-800 tracking-tight">Praktiki Employer</span>
           </div>
+          <h1 className="text-2xl font-bold text-slate-900">Employer Dashboard</h1>
+          <p className="text-sm text-slate-600">
+            Post internships and manage applications from verified students.
+          </p>
+        </div>
+        <button
+          onClick={() => {
+            logout();
+            window.location.href = "/";
+          }}
+          className="flex items-center gap-2 bg-rose-50 border border-rose-100 text-rose-600 px-4 py-2 rounded-xl font-medium hover:bg-rose-100 transition-all shadow-sm"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+          Logout
+        </button>
+      </header>
+
+      {!isVerified && (
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-6 rounded-r-xl shadow-sm flex flex-col md:flex-row justify-between items-center gap-4 animate-fadeIn">
+            <div>
+                <h3 className="text-lg font-bold text-amber-800 mb-1">⚠️ Action Required: Complete Your Profile</h3>
+                <p className="text-amber-700">
+                    You need to provide your organization details and verify your account before you can post internships.
+                    This helps us ensure a safe environment for students.
+                </p>
+            </div>
+            <Link 
+                to="/employer/setup" 
+                className="whitespace-nowrap px-6 py-3 bg-amber-600 text-white font-bold rounded-lg hover:bg-amber-700 transition-colors shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+            >
+                Complete Profile →
+            </Link>
         </div>
       )}
 
-      {/* Internships List */}
-      <section className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">
-          Your Internships ({internships.length})
-        </h2>
+      {(message || error) && (
+        <div
+          className={`rounded-xl px-6 py-4 text-sm font-medium shadow-sm flex items-center gap-2 ${
+            error
+              ? "bg-rose-50 text-rose-700 border border-rose-100"
+              : "bg-emerald-50 text-emerald-700 border border-emerald-100"
+          }`}
+        >
+          {error ? (
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          ) : (
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          )}
+          {error || message}
+        </div>
+      )}
 
-        {internships.length === 0 ? (
-          <div className="text-center py-12">
-            <p className="text-slate-500 mb-4">You haven't posted any internships yet.</p>
-            <button
-              onClick={() => setShowForm(true)}
-              className="text-blue-600 hover:underline font-medium"
-            >
-              Post your first internship
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            {internships.map((internship) => {
-              const apps = applications[internship.id] || [];
-              const isExpanded = selectedInternship === internship.id;
-
-              return (
-                <div
-                  key={internship.id}
-                  className="border border-slate-200 rounded-lg overflow-hidden"
+      <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-1">
+            <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-xl sticky top-6">
+              <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <span className="bg-teal-100 text-teal-700 p-1.5 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </span>
+                Post a Job
+              </h2>
+              <div className="text-center p-8 bg-slate-50 rounded-xl border border-slate-100">
+                <p className="text-slate-600 mb-6">Create a new internship listing to find the best talent.</p>
+                <button
+                    onClick={() => setShowPostModal(true)}
+                    className="inline-flex justify-center items-center rounded-xl bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white px-6 py-3 text-sm font-bold shadow-lg shadow-teal-500/30 hover:shadow-teal-500/40 transform hover:-translate-y-0.5 transition-all w-full"
                 >
-                  {/* Internship Header */}
-                  <div
-                    className="p-4 cursor-pointer hover:bg-slate-50 transition-colors"
-                    onClick={() => setSelectedInternship(isExpanded ? null : internship.id)}
-                  >
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-slate-900">{internship.title}</h3>
-                        <div className="flex gap-2 mt-2">
-                          <span className="px-2 py-0.5 text-xs rounded-full bg-blue-50 text-blue-700">
-                            {internship.mode}
-                          </span>
-                          <span className="px-2 py-0.5 text-xs rounded-full bg-green-50 text-green-700">
-                            {internship.location}
-                          </span>
-                          <span className="px-2 py-0.5 text-xs rounded-full bg-purple-50 text-purple-700">
-                            {internship.duration_weeks} weeks
-                          </span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="px-3 py-1 text-sm font-medium rounded-full bg-slate-100 text-slate-700">
-                          {apps.length} applicant{apps.length !== 1 ? 's' : ''}
-                        </span>
-                        <span className="text-slate-400">{isExpanded ? '▲' : '▼'}</span>
-                      </div>
-                    </div>
-                  </div>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    Post New Internship
+                </button>
+              </div>
+            </div>
+        </div>
 
-                  {/* Applications List */}
-                  {isExpanded && (
-                    <div className="border-t border-slate-200 bg-slate-50 p-4">
-                      <h4 className="font-medium text-slate-700 mb-3">Applications</h4>
-                      {apps.length === 0 ? (
-                        <p className="text-sm text-slate-500">No applications yet.</p>
-                      ) : (
-                        <div className="space-y-2">
-                          {apps.map((app) => (
-                            <div
-                              key={app.id}
-                              className="bg-white rounded-lg p-3 border border-slate-200 flex justify-between items-center"
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-sm min-h-[500px]">
+              <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+                <span className="bg-blue-100 text-blue-700 p-1.5 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                </span>
+                My Internships
+              </h2>
+              
+              <div className="overflow-x-auto">
+                  <table className="min-w-full text-left text-xs mb-4">
+                    <thead>
+                      <tr className="text-slate-400 border-b border-slate-100">
+                        <th className="py-3 px-2 font-bold uppercase tracking-wider">Title</th>
+                        <th className="py-3 px-2 font-bold uppercase tracking-wider">Location</th>
+                        <th className="py-3 px-2 font-bold uppercase tracking-wider">Mode</th>
+                        <th className="py-3 px-2 font-bold uppercase tracking-wider">Duration</th>
+                        <th className="py-3 px-2 font-bold uppercase tracking-wider text-right">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {internships.map((job) => (
+                        <tr key={job.id} className="group hover:bg-slate-50/50 transition-colors">
+                          <td className="py-4 px-2 font-bold text-slate-800">{job.title}</td>
+                          <td className="py-4 px-2 text-slate-600">{job.location}</td>
+                          <td className="py-4 px-2">
+                              <span className={`px-2 py-1 rounded text-[10px] font-bold ${
+                                  job.mode === 'remote' ? 'bg-purple-100 text-purple-700' :
+                                  job.mode === 'onsite' ? 'bg-orange-100 text-orange-700' :
+                                  'bg-blue-100 text-blue-700'
+                              }`}>
+                                  {job.mode}
+                              </span>
+                          </td>
+                          <td className="py-4 px-2 text-slate-600">{job.duration_weeks} weeks</td>
+                          <td className="py-4 px-2 flex justify-end gap-2">
+                            <Link 
+                                to={`/employer/internship/${job.id}`}
+                                className="inline-flex items-center rounded-lg bg-slate-50 border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all shadow-sm"
+                                title="View Details"
                             >
-                              <div>
-                                <p className="font-medium text-slate-900">Student #{app.student_id}</p>
-                                <p className="text-xs text-slate-500">
-                                  Applied {formatDate(app.applied_at)}
-                                </p>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <span
-                                  className={`px-2 py-1 text-xs font-medium rounded-full capitalize
-                                    ${app.status === 'pending'
-                                      ? 'bg-amber-50 text-amber-700'
-                                      : app.status === 'accepted'
-                                      ? 'bg-emerald-50 text-emerald-700'
-                                      : app.status === 'shortlisted'
-                                      ? 'bg-blue-50 text-blue-700'
-                                      : 'bg-red-50 text-red-700'
-                                    }`}
-                                >
-                                  {app.status}
-                                </span>
-                                {app.status === 'pending' && (
-                                  <div className="flex gap-1">
-                                    <button
-                                      onClick={() => handleUpdateStatus(app.id, 'shortlisted', internship.id)}
-                                      disabled={updatingId === app.id}
-                                      className="px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700
-                                        disabled:opacity-50"
-                                    >
-                                      Shortlist
-                                    </button>
-                                    <button
-                                      onClick={() => handleUpdateStatus(app.id, 'rejected', internship.id)}
-                                      disabled={updatingId === app.id}
-                                      className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700
-                                        disabled:opacity-50"
-                                    >
-                                      Reject
-                                    </button>
-                                  </div>
-                                )}
-                                {app.status === 'shortlisted' && (
-                                  <button
-                                    onClick={() => handleUpdateStatus(app.id, 'accepted', internship.id)}
-                                    disabled={updatingId === app.id}
-                                    className="px-2 py-1 text-xs bg-emerald-600 text-white rounded hover:bg-emerald-700
-                                      disabled:opacity-50"
-                                  >
-                                    Accept
-                                  </button>
-                                )}
-                              </div>
+                                View
+                            </Link>
+                            <button
+                              type="button"
+                              onClick={() => loadApplications(job.id)}
+                              className="inline-flex items-center rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+                            >
+                              {loadingId === job.id ? "..." : "Applications"}
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => loadRecommendations(job.id)}
+                              className="inline-flex items-center rounded-lg bg-teal-50 border border-teal-200 px-3 py-1.5 text-xs font-bold text-teal-700 hover:bg-teal-100 transition-all shadow-sm"
+                            >
+                              {loadingRecsId === job.id ? "..." : "AI Matches ✨"}
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                      {internships.length === 0 && (
+                        <tr>
+                          <td colSpan={5} className="py-12 text-center text-slate-400">
+                             <div className="flex flex-col items-center gap-2">
+                                <div className="bg-slate-100 p-3 rounded-full">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                                </div>
+                                <p>No internships posted yet.</p>
+                             </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+              </div>
+          </div>
+
+          <div className="space-y-6 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
+            {/* Applications Display */}
+            {internships.map((job) => {
+              const apps = applicationsByInternship[job.id] || [];
+              if (apps.length === 0) return null;
+              return (
+                <div key={`apps-${job.id}`} className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                  <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
+                      <p className="font-bold text-slate-800 text-sm">Applications for {job.title}</p>
+                      <span className="bg-slate-200 text-slate-600 px-2 py-0.5 rounded text-xs font-bold">{apps.length}</span>
+                  </div>
+                  <div className="p-2">
+                      {apps.length === 0 ? (
+                          <p className="text-center text-slate-400 py-4 text-xs">No applications yet.</p>
+                      ) : (
+                          <>
+                              {/* Pending Applications */}
+                              {apps.filter(app => app.status === "pending").length > 0 && (
+                                  <div className="mb-4">
+                                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Pending Applications</h4>
+                                      {apps.filter(app => app.status === "pending").map((app) => (
+                        <div key={app.id} className="flex items-center justify-between p-4 hover:bg-slate-50 rounded-xl transition-all border border-slate-100 mb-2 last:mb-0 group">
+                          <div className="flex items-start gap-3">
+                            <div className="bg-blue-100 text-blue-600 w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0">
+                                {app.student.first_name?.[0] || 'S'}
                             </div>
+                            <div>
+                                <div className="flex items-center gap-2">
+                                    <p className="font-bold text-slate-800 text-sm">
+                                        {app.student.first_name} {app.student.last_name}
+                                    </p>
+                                    <span className="text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">
+                                        Pending
+                                    </span>
+                                </div>
+                                <p className="text-slate-500 text-xs mt-0.5">{app.student.university_name || 'University not specified'}</p>
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                    {app.student.skills?.split(',').slice(0, 3).map((skill, i) => (
+                                        <span key={i} className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">
+                                            {skill.trim()}
+                                        </span>
+                                    ))}
+                                    {app.student.skills?.split(',').length > 3 && (
+                                        <span className="text-[9px] bg-slate-50 text-slate-400 px-1.5 py-0.5 rounded font-medium">
+                                            +{app.student.skills.split(',').length - 3}
+                                        </span>
+                                    )}
+                                </div>
+                                <p className="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                    Applied on {formatDate(app.applied_at)}
+                                </p>
+                            </div>
+                          </div>
+                          <div className="flex flex-col gap-2">
+                            <button 
+                                onClick={() => updateStatus(app.id, "accepted", job.id)} 
+                                disabled={updatingStatusId === app.id}
+                                className="bg-emerald-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 disabled:opacity-50"
+                            >
+                                {updatingStatusId === app.id ? "..." : "Accept"}
+                            </button>
+                            <button 
+                                onClick={() => updateStatus(app.id, "rejected", job.id)} 
+                                disabled={updatingStatusId === app.id}
+                                className="bg-white border border-rose-200 text-rose-600 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-rose-50 transition-all disabled:opacity-50"
+                            >
+                                {updatingStatusId === app.id ? "..." : "Reject"}
+                            </button>
+                          </div>
+                        </div>
+                      ))}
+                                  </div>
+                              )}
+                              
+                              {/* Accepted Applications */}
+                              {apps.filter(app => app.status === "accepted").length > 0 && (
+                                  <div className="mb-4">
+                                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Accepted Applications</h4>
+                                      {apps.filter(app => app.status === "accepted").map((app) => (
+                                        <div key={app.id} className="flex items-center justify-between p-4 hover:bg-slate-50 rounded-xl transition-all border border-slate-100 mb-2 last:mb-0 group">
+                                          <div className="flex items-start gap-3">
+                                            <div className="bg-green-100 text-green-600 w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0">
+                                                {app.student.first_name?.[0] || 'S'}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="font-bold text-slate-800 text-sm">
+                                                        {app.student.first_name} {app.student.last_name}
+                                                    </p>
+                                                    <span className="text-[10px] bg-green-100 text-green-600 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">
+                                                        Accepted
+                                                    </span>
+                                                </div>
+                                                <p className="text-slate-500 text-xs mt-0.5">{app.student.university_name || 'University not specified'}</p>
+                                                <div className="flex flex-wrap gap-1 mt-2">
+                                                    {app.student.skills?.split(',').slice(0, 3).map((skill, i) => (
+                                                        <span key={i} className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">
+                                                            {skill.trim()}
+                                                        </span>
+                                                    ))}
+                                                    {app.student.skills?.split(',').length > 3 && (
+                                                        <span className="text-[9px] bg-slate-50 text-slate-400 px-1.5 py-0.5 rounded font-medium">
+                                                            +{app.student.skills.split(',').length - 3}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                                    Applied on {formatDate(app.applied_at)}
+                                                </p>
+                                            </div>
+                                          </div>
+                                          <div className="flex flex-col gap-2">
+                                            <button 
+                                                onClick={() => updateStatus(app.id, "rejected", job.id)} 
+                                                disabled={updatingStatusId === app.id}
+                                                className="bg-white border border-rose-200 text-rose-600 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-rose-50 transition-all disabled:opacity-50"
+                                            >
+                                                {updatingStatusId === app.id ? "..." : "Reject"}
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                  </div>
+                              )}
+                              
+                              {/* Rejected Applications */}
+                              {apps.filter(app => app.status === "rejected").length > 0 && (
+                                  <div>
+                                      <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Rejected Applications</h4>
+                                      {apps.filter(app => app.status === "rejected").map((app) => (
+                                        <div key={app.id} className="flex items-center justify-between p-4 hover:bg-slate-50 rounded-xl transition-all border border-slate-100 mb-2 last:mb-0 group opacity-75">
+                                          <div className="flex items-start gap-3">
+                                            <div className="bg-red-100 text-red-600 w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0">
+                                                {app.student.first_name?.[0] || 'S'}
+                                            </div>
+                                            <div>
+                                                <div className="flex items-center gap-2">
+                                                    <p className="font-bold text-slate-800 text-sm">
+                                                        {app.student.first_name} {app.student.last_name}
+                                                    </p>
+                                                    <span className="text-[10px] bg-red-100 text-red-600 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">
+                                                        Rejected
+                                                    </span>
+                                                </div>
+                                                <p className="text-slate-500 text-xs mt-0.5">{app.student.university_name || 'University not specified'}</p>
+                                                <div className="flex flex-wrap gap-1 mt-2">
+                                                    {app.student.skills?.split(',').slice(0, 3).map((skill, i) => (
+                                                        <span key={i} className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">
+                                                            {skill.trim()}
+                                                        </span>
+                                                    ))}
+                                                    {app.student.skills?.split(',').length > 3 && (
+                                                        <span className="text-[9px] bg-slate-50 text-slate-400 px-1.5 py-0.5 rounded font-medium">
+                                                            +{app.student.skills.split(',').length - 3}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                                <p className="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                                    Applied on {formatDate(app.applied_at)}
+                                                </p>
+                                            </div>
+                                          </div>
+                                          <div className="flex flex-col gap-2">
+                                            <button 
+                                                onClick={() => updateStatus(app.id, "accepted", job.id)} 
+                                                disabled={updatingStatusId === app.id}
+                                                className="bg-white border border-emerald-200 text-emerald-600 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-50 transition-all disabled:opacity-50"
+                                            >
+                                                {updatingStatusId === app.id ? "..." : "Accept"}
+                                            </button>
+                                          </div>
+                                        </div>
+                                      ))}
+                                  </div>
+                              )}
+                          </>
+                      )}
+                  </div>
+                </div>
+              );
+            })}
+
+            {/* AI Recommendations Display */}
+            {internships.map((job) => {
+              const recs = recommendationsByInternship[job.id] || [];
+              if (recs.length === 0) return null;
+              return (
+                <div key={`recs-${job.id}`} className="rounded-xl border border-teal-100 bg-teal-50/50 overflow-hidden">
+                  <div className="bg-teal-100/50 px-4 py-3 border-b border-teal-200 flex items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-600"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+                      <p className="font-bold text-teal-900 text-sm">AI Matches for {job.title}</p>
+                  </div>
+                  <div className="p-4 space-y-4">
+                    {recs.map((rec) => (
+                      <div key={rec.student_id} className="bg-white p-4 rounded-xl border border-teal-100 shadow-sm relative group hover:shadow-md transition-all">
+                        <div className="flex justify-between items-start mb-3">
+                          <div>
+                              <p className="font-bold text-slate-800">{rec.student_name}</p>
+                              <p className="text-xs text-slate-500">Based on profile analysis</p>
+                          </div>
+                          <div className="flex flex-col items-end">
+                              <span className="bg-teal-600 text-white px-2 py-1 rounded-lg text-xs font-bold shadow-sm shadow-teal-200">{rec.match_score}% Match</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-1.5 mb-3">
+                          {rec.matching_skills.map((s, i) => (
+                            <span key={i} className="bg-teal-50 text-teal-700 border border-teal-100 px-2 py-1 rounded text-[10px] font-bold">{s}</span>
+                          ))}
+                          {rec.missing_skills.map((s, i) => (
+                            <span key={i} className="bg-rose-50 text-rose-400 border border-rose-100 px-2 py-1 rounded text-[10px] opacity-70">{s} (missing)</span>
                           ))}
                         </div>
-                      )}
-                    </div>
-                  )}
+                        
+                        <div className="bg-slate-50 p-3 rounded-lg border border-slate-100">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Matching Analysis</p>
+                          <div className="grid grid-cols-2 gap-4 text-xs">
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-500">Skills Match</span>
+                              <div className="flex items-center gap-1">
+                                  <div className="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                      <div className="h-full bg-blue-500" style={{ width: `${rec.explanation?.rule_based_score}%` }}></div>
+                                  </div>
+                                  <span className="font-bold text-slate-700">{rec.explanation?.rule_based_score}%</span>
+                              </div>
+                            </div>
+                            <div className="flex justify-between items-center">
+                              <span className="text-slate-500">Semantic</span>
+                              <div className="flex items-center gap-1">
+                                  <div className="w-16 h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                                      <div className="h-full bg-purple-500" style={{ width: `${rec.explanation?.embedding_score}%` }}></div>
+                                  </div>
+                                  <span className="font-bold text-slate-700">{rec.explanation?.embedding_score}%</span>
+                              </div>
+                            </div>
+                            {rec.cross_encoder_score !== undefined && (
+                              <div className="flex justify-between items-center col-span-2 border-t border-slate-100 pt-2 mt-1">
+                                <span className="text-teal-600 font-bold flex items-center gap-1">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                    Deep AI Analysis
+                                </span>
+                                <span className="font-black text-teal-700 text-sm">{rec.cross_encoder_score}%</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               );
             })}
           </div>
-        )}
+        </div>
       </section>
+      </div>
+
+      {/* Post Internship Modal */}
+      {showPostModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all animate-scaleIn">
+                <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
+                    <h3 className="text-lg font-bold text-slate-800">Post New Internship</h3>
+                    <button 
+                        onClick={() => setShowPostModal(false)}
+                        className="text-slate-400 hover:text-slate-600 transition-colors"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                    </button>
+                </div>
+                
+                <form onSubmit={handlePostJob} className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Job Title</label>
+                        <input
+                            type="text"
+                            value={title}
+                            onChange={(e) => setTitle(e.target.value)}
+                            className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
+                            placeholder="e.g. Frontend Developer Intern"
+                            required
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
+                        <textarea
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all min-h-[100px]"
+                            placeholder="Describe the role, responsibilities, and requirements..."
+                        />
+                    </div>
+                    
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Location</label>
+                        <div className="flex gap-2 mb-2">
+                            <input
+                                type="text"
+                                value={location}
+                                onChange={(e) => setLocation(e.target.value)}
+                                className="flex-1 px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
+                                placeholder="e.g. Bangalore"
+                                required
+                            />
+                            <button
+                                type="button"
+                                onClick={handleGetCurrentLocation}
+                                disabled={isLocating}
+                                className="bg-slate-100 text-slate-600 px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-200 transition-all text-sm font-medium flex items-center gap-1"
+                            >
+                                {isLocating ? "..." : (
+                                    <>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                        Current
+                                    </>
+                                )}
+                            </button>
+                        </div>
+                        <div className="h-48 w-full rounded-xl overflow-hidden border border-slate-200 mb-4 z-0">
+                            <MapContainer center={mapPosition} zoom={13} style={{ height: '100%', width: '100%' }}>
+                                <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                                <LocationPicker position={mapPosition} setPosition={setMapPosition} setLocation={setLocation} />
+                            </MapContainer>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Mode</label>
+                            <select
+                                value={mode}
+                                onChange={(e) => setMode(e.target.value)}
+                                className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all bg-white"
+                            >
+                                <option value="remote">Remote</option>
+                                <option value="onsite">On-site</option>
+                                <option value="hybrid">Hybrid</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Duration (Weeks)</label>
+                            <input
+                                type="number"
+                                value={duration}
+                                onChange={(e) => setDuration(parseInt(e.target.value))}
+                                min="1"
+                                max="52"
+                                className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
+                            />
+                        </div>
+                        <div>
+                             <label className="block text-sm font-medium text-slate-700 mb-1">Stipend (Monthly)</label>
+                            <input
+                                type="number"
+                                value={stipendAmount}
+                                onChange={(e) => setStipendAmount(e.target.value === "" ? "" : Number(e.target.value))}
+                                className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
+                                placeholder="e.g. 5000"
+                            />
+                        </div>
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Qualifications</label>
+                        <textarea
+                            value={qualifications}
+                            onChange={(e) => setQualifications(e.target.value)}
+                            className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all min-h-[80px]"
+                            placeholder="Required education, certifications, etc."
+                        />
+                    </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Benefits</label>
+                        <input
+                            type="text"
+                            value={benefits}
+                            onChange={(e) => setBenefits(e.target.value)}
+                            className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
+                            placeholder="e.g. Certificate, Letter of recommendation, Flexible hours (comma separated)"
+                        />
+                    </div>
+
+                    <div className="border-t border-slate-100 pt-4 mt-4">
+                        <h4 className="text-sm font-bold text-slate-800 mb-3">Contact Information</h4>
+                        <div className="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">Contact Name</label>
+                                <input
+                                    type="text"
+                                    value={contactName}
+                                    onChange={(e) => setContactName(e.target.value)}
+                                    className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all text-sm"
+                                    placeholder="HR Manager Name"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">Contact Phone</label>
+                                <input
+                                    type="tel"
+                                    value={contactPhone}
+                                    onChange={(e) => setContactPhone(e.target.value)}
+                                    className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all text-sm"
+                                    placeholder="+91..."
+                                />
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">Contact Email</label>
+                                <input
+                                    type="email"
+                                    value={contactEmail}
+                                    onChange={(e) => setContactEmail(e.target.value)}
+                                    className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all text-sm"
+                                    placeholder="hr@company.com"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">Application Email</label>
+                                <input
+                                    type="email"
+                                    value={applicationEmail}
+                                    onChange={(e) => setApplicationEmail(e.target.value)}
+                                    className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all text-sm"
+                                    placeholder="apply@company.com"
+                                />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Start Date</label>
+                            <input
+                                type="date"
+                                value={startDate}
+                                onChange={(e) => setStartDate(e.target.value)}
+                                className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
+                            />
+                        </div>
+                        <div>
+                             <label className="block text-sm font-medium text-slate-700 mb-1">Application Deadline</label>
+                            <input
+                                type="date"
+                                value={deadline}
+                                onChange={(e) => setDeadline(e.target.value)}
+                                className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
+                            />
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1">Required Skills</label>
+                        <input
+                            type="text"
+                            value={skills}
+                            onChange={(e) => setSkills(e.target.value)}
+                            className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
+                            placeholder="e.g. React, Python, SQL (comma separated)"
+                        />
+                        <p className="text-xs text-slate-500 mt-1">Separate skills with commas</p>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                         <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">Openings</label>
+                            <input
+                                type="number"
+                                value={openings}
+                                onChange={(e) => setOpenings(parseInt(e.target.value))}
+                                min="1"
+                                className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1">External Link (Optional)</label>
+                            <input
+                                type="url"
+                                value={applicationLink}
+                                onChange={(e) => setApplicationLink(e.target.value)}
+                                className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
+                                placeholder="https://..."
+                            />
+                        </div>
+                    </div>
+                    
+                    <div className="pt-4">
+                        <button
+                            type="submit"
+                            disabled={loading}
+                            className="w-full bg-teal-600 text-white font-bold py-3 rounded-xl hover:bg-teal-700 transition-colors shadow-lg shadow-teal-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                        >
+                            {loading ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    Posting...
+                                </>
+                            ) : (
+                                "Post Internship"
+                            )}
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+      )}
     </div>
   );
 }
-
-export default EmployerDashboard;

@@ -2,7 +2,7 @@ import { FormEvent, useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import api, { ApiError } from '../lib/api';
+import api, { ApiError } from '../services/api';
 import { ButtonSpinner } from '../components/LoadingSpinner';
 
 type Role = 'student' | 'employer' | 'institute';
@@ -81,11 +81,11 @@ export function LoginPage() {
         password,
       });
 
-      await login(response.data.access_token, response.data.role);
+      await login(response.access_token, response.role);
       
       toast.success('Welcome back! 🎉');
       
-      const redirectPath = `/${response.data.role}`;
+      const redirectPath = `/${response.role}`;
       navigate(redirectPath);
       
     } catch (err) {

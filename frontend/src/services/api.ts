@@ -9,16 +9,9 @@ interface RequestOptions extends RequestInit {
 }
 
 /**
- * Get auth token from localStorage
- */
-const getAuthToken = (): string | null => {
-  return localStorage.getItem('access_token');
-};
-
-/**
  * Make an authenticated API request
  */
-export async function apiRequest<T>(
+async function apiRequest<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
@@ -31,14 +24,15 @@ export async function apiRequest<T>(
     url += `?${searchParams.toString()}`;
   }
 
-  // Set default headers
+  // Set default headers (avoid setting Content-Type for FormData)
+  const isFormData = fetchOptions.body instanceof FormData;
   const headers: HeadersInit = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...fetchOptions.headers,
   };
 
   // Add auth token if available
-  const token = getAuthToken();
+  const token = localStorage.getItem('access_token');
   if (token) {
     (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
   }
@@ -57,35 +51,58 @@ export async function apiRequest<T>(
 }
 
 /**
- * GET request helper
+ * API client with methods for different HTTP requests
  */
-export function get<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
-  return apiRequest<T>(endpoint, { method: 'GET', params });
+const api = {
+  get: <T>(endpoint: string, params?: Record<string, string>): Promise<T> => {
+    return apiRequest<T>(endpoint, { method: 'GET', params });
+  },
+  
+  post: <T>(endpoint: string, data?: unknown, options?: Omit<RequestOptions, 'body'>): Promise<T> => {
+    const body = data instanceof FormData ? data : data ? JSON.stringify(data) : undefined;
+    return apiRequest<T>(endpoint, {
+      method: 'POST',
+      body,
+      ...(options || {}),
+    });
+  },
+  
+  put: <T>(endpoint: string, data?: unknown, options?: Omit<RequestOptions, 'body'>): Promise<T> => {
+    const body = data instanceof FormData ? data : data ? JSON.stringify(data) : undefined;
+    return apiRequest<T>(endpoint, {
+      method: 'PUT',
+      body,
+      ...(options || {}),
+    });
+  },
+  
+  delete: <T>(endpoint: string): Promise<T> => {
+    return apiRequest<T>(endpoint, { method: 'DELETE' });
+  },
+};
+
+/**
+ * Set auth token in localStorage
+ */
+export function setAuthToken(token: string): void {
+  localStorage.setItem('access_token', token);
 }
 
 /**
- * POST request helper
+ * Clear auth token from localStorage
  */
-export function post<T>(endpoint: string, data?: unknown): Promise<T> {
-  return apiRequest<T>(endpoint, {
-    method: 'POST',
-    body: data ? JSON.stringify(data) : undefined,
-  });
+export function clearAuthToken(): void {
+  localStorage.removeItem('access_token');
 }
 
-/**
- * PUT request helper
- */
-export function put<T>(endpoint: string, data?: unknown): Promise<T> {
-  return apiRequest<T>(endpoint, {
-    method: 'PUT',
-    body: data ? JSON.stringify(data) : undefined,
-  });
-}
+// Export types for error handling
+export type ApiError = Error;
 
-/**
- * DELETE request helper
- */
-export function del<T>(endpoint: string): Promise<T> {
-  return apiRequest<T>(endpoint, { method: 'DELETE' });
-}
+// Export default API client
+export default api;
+
+// Export individual methods for backwards compatibility
+export const get = api.get;
+export const post = api.post;
+export const put = api.put;
+export const del = api.delete;

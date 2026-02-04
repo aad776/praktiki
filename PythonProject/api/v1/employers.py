@@ -4,7 +4,7 @@ from db.session import get_db
 from models.user import User
 from models.employer_profile import EmployerProfile
 from models.internship import Internship
-from schemas.employer import InternshipCreate, InternshipOut
+from schemas.employer import InternshipCreate, InternshipOut, EmployerProfileUpdate, EmployerProfileOut
 from utils.dependencies import get_current_user
 from typing import List
 from models.application import Application
@@ -12,6 +12,35 @@ from schemas.employer import ApplicationStatusUpdate
 
 router = APIRouter()
 
+@router.get("/profile", response_model=EmployerProfileOut)
+def get_employer_profile(
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    if current_user.role != "employer":
+        raise HTTPException(status_code=403, detail="Access denied")
+    profile = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Employer profile not found")
+    return profile
+
+@router.put("/profile", response_model=EmployerProfileOut)
+def update_employer_profile(
+        profile_in: EmployerProfileUpdate,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    if current_user.role != "employer":
+        raise HTTPException(status_code=403, detail="Access denied")
+    profile = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
+    if not profile:
+        profile = EmployerProfile(user_id=current_user.id)
+        db.add(profile)
+    for var, value in profile_in.dict(exclude_unset=True).items():
+        setattr(profile, var, value)
+    db.commit()
+    db.refresh(profile)
+    return profile
 
 @router.post("/internships", response_model=InternshipOut)
 def create_internship(

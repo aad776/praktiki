@@ -106,6 +106,11 @@ class StudentResumeBase(BaseModel):
     certifications: Optional[str] = None # JSON String
     extra_curricular: Optional[str] = None # JSON String
     resume_file_path: Optional[str] = None
+    education_entries: Optional[str] = None # JSON String
+    skills_categorized: Optional[str] = None # JSON String
+    title: Optional[str] = None
+    linkedin: Optional[str] = None
+    profile_picture: Optional[str] = None
 
 class StudentResumeCreate(StudentResumeBase):
     pass

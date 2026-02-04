@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
-import api, { ApiError } from "../lib/api";
+import api, { ApiError } from "../services/api";
 import { COLLEGES, STREAMS, STREAM_SKILLS_MAPPING, LANGUAGES } from "../data/profileData";
 
 // --- Reusable Components ---
@@ -923,14 +923,66 @@ export function StudentProfileSetup() {
     }
   }, [formData.specialization]);
 
+  // Automatically update resume fields based on profile details
+  useEffect(() => {
+    // Combine interests and suggested skills for technical skills
+    const allSkills = new Set<string>();
+    
+    // Add selected interests
+    formData.interests.forEach(interest => {
+      allSkills.add(interest);
+    });
+    
+    // Add suggested skills based on specialization
+    suggestedSkills.forEach(skill => {
+      allSkills.add(skill);
+    });
+    
+    // Map to resume skills format
+    const technicalSkills = Array.from(allSkills).map(skill => ({
+      name: skill,
+      level: 60 // Default proficiency level for technical skills
+    }));
+    
+    // Map selected languages to resume language skills
+    const languageSkills = formData.languages.map(lang => ({
+      name: lang,
+      level: 70 // Default proficiency level for languages
+    }));
+    
+    // Generate career objective based on profile details
+    const careerObjective = formData.specialization && formData.profile_type
+      ? `Motivated ${formData.profile_type} with expertise in ${formData.specialization}, seeking opportunities in ${formData.interests[0] || 'the industry'} to apply my skills and contribute to organizational success.`
+      : '';
+    
+    // Generate professional title based on specialization
+    const professionalTitle = formData.specialization
+      ? `${formData.specialization} ${formData.profile_type || 'Professional'}`
+      : '';
+    
+    setFormData(prev => ({
+      ...prev,
+      resume: {
+        ...prev.resume,
+        career_objective: prev.resume.career_objective || careerObjective,
+        title: prev.resume.title || professionalTitle,
+        skills_categorized: {
+          ...prev.resume.skills_categorized,
+          technical: technicalSkills,
+          languages: languageSkills
+        }
+      }
+    }));
+  }, [formData.interests, suggestedSkills, formData.specialization, formData.profile_type, formData.languages]);
+
   const toggleSelection = (field: keyof typeof formData, value: string) => {
     setFormData(prev => {
       const current = prev[field] as string[];
-      if (current.includes(value)) {
-        return { ...prev, [field]: current.filter(item => item !== value) };
-      } else {
-        return { ...prev, [field]: [...current, value] };
-      }
+      const updatedValues = current.includes(value)
+        ? current.filter(item => item !== value)
+        : [...current, value];
+      
+      return { ...prev, [field]: updatedValues };
     });
   };
 
@@ -956,9 +1008,7 @@ export function StudentProfileSetup() {
           formDataUpload.append("file", file);
 
           try {
-              await api.post("/students/me/resume/upload", formDataUpload, {
-                  headers: { "Content-Type": "multipart/form-data" }
-              });
+              await api.post("/students/me/resume/upload", formDataUpload);
               toast.success("Resume uploaded successfully!");
           } catch (err) {
               const error = err as ApiError;
@@ -1014,8 +1064,8 @@ export function StudentProfileSetup() {
       
       // Fetch Profile
       try {
-        const profileRes = await api.get("/students/me");
-        const data = profileRes.data;
+        const profileRes = await api.get<Record<string, any>>("/students/me");
+        const data = profileRes;
         setFormData(prev => ({
           ...prev,
           first_name: data.first_name || "",
@@ -1040,8 +1090,8 @@ export function StudentProfileSetup() {
 
       // Fetch Resume
       try {
-        const resumeRes = await api.get("/students/me/resume");
-        const data = resumeRes.data;
+        const resumeRes = await api.get<Record<string, any>>("/students/me/resume");
+        const data = resumeRes;
         if (data) {
           setFormData(prev => ({
             ...prev,
@@ -1072,6 +1122,11 @@ export function StudentProfileSetup() {
     setError(null);
     try {
       // 1. Save Profile
+      // Combine interests and suggested skills for the skills field
+      const allSkills = new Set<string>();
+      formData.interests.forEach(interest => allSkills.add(interest));
+      suggestedSkills.forEach(skill => allSkills.add(skill));
+      
       const profilePayload = {
         first_name: formData.first_name,
         last_name: formData.last_name,
@@ -1085,6 +1140,7 @@ export function StudentProfileSetup() {
         department: formData.specialization,
         start_year: parseInt(formData.start_year) || null,
         end_year: parseInt(formData.end_year) || null,
+        skills: Array.from(allSkills).join(", "),
         interests: formData.interests.join(", "),
         looking_for: formData.looking_for.join(", "),
         work_mode: formData.work_mode.join(", ")

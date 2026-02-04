@@ -1,7 +1,7 @@
 import { useState, FormEvent } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
-import api, { ApiError } from '../lib/api';
+import api, { ApiError } from '../services/api';
 import { ButtonSpinner } from '../components/LoadingSpinner';
 import { config } from '../config';
 

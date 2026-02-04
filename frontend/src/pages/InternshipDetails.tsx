@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
-import api, { ApiError } from '../lib/api';
+import api, { ApiError } from '../services/api';
 import { PageLoader, ButtonSpinner } from '../components/LoadingSpinner';
 
 interface InternshipDetail {
@@ -40,11 +40,11 @@ export function InternshipDetails() {
       try {
         // Fetch internship details
         const response = await api.get<InternshipDetail>(`/students/internships/${id}`);
-        setInternship(response.data);
+        setInternship(response);
 
         // Fetch user's applications to check if already applied
         const appsRes = await api.get<Application[]>('/students/my-applications');
-        setApplications(appsRes.data);
+        setApplications(appsRes);
       } catch (err) {
         const error = err as ApiError;
         toast.error(error.message || 'Failed to load internship details');
@@ -73,7 +73,7 @@ export function InternshipDetails() {
       
       // Refresh applications
       const appsRes = await api.get<Application[]>('/students/my-applications');
-      setApplications(appsRes.data);
+      setApplications(appsRes);
     } catch (err) {
       const error = err as ApiError;
       toast.error(error.message || 'Failed to submit application');

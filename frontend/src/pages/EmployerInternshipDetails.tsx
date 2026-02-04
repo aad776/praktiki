@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
+import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
 import { 
   FiMapPin, 
@@ -78,15 +78,12 @@ export function EmployerInternshipDetails() {
       
       try {
         setLoading(true);
-        // Use relative path to leverage Vite proxy (or base URL config)
-        const res = await axios.get(`/employers/internships/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setData(res.data);
+        const res = await api.get<PageData>(`/employers/internships/${id}`);
+        setData(res);
         setError(null);
       } catch (err: any) {
         console.error("Error fetching internship details:", err);
-        setError(err.response?.data?.detail || "Failed to load internship details");
+        setError(err.message || "Failed to load internship details");
       } finally {
         setLoading(false);
       }

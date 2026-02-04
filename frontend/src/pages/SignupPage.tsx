@@ -1,7 +1,7 @@
 import { FormEvent, useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
-import api, { ApiError } from '../lib/api';
+import api, { ApiError } from '../services/api';
 import { ButtonSpinner } from '../components/LoadingSpinner';
 
 type Role = 'student' | 'employer' | 'institute';

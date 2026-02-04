@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import api, { ApiError } from '../lib/api';
+import api, { ApiError } from '../services/api';
 import { PageLoader, ButtonSpinner } from '../components/LoadingSpinner';
 
 // Types
@@ -94,28 +94,28 @@ export function StudentDashboard() {
       try {
         // Fetch profile
         const profileRes = await api.get<StudentProfile>('/students/me');
-        setProfile(profileRes.data);
+        setProfile(profileRes);
 
         // Fetch resume (optional, may not exist)
         try {
           const resumeRes = await api.get<Resume>('/students/me/resume');
-          setResume(resumeRes.data);
+          setResume(resumeRes);
         } catch {
           // Resume doesn't exist yet, that's ok
         }
 
         // Fetch internships
         const internshipsRes = await api.get<Internship[]>('/students/internships');
-        setInternships(internshipsRes.data);
+        setInternships(internshipsRes);
 
         // Fetch applications
         const appsRes = await api.get<Application[]>('/students/my-applications');
-        setApplications(appsRes.data);
+        setApplications(appsRes);
 
         // Fetch recommendations (may fail if profile incomplete)
         try {
           const recsRes = await api.get<RecommendedInternship[]>('/students/recommendations');
-          setRecommendations(recsRes.data);
+          setRecommendations(recsRes);
         } catch {
           // Recommendations not available yet
         }
@@ -133,15 +133,19 @@ export function StudentDashboard() {
   // Check if profile is complete
   const isProfileComplete = useCallback(() => {
     if (!profile) return false;
-    const hasBasicProfile = !!(
-      profile.university_name &&
-      profile.department &&
-      profile.year &&
-      profile.skills
-    );
-    const hasResume = resume && (resume.career_objective || resume.resume_file_path || resume.work_experience);
-    return hasBasicProfile && hasResume;
-  }, [profile, resume]);
+    
+    // Basic profile completion check - ensure all required fields are present
+    const hasBasicProfile = !!(profile.university_name && profile.department);
+    
+    // Check if skills are available in profile.skills (comma-separated string)
+    const hasSkills = !!(profile.skills && profile.skills.trim() !== '');
+    
+    // Check if interests are available (comma-separated string)
+    const hasInterests = !!(profile.interests && profile.interests.trim() !== '');
+    
+    // Profile is complete if it has basic info and either skills or interests
+    return hasBasicProfile && (hasSkills || hasInterests);
+  }, [profile]);
 
   // Search handler
   const handleSearch = async () => {
@@ -153,9 +157,9 @@ export function StudentDashboard() {
       if (searchMode) params.append('mode', searchMode);
 
       const response = await api.get<Internship[]>(`/students/internships?${params.toString()}`);
-      setInternships(response.data);
+      setInternships(response);
 
-      if (response.data.length === 0) {
+      if (response.length === 0) {
         toast.info('No internships found matching your criteria.');
       }
     } catch (err) {
@@ -179,7 +183,7 @@ export function StudentDashboard() {
       
       // Refresh applications
       const appsRes = await api.get<Application[]>('/students/my-applications');
-      setApplications(appsRes.data);
+      setApplications(appsRes);
     } catch (err) {
       const error = err as ApiError;
       toast.error(error.message || 'Failed to submit application');

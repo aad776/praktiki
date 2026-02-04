@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import api, { setAuthToken, clearAuthToken } from '../lib/api';
+import api, { setAuthToken, clearAuthToken } from '../services/api';
 import { config } from '../config';
 
 // Types
@@ -87,8 +87,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       let userData: User | null = null;
       
       if (role === 'student') {
-        const response = await api.get('/students/me');
-        const profile = response.data;
+        const profile = await api.get<any>('/students/me');
         userData = {
           id: profile.id,
           email: profile.email || '',
@@ -97,8 +96,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           is_email_verified: true,
         };
       } else if (role === 'employer') {
-        const response = await api.get('/employers/profile');
-        const profile = response.data;
+        const profile = await api.get<any>('/employers/profile');
         userData = {
           id: profile.id,
           email: profile.email || '',
@@ -107,8 +105,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           is_email_verified: true,
         };
       } else if (role === 'institute') {
-        const response = await api.get('/institutes/profile');
-        const profile = response.data;
+        const profile = await api.get<any>('/institutes/profile');
         userData = {
           id: profile.id,
           email: profile.email || '',

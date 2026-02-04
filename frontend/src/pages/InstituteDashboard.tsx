@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useToast } from '../context/ToastContext';
-import api, { ApiError } from '../lib/api';
+import api, { ApiError } from '../services/api';
 import { PageLoader } from '../components/LoadingSpinner';
 
 // Types
@@ -34,7 +34,7 @@ export function InstituteDashboard() {
     const fetchStudents = async () => {
       try {
         const response = await api.get<StudentInfo[]>('/institutes/students');
-        setStudents(response.data);
+        setStudents(response);
       } catch (err) {
         const error = err as ApiError;
         toast.error(error.message || 'Failed to load students');

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import axios from "axios";
+import api from "../services/api";
 
 // Step Component
 const StepIndicator = ({ currentStep }: { currentStep: number }) => {
@@ -97,10 +97,8 @@ export const EmployerProfileSetup = () => {
 
   const fetchProfile = async () => {
     try {
-      const res = await axios.get("/employers/profile", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = res.data;
+      const res = await api.get<Record<string, any>>("/employers/profile");
+      const data = res;
       setFormData((prev) => ({
         ...prev,
         companyName: data.company_name || "",
@@ -181,10 +179,8 @@ export const EmployerProfileSetup = () => {
         // I should probably fix that to create if not exists or ensure registration creates it.
         // Let's assume registration creates it or I will modify backend to create on PUT if missing (upsert).
         
-        // For now, let's try PUT.
-        await axios.put("/employers/profile", payload, {
-            headers: { Authorization: `Bearer ${token}` }
-        });
+        // For now, let's use API client (auth handled automatically)
+        await api.put("/employers/profile", payload);
 
         navigate("/employer");
     } catch (err: any) {

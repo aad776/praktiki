@@ -72,4 +72,11 @@ class StudentResume(Base):
     # File path for uploaded resume
     resume_file_path = Column(String, nullable=True)
     
+    # Additional fields used by frontend resume builder
+    education_entries = Column(Text, nullable=True)  # JSON string
+    skills_categorized = Column(Text, nullable=True)  # JSON string { technical: [], soft: [], languages: [] }
+    title = Column(String, nullable=True)
+    linkedin = Column(String, nullable=True)
+    profile_picture = Column(String, nullable=True)
+    
     student = relationship("StudentProfile", back_populates="resume")

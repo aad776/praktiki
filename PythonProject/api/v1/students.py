@@ -301,11 +301,7 @@ def get_recommendations(
     if not profile:
         raise HTTPException(status_code=404, detail="Student profile not found")
 
-    # AI Matching Eligibility Check: Profile must be completed (at least some skills)
-    student_skills = ai_service.get_student_skills(db, profile.id)
-    if not student_skills:
-        return []
-
+    # Get recommendations regardless of skill count - the AI service will handle fallbacks
     recommendations = ai_service.get_recommendations(db, profile)
     return recommendations
 
@@ -333,6 +329,25 @@ def list_all_internships(
         db: Session = Depends(get_db)
 ):
     """List internships with optional search filters"""
+    def normalize_mode_value(val: str) -> str:
+        v = (val or "").strip().lower()
+        if v in ("office", "in-office", "in_office", "onsite", "in office"):
+            return "onsite"
+        if v in ("wfh", "work from home", "work-from-home", "remote"):
+            return "remote"
+        if v == "hybrid":
+            return "hybrid"
+        return val or ""
+    def mode_synonyms(val: str) -> list[str]:
+        v = normalize_mode_value(val)
+        if v == "onsite":
+            return ["onsite", "office", "in-office", "in_office", "in office"]
+        if v == "remote":
+            return ["remote", "wfh", "work from home", "work-from-home"]
+        if v == "hybrid":
+            return ["hybrid"]
+        return [val] if val else []
+
     query = db.query(Internship)
     
     if search:
@@ -346,9 +361,13 @@ def list_all_internships(
         query = query.filter(Internship.location.ilike(f"%{location}%"))
     
     if mode:
-        query = query.filter(Internship.mode == mode)
+        query = query.filter(Internship.mode.in_(mode_synonyms(mode)))
     
-    return query.all()
+    results = query.all()
+    # Normalize mode values in the response
+    for item in results:
+        item.mode = normalize_mode_value(item.mode)
+    return results
 
 @router.get("/internships/{internship_id}")
 def get_internship_details(
@@ -369,7 +388,9 @@ def get_internship_details(
         "title": internship.title,
         "description": internship.description,
         "location": internship.location,
-        "mode": internship.mode,
+        "mode": ("onsite" if (internship.mode or "").lower() in ("office", "in-office", "in office", "in_office") else
+                 "remote" if (internship.mode or "").lower() in ("wfh", "work from home", "work-from-home") else
+                 internship.mode),
         "duration_weeks": internship.duration_weeks,
         "employer": {
             "company_name": employer.company_name if employer else "Unknown Company",

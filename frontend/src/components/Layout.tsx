@@ -13,7 +13,7 @@ const roleNavConfig = {
     navItems: [
       { path: '/student', label: 'Dashboard', icon: 'home' },
       { path: '/student/setup', label: 'Profile', icon: 'user' },
-      { path: '/browse-internships', label: 'Browse Jobs', icon: 'search' },
+      { path: '/posted-internships', label: 'Browse Internship', icon: 'search' },
     ],
   },
   employer: {
