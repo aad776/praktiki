@@ -9,6 +9,7 @@ import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { StudentDashboard } from './pages/StudentDashboard';
+import { StudentApplications } from './pages/StudentApplications';
 import { StudentProfileSetup } from './pages/StudentProfileSetup';
 import { EmployerDashboard } from './pages/EmployerDashboard';
 import { EmployerInternshipDetails } from './pages/EmployerInternshipDetails';
@@ -51,6 +52,14 @@ export function App() {
           element={
             <ProtectedRoute allowedRoles={['student']}>
               <StudentDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/applications"
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <StudentApplications />
             </ProtectedRoute>
           }
         />

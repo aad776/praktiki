@@ -435,6 +435,16 @@ def get_internship_details(
     # Get employer details
     employer = db.query(EmployerProfile).filter(EmployerProfile.id == internship.employer_id).first()
     
+    # Get applicant count
+    applicant_count = db.query(func.count(Application.id)).filter(Application.internship_id == internship_id).scalar()
+    
+    # Get employer's company user info (for logo/email if needed)
+    employer_user = db.query(User).filter(User.id == employer.user_id).first() if employer else None
+
+    # Calculate posted date (using created_at if available, fallback to None)
+    # Note: Internship model doesn't seem to have created_at in the snippet, checking Application for inspiration
+    # We'll return fields even if null
+    
     return {
         "id": internship.id,
         "title": internship.title,
@@ -444,8 +454,22 @@ def get_internship_details(
                  "remote" if (internship.mode or "").lower() in ("wfh", "work from home", "work-from-home") else
                  internship.mode),
         "duration_weeks": internship.duration_weeks,
+        "stipend_amount": internship.stipend_amount,
+        "deadline": internship.deadline,
+        "start_date": internship.start_date,
+        "skills": internship.skills,
+        "openings": internship.openings,
+        "qualifications": internship.qualifications,
+        "benefits": internship.benefits,
+        "applicant_count": applicant_count,
         "employer": {
+            "id": employer.id if employer else None,
             "company_name": employer.company_name if employer else "Unknown Company",
-            "contact_number": employer.contact_number if employer else ""
+            "contact_number": employer.contact_number if employer else "",
+            "industry": employer.industry if employer else "",
+            "organization_description": employer.organization_description if employer else "",
+            "website_url": employer.website_url if employer else "",
+            "logo_url": employer.logo_url if employer else "",
+            "city": employer.city if employer else ""
         }
     }

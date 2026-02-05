@@ -887,15 +887,189 @@ const Step4 = ({ formData, setFormData, handleResumeUpload, handleSubmit, loadin
   );
 };
 
+// --- Profile View Component (Card-based Interface) ---
+
+const ProfileView = ({ formData, onEdit, onLogout }: any) => {
+  return (
+    <div className="max-w-4xl mx-auto py-8 px-4 animate-fadeIn">
+      {/* Profile Header Card */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6">
+        <div className="h-32 bg-gradient-to-r from-brand-500 to-brand-600"></div>
+        <div className="px-8 pb-8">
+          <div className="relative flex justify-between items-end -mt-12 mb-6">
+            <div className="w-32 h-32 rounded-2xl bg-white p-1 border-4 border-white shadow-lg overflow-hidden">
+              {formData.resume.profile_picture ? (
+                <img src={formData.resume.profile_picture} alt="Profile" className="w-full h-full object-cover rounded-xl" />
+              ) : (
+                <div className="w-full h-full bg-slate-100 flex items-center justify-center text-4xl">👤</div>
+              )}
+            </div>
+            <div className="flex gap-3 mb-2">
+              <button
+                onClick={onEdit}
+                className="px-6 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                Edit Profile
+              </button>
+              <button
+                onClick={onLogout}
+                className="px-6 py-2 bg-red-50 text-red-600 border border-red-100 rounded-xl text-sm font-semibold hover:bg-red-100 transition-all flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Logout
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-1">
+            <h1 className="text-3xl font-bold text-slate-900">{formData.first_name} {formData.last_name}</h1>
+            <p className="text-lg text-slate-600">{formData.resume.title || formData.specialization}</p>
+            <div className="flex flex-wrap gap-4 mt-4 text-slate-500 text-sm">
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                {formData.current_city}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                {formData.phone_number}
+              </span>
+              <span className="flex items-center gap-1.5">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                </svg>
+                APAAR ID: {formData.apaar_id}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Left Column: Education & Info */}
+        <div className="space-y-6">
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <span className="text-brand-500">🎓</span> Education
+            </h3>
+            <div className="space-y-4">
+              <div>
+                <p className="font-semibold text-slate-800 text-sm">{formData.course}</p>
+                <p className="text-xs text-slate-500">{formData.specialization}</p>
+                <p className="text-xs text-slate-400 mt-1">{formData.college_name}</p>
+                <p className="text-[10px] text-slate-400 mt-0.5">{formData.start_year} - {formData.end_year}</p>
+              </div>
+              {formData.resume.education_entries?.map((edu: any, i: number) => (
+                <div key={i} className="pt-3 border-t border-slate-50">
+                  <p className="font-semibold text-slate-800 text-sm">{edu.degree}</p>
+                  <p className="text-xs text-slate-500">{edu.institution}</p>
+                  <p className="text-xs text-slate-400 mt-1">{edu.year}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <span className="text-brand-500">🌐</span> Languages
+            </h3>
+            <div className="flex flex-wrap gap-2">
+              {formData.languages.map((lang: string, i: number) => (
+                <span key={i} className="px-3 py-1 bg-slate-50 text-slate-600 rounded-lg text-xs font-medium border border-slate-100">
+                  {lang}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Right Column: Experience & Skills */}
+        <div className="md:col-span-2 space-y-6">
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <span className="text-brand-500">💼</span> Experience
+            </h3>
+            {formData.resume.work_experience?.length > 0 ? (
+              <div className="space-y-6">
+                {formData.resume.work_experience.map((exp: any, i: number) => (
+                  <div key={i} className="relative pl-6 border-l-2 border-slate-100 pb-2 last:pb-0">
+                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-brand-100 border-2 border-white shadow-sm"></div>
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <p className="font-bold text-slate-800">{exp.position}</p>
+                        <p className="text-sm text-brand-600 font-medium">{exp.company}</p>
+                      </div>
+                      <span className="text-xs text-slate-400 font-medium">{exp.duration}</span>
+                    </div>
+                    <ul className="mt-2 space-y-1">
+                      {exp.achievements?.map((ach: string, j: number) => (
+                        <li key={j} className="text-sm text-slate-600 flex gap-2">
+                          <span className="text-brand-300 mt-1.5 w-1 h-1 rounded-full bg-brand-500 shrink-0"></span>
+                          {ach}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-slate-400 text-sm italic italic">No work experience added yet.</p>
+            )}
+          </div>
+
+          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+            <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
+              <span className="text-brand-500">⚡</span> Skills
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+              {Object.entries(formData.resume.skills_categorized || {}).map(([cat, skills]: [string, any]) => (
+                <div key={cat}>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">{cat} Skills</p>
+                  <div className="space-y-3">
+                    {skills.map((skill: any, i: number) => (
+                      <div key={i}>
+                        <div className="flex justify-between mb-1">
+                          <span className="text-sm font-medium text-slate-700">{skill.name}</span>
+                          <span className="text-xs text-slate-400">{skill.level}%</span>
+                        </div>
+                        <div className="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
+                          <div className="h-full bg-brand-500 rounded-full" style={{ width: `${skill.level}%` }}></div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 
 export function StudentProfileSetup() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const toast = useToast();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [suggestedSkills, setSuggestedSkills] = useState<string[]>([]);
+  const [isViewMode, setIsViewMode] = useState(false);
+  const [hasProfile, setHasProfile] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -1074,6 +1248,11 @@ export function StudentProfileSetup() {
     setError(null);
   };
 
+  const handleLogout = () => {
+    logout();
+    navigate('/');
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       const parseList = (str: string | null) => str ? str.split(", ").filter(Boolean) : [];
@@ -1086,56 +1265,65 @@ export function StudentProfileSetup() {
         }
       };
 
-      // Fetch Profile
       try {
-        const profileRes = await api.get<Record<string, any>>("/students/me");
-        const data = profileRes;
-        setFormData(prev => ({
-          ...prev,
-          first_name: data.first_name || "",
-          last_name: data.last_name || "",
-          phone_number: data.phone_number || "",
-          current_city: data.current_city || "",
-          gender: data.gender || "",
-          languages: parseList(data.languages),
-          apaar_id: data.apaar_id || "",
-          profile_type: data.profile_type || "",
-          course: data.degree || "",
-          specialization: data.department || "",
-          college_name: data.university_name || "",
-          start_year: data.start_year ? String(data.start_year) : "",
-          end_year: data.end_year ? String(data.end_year) : "",
-          interests: parseList(data.interests),
-          looking_for: parseList(data.looking_for),
-          work_mode: parseList(data.work_mode)
-        }));
-      } catch {
-        // No existing profile, that's ok
-      }
+        setInitialLoading(true);
+        // Fetch Profile
+        let profileData: any = null;
+        try {
+          const profileRes = await api.get<Record<string, any>>("/students/me");
+          profileData = profileRes;
+        } catch (err) {
+          console.log("No profile found");
+        }
 
-      // Fetch Resume
-      try {
-        const resumeRes = await api.get<Record<string, any>>("/students/me/resume");
-        const data = resumeRes;
-        if (data) {
+        // Fetch Resume
+        let resumeData: any = null;
+        try {
+          const resumeRes = await api.get<Record<string, any>>("/students/me/resume");
+          resumeData = resumeRes;
+        } catch (err) {
+          console.log("No resume found");
+        }
+
+        if (profileData) {
+          setHasProfile(true);
+          setIsViewMode(true);
           setFormData(prev => ({
             ...prev,
-            resume: {
+            first_name: profileData.first_name || "",
+            last_name: profileData.last_name || "",
+            phone_number: profileData.phone_number || "",
+            current_city: profileData.current_city || "",
+            gender: profileData.gender || "",
+            languages: parseList(profileData.languages),
+            apaar_id: profileData.apaar_id || "",
+            profile_type: profileData.profile_type || "",
+            course: profileData.degree || "",
+            specialization: profileData.department || "",
+            college_name: profileData.university_name || "",
+            start_year: profileData.start_year ? String(profileData.start_year) : "",
+            end_year: profileData.end_year ? String(profileData.end_year) : "",
+            interests: parseList(profileData.interests),
+            looking_for: parseList(profileData.looking_for),
+            work_mode: parseList(profileData.work_mode),
+            resume: resumeData ? {
               ...prev.resume,
-              career_objective: data.career_objective || "",
-              work_experience: parseJSON(data.work_experience, []),
-              projects: parseJSON(data.projects, []),
-              certifications: parseJSON(data.certifications, []),
-              extra_curricular: parseJSON(data.extra_curricular, []),
-              education_entries: parseJSON(data.education_entries, []),
-              skills_categorized: parseJSON(data.skills_categorized, { technical: [], soft: [], languages: [] }),
-              title: data.title || "",
-              linkedin: data.linkedin || ""
-            }
+              career_objective: resumeData.career_objective || "",
+              work_experience: parseJSON(resumeData.work_experience, []),
+              projects: parseJSON(resumeData.projects, []),
+              certifications: parseJSON(resumeData.certifications, []),
+              extra_curricular: parseJSON(resumeData.extra_curricular, []),
+              education_entries: parseJSON(resumeData.education_entries, []),
+              skills_categorized: parseJSON(resumeData.skills_categorized, { technical: [], soft: [], languages: [] }),
+              title: resumeData.title || "",
+              linkedin: resumeData.linkedin || ""
+            } : prev.resume
           }));
         }
-      } catch {
-        // No existing resume, that's ok
+      } catch (err) {
+        console.error("Error fetching data:", err);
+      } finally {
+        setInitialLoading(false);
       }
     };
 
@@ -1208,6 +1396,25 @@ export function StudentProfileSetup() {
       setLoading(false);
     }
   };
+
+  if (initialLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-16 h-16 border-4 border-brand-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium">Loading your profile...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isViewMode) {
+    return (
+      <div className="min-h-screen bg-slate-50">
+        <ProfileView formData={formData} onEdit={() => setIsViewMode(false)} onLogout={handleLogout} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">

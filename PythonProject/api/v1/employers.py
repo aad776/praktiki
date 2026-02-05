@@ -1,17 +1,20 @@
 from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from db.session import get_db
 from models.user import User
 from models.employer_profile import EmployerProfile
 from models.internship import Internship
 from schemas.employer import (
     InternshipCreate, InternshipOut, EmployerProfileUpdate, EmployerProfileOut,
-    ApplicationStatusUpdate, BulkApplicationStatusUpdate, DashboardMetrics, ApplicationOut
+    ApplicationStatusUpdate, BulkApplicationStatusUpdate, DashboardMetrics, ApplicationOut,
+    ApplicationWithStudentOut
 )
 from utils.dependencies import get_current_user, require_verified_employer
 from typing import List, Optional
 from models.application import Application
+from models.student_profile import StudentProfile
 from models.notification import Notification
+from utils.email import send_application_accepted_email
 from sqlalchemy import func
 from pydantic import BaseModel
 from datetime import datetime
@@ -83,31 +86,46 @@ def get_all_applications(
         raise HTTPException(status_code=404, detail="Employer profile not found")
 
     # Join with Internship and StudentProfile to get titles and names
-    apps = db.query(Application, Internship.title, User.full_name).join(
-        Internship, Application.internship_id == Internship.id
+    results = db.query(
+        Application, 
+        Internship.title, 
+        StudentProfile.full_name,
+        StudentProfile.first_name,
+        StudentProfile.last_name
     ).join(
-        User, User.id == db.query(User.id).join(
-            db.query(Application.student_id) # This is student_profile.id
-        ) # This is getting complex, let's simplify
-    ).filter(Internship.employer_id == employer.id).all()
-    
-    # Let's use a simpler query
-    from models.student_profile import StudentProfile
-    
-    results = db.query(Application, Internship.title, StudentProfile.full_name).join(
         Internship, Application.internship_id == Internship.id
     ).join(
         StudentProfile, Application.student_id == StudentProfile.id
     ).filter(Internship.employer_id == employer.id).all()
 
     output = []
-    for app, title, name in results:
+    for app, title, full_name, first_name, last_name in results:
+        # Construct student name
+        name = full_name
+        if not name:
+            if first_name and last_name:
+                name = f"{first_name} {last_name}"
+            elif first_name:
+                name = first_name
+            elif last_name:
+                name = last_name
+            else:
+                name = "Unknown Student"
+
+        # Handle applied_at safely
+        applied_at_str = ""
+        if app.applied_at:
+            if isinstance(app.applied_at, datetime):
+                applied_at_str = app.applied_at.isoformat()
+            else:
+                applied_at_str = str(app.applied_at)
+
         output.append(ApplicationOut(
             id=app.id,
             student_id=app.student_id,
             internship_id=app.internship_id,
             status=app.status,
-            applied_at=app.applied_at.isoformat() if app.applied_at else "",
+            applied_at=applied_at_str,
             student_name=name,
             internship_title=title
         ))
@@ -134,13 +152,33 @@ def bulk_update_application_status(
         raise HTTPException(status_code=400, detail="Some applications not found or unauthorized")
 
     for app in apps:
+        old_status = app.status
         app.status = req.status
+        
         # Add notification
+        notif_msg = f"Your application for '{app.internship.title}' has been {req.status}." if app.internship else f"Your application status has been updated to {req.status}."
         notif = Notification(
             student_id=app.student_id,
-            message=f"Your application for '{app.internship.title}' has been {req.status}."
+            message=notif_msg
         )
         db.add(notif)
+
+        # Send email if status changed to accepted
+        if req.status == "accepted" and old_status != "accepted":
+            try:
+                # Need student email and name
+                student = app.student
+                user = student.user
+                company_name = employer.company_name or "the employer"
+                
+                send_application_accepted_email(
+                    student_email=user.email,
+                    student_name=student.first_name or student.full_name or "Student",
+                    internship_title=app.internship.title,
+                    company_name=company_name
+                )
+            except Exception as e:
+                print(f"Failed to send acceptance email: {e}")
     
     db.commit()
     return {"message": f"Successfully updated {len(apps)} applications to {req.status}"}
@@ -165,14 +203,32 @@ def update_application_status(
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
     
+    old_status = app.status
     app.status = status_update.status
     
     # Add notification
+    notif_msg = f"Your application for '{app.internship.title}' has been {status_update.status}." if app.internship else f"Your application status has been updated to {status_update.status}."
     notif = Notification(
         student_id=app.student_id,
-        message=f"Your application for '{app.internship.title}' has been {status_update.status}."
+        message=notif_msg
     )
     db.add(notif)
+
+    # Send email if status changed to accepted
+    if status_update.status == "accepted" and old_status != "accepted":
+        try:
+            student = app.student
+            user = student.user
+            company_name = employer.company_name or "the employer"
+            
+            send_application_accepted_email(
+                student_email=user.email,
+                student_name=student.first_name or student.full_name or "Student",
+                internship_title=app.internship.title,
+                company_name=company_name
+            )
+        except Exception as e:
+            print(f"Failed to send acceptance email: {e}")
     
     db.commit()
     return {"message": f"Application status updated to {status_update.status}"}
@@ -368,7 +424,7 @@ def get_internship_details(
     }
 
 
-@router.get("/internships/{internship_id}/applications")
+@router.get("/internships/{internship_id}/applications", response_model=List[ApplicationWithStudentOut])
 def view_internship_applications(
         internship_id: int,
         current_user: User = Depends(get_current_user),
@@ -387,6 +443,8 @@ def view_internship_applications(
     if not internship:
         raise HTTPException(status_code=404, detail="Internship not found or not yours")
 
-    # Get all applications for this internship
-    applications = db.query(Application).filter(Application.internship_id == internship_id).all()
+    # Get all applications for this internship with student details
+    applications = db.query(Application).options(
+        joinedload(Application.student)
+    ).filter(Application.internship_id == internship_id).all()
     return applications

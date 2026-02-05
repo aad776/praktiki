@@ -11,6 +11,13 @@ class Settings(BaseSettings):
     JWT_ALGO: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440  # 24 hours for development
     
+    # SMTP Settings
+    SMTP_SERVER: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SENDER_EMAIL: str = "noreply@praktiki.com"
+
     # Optional settings for future use
     REDIS_URL: Optional[str] = None
     AWS_S3_BUCKET: Optional[str] = None

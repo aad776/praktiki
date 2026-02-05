@@ -118,8 +118,9 @@ export function InternshipMegaMenu() {
                                     {/* Add "Work From Home" explicitly for locations/profiles or just include if backend sends it */}
                                     {activeCategory === 'locations' && !getItems().includes('Work From Home') && (
                                         <Link
-                                            to="/posted-internships?mode=remote"
+                                            to="/student?mode=remote"
                                             className="text-sm text-slate-600 hover:text-brand-600 hover:underline py-1 truncate"
+                                            onClick={() => setIsOpen(false)}
                                         >
                                             Work from Home
                                         </Link>
@@ -128,8 +129,12 @@ export function InternshipMegaMenu() {
                                     {getItems().map((item, idx) => (
                                         <Link
                                             key={idx}
-                                            to={`/posted-internships?search=${encodeURIComponent(item)}`}
+                                            to={activeCategory === 'locations' 
+                                                ? `/student?location=${encodeURIComponent(item)}`
+                                                : `/student?search=${encodeURIComponent(item)}`
+                                            }
                                             className="text-sm text-slate-600 hover:text-brand-600 hover:underline py-1 truncate"
+                                            onClick={() => setIsOpen(false)}
                                         >
                                             {item}
                                         </Link>

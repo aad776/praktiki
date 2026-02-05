@@ -83,7 +83,7 @@ interface RecommendedStudent {
 }
 
 export function EmployerDashboard() {
-  const { token, logout } = useAuth();
+  const { token, logout, user } = useAuth();
   const [internships, setInternships] = useState<Internship[]>([]);
   const [applicationsByInternship, setApplicationsByInternship] = useState<
     Record<number, Application[]>
@@ -368,15 +368,9 @@ export function EmployerDashboard() {
       <div className="mx-auto max-w-7xl px-4 py-8 relative z-10 space-y-6">
         <header className="flex items-center justify-between bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-sm">
           <div>
-            <div className="flex items-center gap-2 mb-1">
-              <div className="bg-teal-600 p-1.5 rounded-lg text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18" /><path d="M5 21V7l8-4 8 4v14" /><path d="M17 21v-8.5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0-.5.5V21" /><path d="M9 10a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1v-1z" /><path d="M5 21h14" /></svg>
-              </div>
-              <span className="font-bold text-slate-800 tracking-tight">Praktiki Employer</span>
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900">Employer Dashboard</h1>
+            <h1 className="text-2xl font-bold text-slate-900">Hi, {user?.full_name?.split(' ')[0] || 'Employer'}! 👋</h1>
             <p className="text-sm text-slate-600">
-              Post internships and manage applications from verified students.
+              Employer Dashboard • Post internships and manage applications
             </p>
           </div>
           <button

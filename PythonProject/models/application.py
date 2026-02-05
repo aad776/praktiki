@@ -14,3 +14,4 @@ class Application(Base):
 
     # Relationships
     student = relationship("StudentProfile", backref="applications")
+    internship = relationship("Internship", backref="applications")

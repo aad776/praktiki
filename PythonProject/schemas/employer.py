@@ -1,5 +1,6 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
+from datetime import datetime
 
 class EmployerCreate(BaseModel):
     email: EmailStr
@@ -96,6 +97,26 @@ class ApplicationOut(BaseModel):
     applied_at: str
     student_name: Optional[str] = None
     internship_title: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class StudentShortOut(BaseModel):
+    id: int
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    university_name: Optional[str] = None
+    skills: Optional[str] = None
+
+    class Config:
+        from_attributes = True
+
+class ApplicationWithStudentOut(BaseModel):
+    id: int
+    internship_id: int
+    status: str
+    applied_at: Optional[datetime] = None
+    student: Optional[StudentShortOut] = None
 
     class Config:
         from_attributes = True

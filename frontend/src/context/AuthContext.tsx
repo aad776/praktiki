@@ -41,9 +41,16 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 // Helper functions
 function isTokenValid(token: string): boolean {
   try {
-    // For testing purposes, we'll accept any non-empty token
-    // This bypasses JWT validation issues that might be causing problems
-    return !!(token && token.trim() !== '');
+    if (!token || token.trim() === '' || token === 'null' || token === 'undefined') {
+      return false;
+    }
+    
+    const decoded = jwtDecode<DecodedToken>(token);
+    if (!decoded.exp) return true;
+    
+    // Check if token is expired (with 10 second buffer)
+    const currentTime = Date.now() / 1000;
+    return decoded.exp > (currentTime + 10);
   } catch {
     return false;
   }

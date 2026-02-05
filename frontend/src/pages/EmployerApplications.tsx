@@ -33,7 +33,7 @@ export function EmployerApplications() {
   const filtered = useMemo(() => {
     return applications.filter(a => {
       const matchesStatus = statusFilter === "all" || a.status === statusFilter;
-      const name = a.student_name.toLowerCase();
+      const name = (a.student_name || "Unknown Student").toLowerCase();
       const matchesSearch = !search || name.includes(search.toLowerCase());
       return matchesStatus && matchesSearch;
     });

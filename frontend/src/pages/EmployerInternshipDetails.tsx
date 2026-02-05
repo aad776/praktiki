@@ -18,8 +18,25 @@ import {
   FiLink,
   FiActivity,
   FiAward,
-  FiTarget
+  FiTarget,
+  FiUser
 } from "react-icons/fi";
+
+interface StudentShort {
+  id: number;
+  first_name: string | null;
+  last_name: string | null;
+  university_name: string | null;
+  skills: string | null;
+}
+
+interface Application {
+  id: number;
+  internship_id: number;
+  status: string;
+  applied_at: string;
+  student: StudentShort;
+}
 
 interface InternshipDetail {
   id: number;
@@ -69,7 +86,9 @@ export function EmployerInternshipDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [data, setData] = useState<PageData | null>(null);
+  const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
+  const [appsLoading, setAppsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -81,11 +100,17 @@ export function EmployerInternshipDetails() {
         const res = await api.get<PageData>(`/employers/internships/${id}`);
         setData(res);
         setError(null);
+        
+        // Fetch applications for this internship
+        setAppsLoading(true);
+        const apps = await api.get<Application[]>(`/employers/internships/${id}/applications`);
+        setApplications(apps);
       } catch (err: any) {
         console.error("Error fetching internship details:", err);
         setError(err.message || "Failed to load internship details");
       } finally {
         setLoading(false);
+        setAppsLoading(false);
       }
     };
 
@@ -285,6 +310,75 @@ export function EmployerInternshipDetails() {
                 </div>
               </div>
             )}
+
+            {/* Applications Section */}
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sm:p-8">
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-xl font-bold text-slate-900 flex items-center">
+                  <FiUsers className="mr-2 text-teal-600" /> Received Applications
+                </h2>
+                <span className="px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full">
+                  {applications.length} Total
+                </span>
+              </div>
+
+              {appsLoading ? (
+                <div className="py-12 flex flex-col items-center justify-center text-slate-400">
+                  <div className="w-8 h-8 border-2 border-teal-500 border-t-transparent rounded-full animate-spin mb-4"></div>
+                  <p>Loading applications...</p>
+                </div>
+              ) : applications.length > 0 ? (
+                <div className="space-y-4">
+                  {applications.map((app) => (
+                    <div key={app.id} className="p-4 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
+                      <div className="flex justify-between items-start">
+                        <div className="flex gap-4">
+                          <div className="w-12 h-12 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <FiUser size={24} />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-slate-900">
+                              {app.student?.first_name} {app.student?.last_name}
+                            </h4>
+                            <p className="text-sm text-slate-500">{app.student?.university_name || 'University not specified'}</p>
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {app.student?.skills?.split(',').slice(0, 3).map((skill, i) => (
+                                <span key={i} className="px-2 py-0.5 bg-white border border-slate-200 text-slate-600 text-[10px] rounded-md">
+                                  {skill.trim()}
+                                </span>
+                              ))}
+                              {(app.student?.skills?.split(',').length || 0) > 3 && (
+                                <span className="text-[10px] text-slate-400 self-center">
+                                  +{(app.student?.skills?.split(',').length || 0) - 3} more
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                            app.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' :
+                            app.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                            'bg-amber-100 text-amber-700'
+                          }`}>
+                            {app.status}
+                          </span>
+                          <p className="text-[10px] text-slate-400 mt-2">
+                            Applied on {new Date(app.applied_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-12 text-center text-slate-500 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  <FiInfo size={32} className="mx-auto mb-3 text-slate-300" />
+                  <p className="font-medium">No applications received yet</p>
+                  <p className="text-sm text-slate-400">Applications will appear here once students start applying</p>
+                </div>
+              )}
+            </div>
 
           </div>
 

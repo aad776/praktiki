@@ -220,6 +220,14 @@ export function StudentDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Welcome Message */}
+      <div className="mb-8">
+        <h1 className="text-2xl font-bold text-slate-900 flex items-center gap-2">
+          Hi, {profile?.first_name || profile?.full_name?.split(' ')[0] || user?.full_name?.split(' ')[0] || 'Student'}! 👋
+        </h1>
+        <p className="text-slate-600">Welcome to your dashboard. Here's what's happening today.</p>
+      </div>
+
       {/* Profile Completion Banner */}
       {!isProfileComplete() && profile && (
         <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-8 text-center">
@@ -431,50 +439,6 @@ export function StudentDashboard() {
           )}
         </>
       )}
-
-      {/* Applications Section - Always visible */}
-      <section className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">My Applications</h2>
-        <div className="space-y-3 max-h-[300px] overflow-y-auto">
-          {applications.map((app) => (
-            <div
-              key={app.id}
-              className="border border-slate-200 rounded-lg p-4 hover:shadow-sm transition-shadow"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3
-                    className="font-semibold text-slate-900 cursor-pointer hover:text-blue-600"
-                    onClick={() => navigate(`/student/internship/${app.internship_id}`)}
-                  >
-                    {app.internship.title}
-                  </h3>
-                  <p className="text-sm text-slate-600">{app.internship.company_name}</p>
-                  <p className="text-xs text-slate-500 mt-1">Applied {formatDate(app.applied_at)}</p>
-                </div>
-                <span
-                  className={`px-2 py-1 text-xs font-medium rounded-full capitalize
-                    ${app.status === 'pending'
-                      ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                      : app.status === 'accepted'
-                      ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : app.status === 'shortlisted'
-                      ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'bg-red-50 text-red-700 border border-red-200'
-                    }`}
-                >
-                  {app.status}
-                </span>
-              </div>
-            </div>
-          ))}
-          {applications.length === 0 && (
-            <p className="text-center text-slate-500 py-8">
-              You haven't applied to any internships yet.
-            </p>
-          )}
-        </div>
-      </section>
     </div>
   );
 }

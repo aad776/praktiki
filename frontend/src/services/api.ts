@@ -37,6 +37,9 @@ async function apiRequest<T>(
   if (token && token !== 'null' && token !== 'undefined') {
     token = token.trim();
     headers['Authorization'] = `Bearer ${token}`;
+    console.log('Using Auth Token:', token.substring(0, 10) + '...');
+  } else {
+    console.log('No Auth Token found in localStorage');
   }
 
   // Merge custom headers
@@ -58,7 +61,8 @@ async function apiRequest<T>(
 
   if (!response.ok) {
     // Handle 401 Unauthorized - token expired or invalid
-    if (response.status === 401) {
+    // Skip this for login endpoint to show correct "Invalid credentials" error
+    if (response.status === 401 && !endpoint.includes('/auth/login')) {
       console.warn('Token expired or invalid, clearing auth state');
       localStorage.removeItem(config.auth.tokenKey);
       localStorage.removeItem(config.auth.roleKey);

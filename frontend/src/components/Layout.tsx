@@ -13,6 +13,7 @@ const roleNavConfig = {
     icon: '🎓',
     navItems: [
       { path: '/student', label: 'Dashboard', icon: 'home' },
+      { path: '/student/applications', label: 'My Applications', icon: 'fileText' },
       { path: '/student/setup', label: 'Profile', icon: 'user' },
     ],
   },
@@ -23,6 +24,7 @@ const roleNavConfig = {
       { path: '/employer', label: 'Dashboard', icon: 'home' },
       { path: '/employer/status', label: 'Company Status', icon: 'building' },
       { path: '/employer/applications', label: 'Applications', icon: 'users' },
+      { path: '/employer/setup', label: 'Profile', icon: 'user' },
     ],
   },
   institute: {
@@ -59,6 +61,11 @@ const icons: Record<string, JSX.Element> = {
   users: (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+    </svg>
+  ),
+  fileText: (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
     </svg>
   ),
 };
@@ -136,6 +143,19 @@ export function Layout({ children }: LayoutProps) {
                   <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full" />
                 </button>
 
+                {/* Logout Button */}
+                {role !== 'student' && role !== 'employer' && (
+                  <button
+                    onClick={handleLogout}
+                    className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Logout
+                  </button>
+                )}
+
                 {/* User Info */}
                 <div className="hidden sm:flex items-center gap-3 pl-3 border-l border-slate-200">
                   <div className="text-right">
@@ -151,17 +171,6 @@ export function Layout({ children }: LayoutProps) {
                     <span className="text-white font-semibold text-sm">{getInitials()}</span>
                   </div>
                 </div>
-
-                {/* Logout Button */}
-                <button
-                  onClick={handleLogout}
-                  className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  Logout
-                </button>
 
                 {/* Mobile Menu Button */}
                 <button
@@ -235,22 +244,19 @@ export function Layout({ children }: LayoutProps) {
                     {item.label}
                   </Link>
                 ))}
-              </div>
 
-              {/* Logout */}
-              <div className="px-4 py-3 border-t border-slate-100">
-                <button
-                  onClick={() => {
-                    setMobileNavOpen(false);
-                    handleLogout();
-                  }}
-                  className="flex items-center gap-3 w-full px-4 py-3 text-base font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                  </svg>
-                  Logout
-                </button>
+                {/* Mobile Logout (Hidden for students and employers) */}
+                {role !== 'student' && role !== 'employer' && (
+                  <button
+                    onClick={handleLogout}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium text-red-600 hover:bg-red-50 transition-colors"
+                  >
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Logout
+                  </button>
+                )}
               </div>
             </div>
           )}
