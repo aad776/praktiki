@@ -7,12 +7,17 @@ import { useToast } from "../context/ToastContext";
 
 interface Internship {
   id: number;
+  employer_id: number;
   title: string;
-  description: string;
+  description?: string;
   location: string;
   mode: string;
   duration_weeks: number;
-  employer_id: number;
+  deadline?: string;
+  skills?: string;
+  created_at?: string;
+  company_name?: string;
+  logo_url?: string;
 }
 
 interface RecommendedInternship {
@@ -35,6 +40,19 @@ export function BrowseInternshipsPage() {
   const [modeFilter, setModeFilter] = useState("");
   const navigate = useNavigate();
   const toast = useToast();
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
 
   useEffect(() => {
     fetchInternships();
@@ -232,35 +250,111 @@ export function BrowseInternshipsPage() {
             </div>
         ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {internships.map(internship => (
-                    <div key={internship.id} className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow group relative">
-                        <div className="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 className="font-bold text-lg text-slate-900 group-hover:text-blue-600 transition-colors line-clamp-1">{internship.title}</h3>
-                                <p className="text-sm text-slate-500">Duration: {internship.duration_weeks} Weeks</p>
+                {internships.map(internship => {
+                    const skillsList = internship.skills ? internship.skills.split(',').map(s => s.trim()) : [];
+                    return (
+                        <div key={internship.id} className="group border border-slate-200 rounded-xl p-5 hover:border-blue-300 hover:shadow-xl transition-all duration-300 bg-white flex flex-col h-full relative">
+                            {/* Company Header */}
+                            <div className="flex items-start gap-4 mb-4">
+                                <div className="w-12 h-12 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-blue-100">
+                                    {internship.logo_url ? (
+                                        <img src={internship.logo_url} alt={internship.company_name} className="w-full h-full object-contain" />
+                                    ) : (
+                                        <span className="text-xl font-bold text-slate-300 group-hover:text-blue-200">
+                                            {internship.company_name?.charAt(0) || 'C'}
+                                        </span>
+                                    )}
+                                </div>
+                                <div className="flex-1 min-w-0">
+                                    <h3
+                                        className="font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors cursor-pointer"
+                                        title={internship.title}
+                                        onClick={() => navigate(`/student/internship/${internship.id}`)}
+                                    >
+                                        {internship.title}
+                                    </h3>
+                                    <p className="text-sm text-slate-500 truncate font-medium">{internship.company_name || 'Unknown Company'}</p>
+                                </div>
                             </div>
-                            <span className={`text-xs px-2 py-1 rounded-full border ${internship.mode === 'remote' ? 'bg-green-50 text-green-700 border-green-200' : 'bg-orange-50 text-orange-700 border-orange-200'}`}>
-                                {internship.mode}
-                            </span>
-                        </div>
-                        
-                        <div className="flex items-center gap-2 text-sm text-slate-600 mb-4">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                            {internship.location}
-                        </div>
 
-                        <p className="text-sm text-slate-600 mb-6 line-clamp-2">
-                            {internship.description || "No description available."}
-                        </p>
+                            {/* Details Grid */}
+                            <div className="grid grid-cols-2 gap-y-3 gap-x-2 mb-4">
+                                <div className="flex items-center gap-2 text-xs text-slate-600">
+                                    <span className="p-1 rounded bg-blue-50 text-blue-600">
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                        </svg>
+                                    </span>
+                                    <span className="truncate">{internship.location}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-slate-600">
+                                    <span className="p-1 rounded bg-indigo-50 text-indigo-600">
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                        </svg>
+                                    </span>
+                                    <span>{internship.mode}</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-slate-600">
+                                    <span className="p-1 rounded bg-purple-50 text-purple-600">
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                    </span>
+                                    <span>{internship.duration_weeks} Weeks</span>
+                                </div>
+                                <div className="flex items-center gap-2 text-xs text-slate-600">
+                                    <span className="p-1 rounded bg-rose-50 text-rose-600">
+                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        </svg>
+                                    </span>
+                                    <span className="truncate">{internship.deadline || 'No Deadline'}</span>
+                                </div>
+                            </div>
 
-                        <button 
-                            onClick={() => navigate(`/student/internship/${internship.id}`)}
-                            className="w-full py-2 bg-slate-50 text-slate-700 font-medium rounded-lg hover:bg-slate-100 transition-colors border border-slate-200 group-hover:border-blue-200 group-hover:bg-blue-50 group-hover:text-blue-700"
-                        >
-                            View Details
-                        </button>
-                    </div>
-                ))}
+                            {/* Short Description */}
+                            {internship.description && (
+                                <p className="text-xs text-slate-500 line-clamp-2 mb-4 leading-relaxed italic">
+                                    "{internship.description}"
+                                </p>
+                            )}
+
+                            {/* Required Skills */}
+                            {skillsList.length > 0 && (
+                                <div className="flex flex-wrap gap-1.5 mb-4 mt-auto">
+                                    {skillsList.slice(0, 3).map((skill, idx) => (
+                                        <span key={idx} className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium">
+                                            {skill}
+                                        </span>
+                                    ))}
+                                    {skillsList.length > 3 && (
+                                        <span className="text-[10px] text-slate-400 font-medium self-center">
+                                            +{skillsList.length - 3} more
+                                        </span>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* Footer */}
+                            <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
+                                <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                    <span>Posted {internship.created_at ? formatDate(internship.created_at) : 'recently'}</span>
+                                </div>
+                                <button 
+                                    onClick={() => navigate(`/student/internship/${internship.id}`)}
+                                    className="px-4 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white hover:bg-slate-800 shadow-md hover:shadow-lg transition-all transform active:scale-95"
+                                >
+                                    View Details
+                                </button>
+                            </div>
+                        </div>
+                    );
+                })}
             </div>
         )}
       </main>

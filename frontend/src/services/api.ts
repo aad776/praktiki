@@ -91,7 +91,7 @@ async function apiRequest<T>(
   return response.json();
 }
 
-/**
+ /**
  * API client with methods for different HTTP requests
  */
 const api = {

@@ -19,7 +19,8 @@ import {
   FiActivity,
   FiAward,
   FiTarget,
-  FiUser
+  FiUser,
+  FiFileText
 } from "react-icons/fi";
 
 interface StudentShort {
@@ -28,6 +29,9 @@ interface StudentShort {
   last_name: string | null;
   university_name: string | null;
   skills: string | null;
+  resume_file_path?: string | null;
+  resume_filename?: string | null;
+  resume_json?: string | null;
 }
 
 interface Application {
@@ -36,6 +40,8 @@ interface Application {
   status: string;
   applied_at: string;
   student: StudentShort;
+  resume_file_path?: string | null;
+  resume_json?: string | null;
 }
 
 interface InternshipDetail {
@@ -355,18 +361,46 @@ export function EmployerInternshipDetails() {
                             </div>
                           </div>
                         </div>
-                        <div className="text-right">
-                          <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
-                            app.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' :
-                            app.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                            'bg-amber-100 text-amber-700'
-                          }`}>
-                            {app.status}
-                          </span>
-                          <p className="text-[10px] text-slate-400 mt-2">
-                            Applied on {new Date(app.applied_at).toLocaleDateString()}
-                          </p>
-                        </div>
+                          <div className="text-right flex flex-col items-end gap-2">
+                            <span className={`inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                              app.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' :
+                              app.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                              'bg-amber-100 text-amber-700'
+                            }`}>
+                              {app.status}
+                            </span>
+                            
+                            <div className="flex flex-col gap-1 mt-1">
+                              {app.resume_file_path && (
+                                <a 
+                                  href={`${api.defaults.baseURL}/students/resume/download/${app.resume_file_path.split('/').pop()}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="flex items-center text-[10px] font-bold text-teal-600 hover:text-teal-700 bg-teal-50 px-2 py-1 rounded border border-teal-100"
+                                >
+                                  <FiLink className="mr-1" size={10} /> Uploaded Resume
+                                </a>
+                              )}
+                              
+                              {app.resume_json && (
+                                <button 
+                                  onClick={() => {
+                                    // In a real app, this would open a modal or new page with the generated resume
+                                    alert("System-generated resume details:\n" + 
+                                      JSON.parse(app.resume_json).career_objective || "No career objective"
+                                    );
+                                  }}
+                                  className="flex items-center text-[10px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100"
+                                >
+                                  <FiFileText className="mr-1" size={10} /> Generated Resume
+                                </button>
+                              )}
+                            </div>
+
+                            <p className="text-[10px] text-slate-400 mt-1">
+                              Applied on {new Date(app.applied_at).toLocaleDateString()}
+                            </p>
+                          </div>
                       </div>
                     </div>
                   ))}
