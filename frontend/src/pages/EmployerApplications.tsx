@@ -1,6 +1,18 @@
 import { useEffect, useMemo, useState } from "react";
 import api from "../services/api";
 import { useAuth } from "../context/AuthContext";
+import { 
+  FiUser, 
+  FiCalendar, 
+  FiBookOpen, 
+  FiAward, 
+  FiBriefcase, 
+  FiFileText,
+  FiCheck,
+  FiX,
+  FiSearch,
+  FiFilter
+} from "react-icons/fi";
 
 interface Applicant {
   id: number;
@@ -9,6 +21,10 @@ interface Applicant {
   applied_at: string;
   student_name: string;
   internship_title: string;
+  university_name?: string;
+  course?: string;
+  skills?: string;
+  resume_url?: string;
 }
 
 export function EmployerApplications() {
@@ -34,13 +50,24 @@ export function EmployerApplications() {
     return applications.filter(a => {
       const matchesStatus = statusFilter === "all" || a.status === statusFilter;
       const name = (a.student_name || "Unknown Student").toLowerCase();
-      const matchesSearch = !search || name.includes(search.toLowerCase());
+      const internship = (a.internship_title || "").toLowerCase();
+      const matchesSearch = !search || 
+        name.includes(search.toLowerCase()) || 
+        internship.includes(search.toLowerCase());
       return matchesStatus && matchesSearch;
     });
   }, [applications, statusFilter, search]);
 
   const toggle = (id: number) => {
     setSelected(prev => prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]);
+  };
+
+  const selectAll = () => {
+    if (selected.length === filtered.length) {
+      setSelected([]);
+    } else {
+      setSelected(filtered.map(a => a.id));
+    }
   };
 
   const bulkUpdate = async (status: string) => {
@@ -72,119 +99,236 @@ export function EmployerApplications() {
     }
   };
 
+  const handleDownloadResume = async (app: Applicant) => {
+    if (!app.resume_url) return;
+    const filename = app.resume_url.split('/').pop();
+    try {
+      setLoading(true);
+      const response = await api.get(`/students/resume/download/${filename}`, {
+        responseType: 'blob'
+      });
+      
+      const url = window.URL.createObjectURL(new Blob([response as any]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename || 'resume.pdf');
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (e: any) {
+      setError("Failed to download resume: " + e.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-slate-900 mb-6">Applications Management</h1>
-        <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 flex items-center gap-3">
-          <input
-            placeholder="Search by student name"
-            value={search}
-            onChange={e => setSearch(e.target.value)}
-            className="flex-1 px-3 py-2 border border-slate-200 rounded-lg"
-          />
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-slate-200 rounded-lg"
-          >
-            <option value="all">All Status</option>
-            <option value="pending">Pending</option>
-            <option value="accepted">Accepted</option>
-            <option value="rejected">Rejected</option>
-          </select>
-          {selected.length > 0 && (
-            <div className="flex gap-2">
-              <button
-                onClick={() => bulkUpdate("accepted")}
-                className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-slate-900">Applications Management</h1>
+            <p className="text-slate-500 mt-1">Review and manage student internship applications</p>
+          </div>
+          
+          <div className="flex gap-2">
+            {selected.length > 0 && (
+              <div className="flex gap-2 animate-in fade-in slide-in-from-right-4">
+                <button
+                  onClick={() => bulkUpdate("accepted")}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-xl hover:bg-emerald-700 transition-all shadow-sm font-medium"
+                >
+                  <FiCheck /> Accept Selected ({selected.length})
+                </button>
+                <button
+                  onClick={() => bulkUpdate("rejected")}
+                  className="flex items-center gap-2 px-4 py-2 bg-rose-600 text-white rounded-xl hover:bg-rose-700 transition-all shadow-sm font-medium"
+                >
+                  <FiX /> Reject Selected ({selected.length})
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-8 shadow-sm flex flex-col md:flex-row items-center gap-4">
+          <div className="relative flex-1 w-full">
+            <FiSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input
+              placeholder="Search by student or internship title..."
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none text-slate-600"
+            />
+          </div>
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <div className="relative w-full md:w-48">
+              <FiFilter className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all outline-none appearance-none bg-white text-slate-600"
               >
-                Accept ({selected.length})
-              </button>
-              <button
-                onClick={() => bulkUpdate("rejected")}
-                className="px-4 py-2 bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors"
-              >
-                Reject ({selected.length})
-              </button>
+                <option value="all">All Status</option>
+                <option value="pending">Pending</option>
+                <option value="accepted">Accepted</option>
+                <option value="rejected">Rejected</option>
+              </select>
             </div>
-          )}
+            <button 
+              onClick={selectAll}
+              className="px-4 py-2.5 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors text-slate-600 font-medium whitespace-nowrap"
+            >
+              {selected.length === filtered.length && filtered.length > 0 ? "Deselect All" : "Select All"}
+            </button>
+          </div>
         </div>
         
         {error && (
-          <div className="rounded-xl bg-rose-50 border border-rose-100 text-rose-700 px-6 py-4 mb-6">{error}</div>
+          <div className="rounded-2xl bg-rose-50 border border-rose-100 text-rose-700 px-6 py-4 mb-8 flex items-center gap-3">
+            <FiX className="shrink-0" />
+            <p className="font-medium">{error}</p>
+          </div>
         )}
 
-        <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="bg-slate-50 border-b border-slate-200">
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Select</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Student</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Internship</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Applied Date</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Status</th>
-                <th className="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filtered.map(app => (
-                <tr key={app.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <input
-                      type="checkbox"
-                      checked={selected.includes(app.id)}
-                      onChange={() => toggle(app.id)}
-                      className="w-4 h-4 text-brand-600 rounded"
-                    />
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-slate-900">{app.student_name}</div>
-                  </td>
-                  <td className="px-6 py-4 text-slate-600">{app.internship_title}</td>
-                  <td className="px-6 py-4 text-slate-500">
-                    {new Date(app.applied_at).toLocaleDateString()}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      app.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' :
-                      app.status === 'rejected' ? 'bg-rose-100 text-rose-700' :
-                      'bg-blue-100 text-blue-700'
-                    }`}>
-                      {app.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex gap-2">
-                      {app.status === 'pending' && (
-                        <>
-                          <button
-                            onClick={() => updateOne(app.id, 'accepted')}
-                            className="text-xs font-bold text-emerald-600 hover:text-emerald-700"
-                          >
-                            Accept
-                          </button>
-                          <button
-                            onClick={() => updateOne(app.id, 'rejected')}
-                            className="text-xs font-bold text-rose-600 hover:text-rose-700"
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filtered.map(app => (
+            <div 
+              key={app.id} 
+              className={`bg-white rounded-2xl border transition-all duration-200 flex flex-col overflow-hidden group ${
+                selected.includes(app.id) 
+                  ? 'border-brand-500 ring-2 ring-brand-500/10 shadow-md' 
+                  : 'border-slate-200 hover:border-brand-300 hover:shadow-lg hover:-translate-y-1 shadow-sm'
+              }`}
+            >
+              <div className="p-5 flex-1">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      onClick={() => toggle(app.id)}
+                      className={`w-6 h-6 rounded-lg border flex items-center justify-center cursor-pointer transition-all ${
+                        selected.includes(app.id)
+                          ? 'bg-brand-600 border-brand-600 text-white'
+                          : 'bg-white border-slate-300 text-transparent hover:border-brand-500'
+                      }`}
+                    >
+                      <FiCheck size={14} strokeWidth={3} className={selected.includes(app.id) ? 'opacity-100' : 'opacity-0'} />
                     </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          {filtered.length === 0 && !loading && (
-            <div className="p-12 text-center text-slate-500 italic">
-              No applications found matching your criteria.
+                    <div className="bg-brand-50 text-brand-700 w-12 h-12 rounded-2xl flex items-center justify-center font-bold text-xl">
+                      {app.student_name?.[0] || 'S'}
+                    </div>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider ${
+                    app.status === 'accepted' ? 'bg-emerald-100 text-emerald-700' :
+                    app.status === 'rejected' ? 'bg-rose-100 text-rose-700' :
+                    'bg-blue-100 text-blue-700'
+                  }`}>
+                    {app.status}
+                  </span>
+                </div>
+
+                <div className="space-y-3">
+                  <div>
+                    <h3 className="font-bold text-slate-900 text-lg leading-tight group-hover:text-brand-600 transition-colors">
+                      {app.student_name}
+                    </h3>
+                    <div className="flex items-center gap-1.5 text-brand-600 font-semibold text-sm mt-1">
+                      <FiBriefcase size={14} />
+                      {app.internship_title}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 gap-2.5 pt-2 border-t border-slate-100 mt-4">
+                    <div className="flex items-center gap-2.5 text-slate-600 text-sm">
+                      <FiCalendar className="text-slate-400" />
+                      <span className="font-medium">Applied:</span> {new Date(app.applied_at).toLocaleDateString('en-GB')}
+                    </div>
+                    {app.course && (
+                      <div className="flex items-center gap-2.5 text-slate-600 text-sm">
+                        <FiBookOpen className="text-slate-400" />
+                        <span className="font-medium">Course:</span> {app.course}
+                      </div>
+                    )}
+                    {app.university_name && (
+                      <div className="flex items-center gap-2.5 text-slate-600 text-sm">
+                        <FiAward className="text-slate-400" />
+                        <span className="font-medium">University:</span> {app.university_name}
+                      </div>
+                    )}
+                  </div>
+
+                  {app.skills && (
+                    <div className="pt-3">
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Skills</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {app.skills.split(',').map((skill, idx) => (
+                          <span key={idx} className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded-md text-xs font-medium border border-slate-200">
+                            {skill.trim()}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="p-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-3">
+                <button
+                  onClick={() => handleDownloadResume(app)}
+                  disabled={!app.resume_url}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all ${
+                    app.resume_url 
+                      ? 'bg-white border border-slate-200 text-slate-700 hover:bg-brand-50 hover:border-brand-200 hover:text-brand-600 shadow-sm' 
+                      : 'bg-slate-100 text-slate-400 cursor-not-allowed border border-slate-200'
+                  }`}
+                >
+                  <FiFileText /> Resume
+                </button>
+
+                <div className="flex gap-2">
+                  {app.status === 'pending' && (
+                    <>
+                      <button
+                        onClick={() => updateOne(app.id, 'accepted')}
+                        className="p-2 bg-emerald-100 text-emerald-700 rounded-xl hover:bg-emerald-600 hover:text-white transition-all shadow-sm"
+                        title="Accept Application"
+                      >
+                        <FiCheck size={18} />
+                      </button>
+                      <button
+                        onClick={() => updateOne(app.id, 'rejected')}
+                        className="p-2 bg-rose-100 text-rose-700 rounded-xl hover:bg-rose-600 hover:text-white transition-all shadow-sm"
+                        title="Reject Application"
+                      >
+                        <FiX size={18} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              </div>
             </div>
-          )}
+          ))}
         </div>
-        {loading && <div className="mt-6 text-slate-500 text-center">Processing...</div>}
+
+        {filtered.length === 0 && !loading && (
+          <div className="bg-white rounded-3xl border-2 border-dashed border-slate-200 p-20 text-center shadow-sm">
+            <div className="bg-slate-50 w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <FiSearch className="text-slate-300 text-4xl" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 mb-2">No applications found</h3>
+            <p className="text-slate-500 max-w-xs mx-auto">
+              We couldn't find any applications matching your current search or filter criteria.
+            </p>
+          </div>
+        )}
+        
+        {loading && (
+          <div className="fixed bottom-8 right-8 bg-white px-6 py-4 rounded-2xl shadow-2xl border border-slate-100 flex items-center gap-4 animate-in slide-in-from-bottom-10">
+            <div className="w-5 h-5 border-2 border-brand-600 border-t-transparent rounded-full animate-spin"></div>
+            <p className="font-bold text-slate-700">Updating applications...</p>
+          </div>
+        )}
       </div>
     </div>
   );

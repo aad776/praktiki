@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import api, { ApiError } from "../services/api";
@@ -475,7 +475,7 @@ const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggeste
         onClick={handleNext}
         className="px-8 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium transition-colors"
       >
-        Create your resume
+        {formData.resume.resume_file_path ? "View/Edit Resume" : "Create your resume"}
       </button>
     </div>
     {error && <p className="text-red-500 text-center mt-2">{error}</p>}
@@ -533,16 +533,51 @@ const Step4 = ({ formData, setFormData, handleResumeUpload, handleSubmit, loadin
       {/* Header Section */}
       <header className="mb-[0.5in] flex justify-between items-start border-b-2 border-[#D9E3F0] pb-4">
         <div className="flex-1">
-          <h1 className="text-[22pt] font-bold text-[#2B3A55] uppercase tracking-wide mb-1">
-            <input
-              className="bg-transparent border-none focus:ring-0 w-full p-0 font-bold"
-              value={`${formData.first_name} ${formData.last_name}`}
-              onChange={(e) => {
-                const [f, ...l] = e.target.value.split(' ');
-                setFormData((prev: any) => ({ ...prev, first_name: f, last_name: l.join(' ') }));
-              }}
-            />
-          </h1>
+          <div className="flex justify-between items-start mb-2">
+            <h1 className="text-[22pt] font-bold text-[#2B3A55] uppercase tracking-wide mb-1">
+              <input
+                className="bg-transparent border-none focus:ring-0 w-full p-0 font-bold"
+                value={`${formData.first_name} ${formData.last_name}`}
+                onChange={(e) => {
+                  const [f, ...l] = e.target.value.split(' ');
+                  setFormData((prev: any) => ({ ...prev, first_name: f, last_name: l.join(' ') }));
+                }}
+              />
+            </h1>
+            
+            <div className="no-print flex items-center gap-3">
+              {formData.resume.resume_file_path && (
+                <a
+                  href={`http://localhost:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-1.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-lg text-xs font-bold hover:bg-blue-100 transition-all flex items-center gap-2"
+                >
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  View Uploaded Resume
+                </a>
+              )}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={loading}
+                className="px-4 py-1.5 bg-brand-500 text-white rounded-lg text-xs font-bold hover:bg-brand-600 transition-all flex items-center gap-2"
+              >
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                {formData.resume.resume_file_path ? "Replace Resume" : "Upload Resume"}
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                className="hidden"
+                accept=".pdf,.doc,.docx"
+                onChange={handleResumeUpload}
+              />
+            </div>
+          </div>
           <div className="text-[14pt] text-[#4A4A4A] italic mb-4">
             <input
               className="bg-transparent border-none focus:ring-0 w-full p-0 italic"
@@ -889,9 +924,32 @@ const Step4 = ({ formData, setFormData, handleResumeUpload, handleSubmit, loadin
 
 // --- Profile View Component (Card-based Interface) ---
 
-const ProfileView = ({ formData, onEdit, onLogout }: any) => {
+const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploading(true);
+      try {
+        await handleResumeUpload(e);
+      } finally {
+        setUploading(false);
+      }
+    }
+  };
+
   return (
     <div className="max-w-4xl mx-auto py-8 px-4 animate-fadeIn">
+      {/* Upload Resume Hidden Input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={onFileChange}
+        accept=".pdf,.doc,.docx"
+        className="hidden"
+      />
+
       {/* Profile Header Card */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6">
         <div className="h-32 bg-gradient-to-r from-brand-500 to-brand-600"></div>
@@ -904,7 +962,40 @@ const ProfileView = ({ formData, onEdit, onLogout }: any) => {
                 <div className="w-full h-full bg-slate-100 flex items-center justify-center text-4xl">👤</div>
               )}
             </div>
-            <div className="flex gap-3 mb-2">
+            <div className="flex flex-wrap gap-3 mb-2 justify-end items-center">
+              {/* Prominent Upload Resume Button */}
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+                className={`px-6 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 shadow-md transition-all flex items-center gap-2 ${uploading ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}
+              >
+                {uploading ? (
+                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                  </svg>
+                )}
+                {uploading ? 'Uploading...' : 'Upload Resume'}
+              </button>
+
+              {formData.resume.resume_file_path && (
+                <a
+                  href={`http://localhost:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-6 py-2 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl text-sm font-semibold hover:bg-blue-100 transition-all flex items-center gap-2"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  View Resume
+                </a>
+              )}
+
               <button
                 onClick={onEdit}
                 className="px-6 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2"
@@ -912,7 +1003,7 @@ const ProfileView = ({ formData, onEdit, onLogout }: any) => {
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
-                Edit Profile
+                Edit
               </button>
               <button
                 onClick={onLogout}
@@ -1202,15 +1293,38 @@ export function StudentProfileSetup() {
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      
+      // 1. Client-side validation: File size (5MB)
+      const MAX_SIZE = 5 * 1024 * 1024;
+      if (file.size > MAX_SIZE) {
+        toast.error("File too large. Maximum size allowed is 5MB.");
+        return;
+      }
+
+      // 2. Client-side validation: File type
+      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+      if (!allowedTypes.includes(file.type)) {
+        toast.error("Invalid file format. Please upload PDF, DOC, or DOCX.");
+        return;
+      }
+
       const formDataUpload = new FormData();
       formDataUpload.append("file", file);
 
       try {
-        await api.post("/students/me/resume/upload", formDataUpload);
+        setLoading(true);
+        const response = await api.post("/students/me/resume/upload", formDataUpload);
         toast.success("Resume uploaded successfully!");
+        
+        // Refresh profile data if in view mode
+        if (isViewMode) {
+          fetchData();
+        }
       } catch (err) {
         const error = err as ApiError;
         toast.error(error.message || "Failed to upload resume.");
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -1253,80 +1367,89 @@ export function StudentProfileSetup() {
     navigate('/');
   };
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const parseList = (str: string | null) => str ? str.split(", ").filter(Boolean) : [];
-      const parseJSON = (val: any, fallback: any) => {
-        if (!val) return fallback;
-        try {
-          return typeof val === 'string' ? JSON.parse(val) : val;
-        } catch {
-          return fallback;
-        }
-      };
+  const handleEdit = () => {
+    setIsViewMode(false);
+    setStep(1);
+  };
 
+  const fetchData = async () => {
+    const parseList = (str: string | null) => str ? str.split(", ").filter(Boolean) : [];
+    const parseJSON = (val: any, fallback: any) => {
+      if (!val) return fallback;
       try {
-        setInitialLoading(true);
-        // Fetch Profile
-        let profileData: any = null;
-        try {
-          const profileRes = await api.get<Record<string, any>>("/students/me");
-          profileData = profileRes;
-        } catch (err) {
-          console.log("No profile found");
-        }
-
-        // Fetch Resume
-        let resumeData: any = null;
-        try {
-          const resumeRes = await api.get<Record<string, any>>("/students/me/resume");
-          resumeData = resumeRes;
-        } catch (err) {
-          console.log("No resume found");
-        }
-
-        if (profileData) {
-          setHasProfile(true);
-          setIsViewMode(true);
-          setFormData(prev => ({
-            ...prev,
-            first_name: profileData.first_name || "",
-            last_name: profileData.last_name || "",
-            phone_number: profileData.phone_number || "",
-            current_city: profileData.current_city || "",
-            gender: profileData.gender || "",
-            languages: parseList(profileData.languages),
-            apaar_id: profileData.apaar_id || "",
-            profile_type: profileData.profile_type || "",
-            course: profileData.degree || "",
-            specialization: profileData.department || "",
-            college_name: profileData.university_name || "",
-            start_year: profileData.start_year ? String(profileData.start_year) : "",
-            end_year: profileData.end_year ? String(profileData.end_year) : "",
-            interests: parseList(profileData.interests),
-            looking_for: parseList(profileData.looking_for),
-            work_mode: parseList(profileData.work_mode),
-            resume: resumeData ? {
-              ...prev.resume,
-              career_objective: resumeData.career_objective || "",
-              work_experience: parseJSON(resumeData.work_experience, []),
-              projects: parseJSON(resumeData.projects, []),
-              certifications: parseJSON(resumeData.certifications, []),
-              extra_curricular: parseJSON(resumeData.extra_curricular, []),
-              education_entries: parseJSON(resumeData.education_entries, []),
-              skills_categorized: parseJSON(resumeData.skills_categorized, { technical: [], soft: [], languages: [] }),
-              title: resumeData.title || "",
-              linkedin: resumeData.linkedin || ""
-            } : prev.resume
-          }));
-        }
-      } catch (err) {
-        console.error("Error fetching data:", err);
-      } finally {
-        setInitialLoading(false);
+        return typeof val === 'string' ? JSON.parse(val) : val;
+      } catch {
+        return fallback;
       }
     };
 
+    try {
+      setInitialLoading(true);
+      // Fetch Profile
+      let profileData: any = null;
+      try {
+        const profileRes = await api.get<Record<string, any>>("/students/me");
+        profileData = profileRes;
+      } catch (err) {
+        console.log("No profile found");
+      }
+
+      // Fetch Resume
+      let resumeData: any = null;
+      try {
+        const resumeRes = await api.get<Record<string, any>>("/students/me/resume");
+        resumeData = resumeRes;
+      } catch (err) {
+        console.log("No resume found");
+      }
+
+      if (profileData) {
+        setHasProfile(true);
+        setIsViewMode(true);
+        setFormData(prev => ({
+          ...prev,
+          first_name: profileData.first_name || "",
+          last_name: profileData.last_name || "",
+          phone_number: profileData.phone_number || "",
+          current_city: profileData.current_city || "",
+          gender: profileData.gender || "",
+          languages: parseList(profileData.languages),
+          apaar_id: profileData.apaar_id || "",
+          profile_type: profileData.profile_type || "",
+          course: profileData.degree || "",
+          specialization: profileData.department || "",
+          college_name: profileData.university_name || "",
+          start_year: profileData.start_year ? String(profileData.start_year) : "",
+          end_year: profileData.end_year ? String(profileData.end_year) : "",
+          interests: parseList(profileData.interests),
+          looking_for: parseList(profileData.looking_for),
+          work_mode: parseList(profileData.work_mode),
+          resume: resumeData ? {
+            ...prev.resume,
+            career_objective: resumeData.career_objective || "",
+            work_experience: parseJSON(resumeData.work_experience, []),
+            projects: parseJSON(resumeData.projects, []),
+            certifications: parseJSON(resumeData.certifications, []),
+            extra_curricular: parseJSON(resumeData.extra_curricular, []),
+            education_entries: parseJSON(resumeData.education_entries, []),
+            skills_categorized: parseJSON(resumeData.skills_categorized, { technical: [], soft: [], languages: [] }),
+            title: resumeData.title || "",
+            linkedin: resumeData.linkedin || "",
+            resume_file_path: resumeData.resume_file_path || null,
+            resume_filename: resumeData.resume_filename || null,
+            resume_file_size: resumeData.resume_file_size || null,
+            resume_uploaded_at: resumeData.resume_uploaded_at || null
+          } : prev.resume
+        }));
+      }
+    } catch (err) {
+      console.error("Error fetching data:", err);
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
 
@@ -1411,7 +1534,12 @@ export function StudentProfileSetup() {
   if (isViewMode) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <ProfileView formData={formData} onEdit={() => setIsViewMode(false)} onLogout={handleLogout} />
+        <ProfileView
+          formData={formData}
+          onEdit={handleEdit}
+          onLogout={handleLogout}
+          handleResumeUpload={handleResumeUpload}
+        />
       </div>
     );
   }
