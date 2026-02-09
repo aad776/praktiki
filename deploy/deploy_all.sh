@@ -36,12 +36,12 @@ log_step() {
 #-------------------------------------------------------------------------------
 # Configuration - UPDATE THESE VALUES
 #-------------------------------------------------------------------------------
-SSH_KEY_PATH="./your-key.pem"  # Path to your SSH key
+SSH_KEY_PATH="/c/Users/karti/computer_science/praktiki/prakritii.pem"  # Path to your SSH key
 
 # EC2 Instance IPs - Replace with your actual EC2 public IPs
-BACKEND_HOST="YOUR_BACKEND_EC2_IP"
-AI_MATCHING_HOST="YOUR_AI_MATCHING_EC2_IP"
-FRONTEND_HOST="YOUR_FRONTEND_EC2_IP"
+BACKEND_HOST="44.205.136.199"
+AI_MATCHING_HOST="52.205.225.84"
+FRONTEND_HOST="44.197.97.159"
 
 SSH_USER="ubuntu"
 
