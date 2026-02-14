@@ -112,6 +112,7 @@ export function EmployerDashboard() {
   const [contactPhone, setContactPhone] = useState("");
   const [applicationEmail, setApplicationEmail] = useState("");
   const [applicationLink, setApplicationLink] = useState("");
+  const [policy, setPolicy] = useState("UGC");
   const [mapPosition, setMapPosition] = useState<[number, number]>([28.7041, 77.1025]); // Default to Delhi, India
   const [isLocating, setIsLocating] = useState(false);
 
@@ -159,6 +160,9 @@ export function EmployerDashboard() {
     isPhoneVerified: false,
     companyName: ""
   });
+
+  const [activeTab, setActiveTab] = useState<'internships' | 'applications'>('internships');
+  const [selectedInternship, setSelectedInternship] = useState<number | null>(null);
 
   useEffect(() => {
     if (!token) return;
@@ -241,7 +245,8 @@ export function EmployerDashboard() {
       contact_email: contactEmail || "",
       contact_phone: contactPhone || "",
       application_link: applicationLink || "",
-      application_email: applicationEmail || ""
+      application_email: applicationEmail || "",
+      policy: policy || "UGC"
     };
 
     console.log("Posting Internship Data:", jobData);
@@ -350,6 +355,35 @@ export function EmployerDashboard() {
       console.error("Failed to update application status:", err);
       const errorMsg = err.message || "Could not update status. Please try again later.";
       setError(errorMsg);
+    } finally {
+      setUpdatingStatusId(null);
+    }
+  }
+
+  async function markAsCompleted(applicationId: number, internshipId: number) {
+    if (!token) return;
+    const hours = prompt("Enter total hours worked by the student:");
+    if (!hours || isNaN(Number(hours))) {
+      alert("Please enter a valid number of hours.");
+      return;
+    }
+
+    const policyType = prompt("Enter policy type (UGC or AICTE):", "UGC")?.toUpperCase();
+    if (policyType !== "UGC" && policyType !== "AICTE") {
+      alert("Please enter either UGC or AICTE.");
+      return;
+    }
+
+    setUpdatingStatusId(applicationId);
+    try {
+      await api.put(`/employers/applications/${applicationId}/complete`, {
+        hours_worked: parseInt(hours),
+        policy_type: policyType
+      });
+      setMessage("Internship marked as completed!");
+      loadApplications(internshipId);
+    } catch (err: any) {
+      setError(err.message || "Failed to mark as completed");
     } finally {
       setUpdatingStatusId(null);
     }
@@ -603,7 +637,7 @@ export function EmployerDashboard() {
                                       <div className="flex gap-2 mt-3">
                                         {app.student.resume_file_path && (
                                             <a
-                                                href={`http://localhost:8000/students/resume/download/${app.student.resume_file_path.split('/').pop()}`}
+                                                href={`http://127.0.0.1:8000/students/resume/download/${app.student.resume_file_path.split('/').pop()}`}
                                                 target="_blank" 
                                             rel="noopener noreferrer"
                                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-[11px] font-bold hover:bg-blue-100 transition-colors border border-blue-100"
@@ -691,6 +725,13 @@ export function EmployerDashboard() {
                                     >
                                       {updatingStatusId === app.id ? "..." : "Reject"}
                                     </button>
+                                    <button
+                                      onClick={() => markAsCompleted(app.id, job.id)}
+                                      disabled={updatingStatusId === app.id}
+                                      className="bg-teal-600 text-white px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-teal-700 transition-all shadow-sm shadow-teal-200 disabled:opacity-50"
+                                    >
+                                      {updatingStatusId === app.id ? "..." : "Complete"}
+                                    </button>
                                   </div>
                                 </div>
                               ))}
@@ -699,7 +740,7 @@ export function EmployerDashboard() {
 
                           {/* Rejected Applications */}
                           {apps.filter(app => app.status === "rejected").length > 0 && (
-                            <div>
+                            <div className="mb-4">
                               <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Rejected Applications</h4>
                               {apps.filter(app => app.status === "rejected").map((app) => (
                                 <div key={app.id} className="flex items-center justify-between p-4 hover:bg-slate-50 rounded-xl transition-all border border-slate-100 mb-2 last:mb-0 group opacity-75">
@@ -717,32 +758,34 @@ export function EmployerDashboard() {
                                         </span>
                                       </div>
                                       <p className="text-slate-500 text-xs mt-0.5">{app.student.university_name || 'University not specified'}</p>
-                                      <div className="flex flex-wrap gap-1 mt-2">
-                                        {(app.student.skills?.split(',') || []).slice(0, 3).map((skill, i) => (
-                                          <span key={i} className="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-medium">
-                                            {skill.trim()}
-                                          </span>
-                                        ))}
-                                        {(app.student.skills?.split(',') || []).length > 3 && (
-                                          <span className="text-[9px] bg-slate-50 text-slate-400 px-1.5 py-0.5 rounded font-medium">
-                                            +{(app.student.skills?.split(',') || []).length - 3}
-                                          </span>
-                                        )}
-                                      </div>
-                                      <p className="text-[10px] text-slate-400 mt-2 flex items-center gap-1">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                        Applied on {formatDate(app.applied_at)}
-                                      </p>
                                     </div>
                                   </div>
-                                  <div className="flex flex-col gap-2">
-                                    <button
-                                      onClick={() => updateStatus(app.id, "accepted", job.id)}
-                                      disabled={updatingStatusId === app.id}
-                                      className="bg-white border border-emerald-200 text-emerald-600 px-4 py-1.5 rounded-lg text-xs font-bold hover:bg-emerald-50 transition-all disabled:opacity-50"
-                                    >
-                                      {updatingStatusId === app.id ? "..." : "Accept"}
-                                    </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+
+                          {/* Completed Applications */}
+                          {apps.filter(app => app.status === "completed").length > 0 && (
+                            <div>
+                              <h4 className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 pl-1">Completed Internships</h4>
+                              {apps.filter(app => app.status === "completed").map((app) => (
+                                <div key={app.id} className="flex items-center justify-between p-4 bg-teal-50/30 rounded-xl border border-teal-100 mb-2 last:mb-0 group">
+                                  <div className="flex items-start gap-3">
+                                    <div className="bg-teal-100 text-teal-600 w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0">
+                                      {app.student.first_name?.[0] || 'S'}
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center gap-2">
+                                        <p className="font-bold text-slate-800 text-sm">
+                                          {app.student.first_name} {app.student.last_name}
+                                        </p>
+                                        <span className="text-[10px] bg-teal-100 text-teal-700 px-1.5 py-0.5 rounded uppercase font-bold tracking-wider">
+                                          Completed
+                                        </span>
+                                      </div>
+                                      <p className="text-slate-500 text-xs mt-0.5">{app.student.university_name || 'University not specified'}</p>
+                                    </div>
                                   </div>
                                 </div>
                               ))}

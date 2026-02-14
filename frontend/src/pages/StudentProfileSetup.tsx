@@ -9,35 +9,73 @@ import { COLLEGES, STREAMS, STREAM_SKILLS_MAPPING, LANGUAGES } from "../data/pro
 
 const Autocomplete = ({
   label,
-  options,
+  options = [],
   value,
   onChange,
+  onManualEnter,
   placeholder,
-  required = false
+  endpoint,
+  queryParams = {},
+  required = false,
+  noLabel = false,
+  minimal = false
 }: {
-  label: string,
-  options: string[],
+  label?: string,
+  options?: string[],
   value: string,
   onChange: (val: string) => void,
+  onManualEnter?: (val: string) => void,
   placeholder: string,
-  required?: boolean
+  endpoint?: string,
+  queryParams?: Record<string, string>,
+  required?: boolean,
+  noLabel?: boolean,
+  minimal?: boolean
 }) => {
   const [show, setShow] = useState(false);
   const [filtered, setFiltered] = useState<string[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [inputValue, setInputValue] = useState(value);
   const wrapperRef = useRef<HTMLDivElement>(null);
 
+  // Sync internal state with prop value
   useEffect(() => {
-    // Filter options based on input
-    if (value) {
-      const lower = value.toLowerCase();
-      setFiltered(options.filter(o => o.toLowerCase().includes(lower)));
-    } else {
-      setFiltered(options);
-    }
-  }, [value, options]);
+    setInputValue(value);
+  }, [value]);
 
   useEffect(() => {
-    // Close dropdown when clicking outside
+    const fetchSuggestions = async () => {
+      if (!endpoint) return;
+      
+      setLoading(true);
+      try {
+        const params = { q: inputValue, ...queryParams };
+        const response: any = await api.get(endpoint, params);
+        const names = Array.isArray(response) ? response.map((item: any) => item.name) : [];
+        setFiltered(names);
+      } catch (error) {
+        console.error("Error fetching suggestions:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (endpoint) {
+      const timeoutId = setTimeout(() => {
+        if (show || Object.keys(queryParams).length > 0) fetchSuggestions();
+      }, 300);
+      return () => clearTimeout(timeoutId);
+    } else {
+      if (inputValue) {
+        const lower = inputValue.toLowerCase();
+        setFiltered(options.filter(o => o.toLowerCase().includes(lower)));
+      } else {
+        setFiltered(options);
+      }
+    }
+  }, [inputValue, options, endpoint, show, JSON.stringify(queryParams)]);
+
+  useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
         setShow(false);
@@ -47,37 +85,76 @@ const Autocomplete = ({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && inputValue.trim()) {
+      e.preventDefault();
+      if (onManualEnter) {
+        onManualEnter(inputValue.trim());
+        setInputValue("");
+        setShow(false);
+      } else {
+        onChange(inputValue.trim());
+        setShow(false);
+      }
+    }
+  };
+
   return (
-    <div className="relative" ref={wrapperRef}>
-      <label className="block text-sm font-medium text-gray-700 mb-1">
-        {label} {required && <span className="text-red-500">*</span>}
-      </label>
-      <input
-        type="text"
-        value={value}
-        onChange={(e) => {
-          onChange(e.target.value);
-          setShow(true);
-        }}
-        onFocus={() => setShow(true)}
-        placeholder={placeholder}
-        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-      />
-      {show && filtered.length > 0 && (
-        <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-          {filtered.map((opt, i) => (
-            <li
-              key={i}
-              onClick={() => {
-                onChange(opt);
-                setShow(false);
-              }}
-              className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-700"
-            >
-              {opt}
-            </li>
-          ))}
-        </ul>
+    <div className="relative w-full" ref={wrapperRef}>
+      {!noLabel && label && (
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          {label} {required && <span className="text-red-500">*</span>}
+        </label>
+      )}
+      <div className="relative">
+        <input
+          type="text"
+          value={inputValue}
+          onChange={(e) => {
+            setInputValue(e.target.value);
+            // Don't call onChange immediately for skills to prevent "a", "t" behavior
+            if (!onManualEnter) {
+              onChange(e.target.value);
+            }
+            setShow(true);
+          }}
+          onFocus={() => setShow(true)}
+          onKeyDown={handleKeyDown}
+          placeholder={placeholder}
+          className={minimal 
+            ? "bg-transparent border-none p-0 focus:ring-0 font-medium w-full"
+            : "w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          }
+        />
+        {loading && (
+          <div className={`absolute ${minimal ? 'right-0' : 'right-3'} top-1/2 -translate-y-1/2`}>
+            <div className="w-3 h-3 border-2 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
+      </div>
+      {show && (
+        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto min-w-[200px]">
+          {filtered.length > 0 ? (
+            <ul className="divide-y divide-gray-50">
+              {filtered.map((opt, i) => (
+                <li
+                  key={i}
+                  onClick={() => {
+                    onChange(opt);
+                    setShow(false);
+                  }}
+                  className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-700"
+                >
+                  {opt}
+                </li>
+              ))}
+            </ul>
+          ) : !loading && value.length > 0 && (
+            <div className="px-4 py-3 text-sm text-gray-500 text-center italic">
+              No results found
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
@@ -226,7 +303,8 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
       />
     </div>
 
-    <div>
+    {/* APAAR ID input hidden as per requirements - moved to ABC Status Dashboard */}
+    {/* <div>
       <label className="block text-sm font-medium text-gray-700 mb-1">APAAR ID <span className="text-red-500">*</span></label>
       <p className="text-xs text-gray-500 mb-2">
         12-digit APAAR ID is required to apply for internships.
@@ -256,7 +334,7 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
       {formData.apaar_id && formData.apaar_id.length === 12 && (
         <p className="text-xs text-green-600 mt-1">✓ Valid APAAR ID format</p>
       )}
-    </div>
+    </div> */}
 
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">Gender <span className="text-red-500">*</span></label>
@@ -324,41 +402,43 @@ const Step2 = ({ formData, handleChange, setFormData }: any) => (
       </div>
     </div>
 
-    <div>
-      <label className="block text-sm font-medium text-gray-700 mb-2">Course <span className="text-red-500">*</span></label>
-      <div className="flex flex-wrap gap-2">
-        {["B.Tech", "BE", "B.Com", "MBA", "B.A", "B.Sc", "M.Tech", "M.Com", "MCA", "PhD", "Diploma"].map(c => (
-          <button
-            key={c}
-            type="button"
-            onClick={() => handleChange({ target: { name: "course", value: c } } as any)}
-            className={`px-4 py-2 rounded-full border text-sm transition-colors ${formData.course === c
-              ? "bg-blue-50 border-blue-500 text-blue-600"
-              : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
-              }`}
-          >
-            {c}
-          </button>
-        ))}
-      </div>
-    </div>
+    <Autocomplete
+      label="Course"
+      placeholder="Eg. B.Tech"
+      endpoint="/autocomplete/courses"
+      value={formData.course}
+      onChange={(val) => {
+        handleChange({ target: { name: "course", value: val } } as any);
+      }}
+      required
+    />
 
     <Autocomplete
       label="College name"
       placeholder="Search for your college"
-      options={COLLEGES}
+      endpoint="/autocomplete/colleges"
       value={formData.college_name}
       onChange={(val) => handleChange({ target: { name: "college_name", value: val } } as any)}
       required
     />
 
     <Autocomplete
-      label="Stream / Specialization"
+      label="Stream"
+      placeholder="Eg. Engineering"
+      endpoint="/autocomplete/streams"
+      value={formData.stream}
+      onChange={(val) => {
+        handleChange({ target: { name: "stream", value: val } } as any);
+      }}
+      required
+    />
+
+    <Autocomplete
+      label="Specialization"
       placeholder="Eg. Computer Science"
-      options={STREAMS}
+      endpoint="/autocomplete/specializations"
       value={formData.specialization}
       onChange={(val) => {
-        // Auto-populate skills logic handled in useEffect of main component or here
         handleChange({ target: { name: "specialization", value: val } } as any);
       }}
       required
@@ -381,7 +461,7 @@ const Step2 = ({ formData, handleChange, setFormData }: any) => (
   </div>
 );
 
-const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggestedSkills }: any) => (
+const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggestedSkills, handleChange }: any) => (
   <div className="space-y-6 animate-fadeIn">
     <div className="text-center mb-8">
       <h2 className="text-2xl font-bold text-gray-800">Your preferences 🎯</h2>
@@ -391,6 +471,47 @@ const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggeste
 
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">Area(s) of interest <span className="text-red-500">*</span></label>
+      
+      <div className="mb-4">
+        <Autocomplete
+          placeholder="Search for interests (e.g. Web Development)"
+          endpoint="/autocomplete/areas-of-interest"
+          queryParams={{
+            course_name: formData.course,
+            stream_name: formData.stream
+          }}
+          value=""
+          onChange={(val) => {
+            if (val && !formData.interests.includes(val)) {
+              toggleSelection("interests", val);
+            }
+          }}
+          onManualEnter={(val) => {
+            if (val && !formData.interests.includes(val)) {
+              toggleSelection("interests", val);
+            }
+          }}
+          noLabel
+        />
+      </div>
+
+      <div className="flex flex-wrap gap-2 mb-4">
+        {formData.interests.map((interest: string) => (
+          <span
+            key={interest}
+            className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm"
+          >
+            {interest}
+            <button
+              type="button"
+              onClick={() => toggleSelection("interests", interest)}
+              className="ml-2 text-blue-500 hover:text-blue-700"
+            >
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
 
       {/* Suggested Skills based on Stream */}
       {suggestedSkills.length > 0 && (
@@ -548,7 +669,7 @@ const Step4 = ({ formData, setFormData, handleResumeUpload, handleSubmit, loadin
             <div className="no-print flex items-center gap-3">
               {formData.resume.resume_file_path && (
                 <a
-                  href={`http://localhost:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
+                  href={`http://127.0.0.1:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-4 py-1.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-lg text-xs font-bold hover:bg-blue-100 transition-all flex items-center gap-2"
@@ -805,12 +926,16 @@ const Step4 = ({ formData, setFormData, handleResumeUpload, handleSubmit, loadin
                 {(formData.resume.skills_categorized?.[cat] || []).map((skill: any, idx: number) => (
                   <div key={idx} className="group relative">
                     <div className="flex justify-between text-[10pt] mb-1">
-                      <input
-                        className="bg-transparent border-none p-0 focus:ring-0 font-medium"
-                        placeholder="Skill Name"
-                        value={skill.name}
-                        onChange={(e) => updateSkill(cat, idx, { name: e.target.value })}
-                      />
+                      <div className="w-2/3">
+                        <Autocomplete
+                          value={skill.name}
+                          onChange={(val) => updateSkill(cat, idx, { name: val })}
+                          placeholder="Skill Name"
+                          endpoint="/autocomplete/skills"
+                          label=""
+                          noLabel
+                        />
+                      </div>
                       <span className="text-gray-400 opacity-0 group-hover:opacity-100">{skill.level}%</span>
                     </div>
                     <div className="h-1.5 w-full bg-[#D9E3F0] rounded-full overflow-hidden relative">
@@ -984,7 +1109,7 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
 
               {formData.resume.resume_file_path && (
                 <a
-                  href={`http://localhost:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
+                  href={`http://127.0.0.1:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-6 py-2 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl text-sm font-semibold hover:bg-blue-100 transition-all flex items-center gap-2"
@@ -1038,7 +1163,8 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
                 </svg>
-                APAAR ID: {formData.apaar_id}
+                {/* APAAR ID hidden as per requirements */}
+                {/* APAAR ID: {formData.apaar_id} */}
               </span>
             </div>
           </div>
@@ -1176,7 +1302,8 @@ export function StudentProfileSetup() {
     // Step 2
     profile_type: "",
     course: "",
-    specialization: "", // Stream
+    stream: "", // Stream (e.g. Engineering)
+    specialization: "", // Specialization (e.g. Computer Science)
     college_name: "",
     start_year: "",
     end_year: "",

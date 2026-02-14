@@ -16,6 +16,7 @@ import { EmployerInternshipDetails } from './pages/EmployerInternshipDetails';
 import { EmployerProfileSetup } from './pages/EmployerProfileSetup';
 import { EmployerStatus } from './pages/EmployerStatus';
 import { EmployerApplications } from './pages/EmployerApplications';
+import { EmployerManagedInternships } from './pages/EmployerManagedInternships';
 import { InstituteDashboard } from './pages/InstituteDashboard';
 import { InternshipDetails } from './pages/InternshipDetails';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
@@ -126,6 +127,14 @@ export function App() {
           element={
             <ProtectedRoute allowedRoles={['employer']}>
               <EmployerApplications />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employer/managed-internships"
+          element={
+            <ProtectedRoute allowedRoles={['employer']}>
+              <EmployerManagedInternships />
             </ProtectedRoute>
           }
         />

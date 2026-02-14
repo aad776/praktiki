@@ -133,10 +133,17 @@ def login(
     print(f"Login attempt for email: {login_in.email}")
     print(f"Login request data: {login_in}")
     user = db.query(User).filter(User.email == login_in.email).first()
-    print(f"User found: {user}")
+    if not user:
+        print(f"DEBUG: No user found with email: {login_in.email}")
+        raise HTTPException(status_code=401, detail="Invalid email or password")
     
-    # Check if user exists and password is correct
-    if not user or not verify_password(login_in.password, user.hashed_password):
+    print(f"DEBUG: User found: {user.email}, role: {user.role}, hash: {user.hashed_password[:15]}...")
+    
+    # Check if password is correct
+    is_valid = verify_password(login_in.password, user.hashed_password)
+    print(f"DEBUG: Password verification result: {is_valid}")
+    
+    if not is_valid:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
     # Email verification disabled for testing

@@ -1,5 +1,6 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from db.session import Base
 
 class Internship(Base):
@@ -25,6 +26,9 @@ class Internship(Base):
     contact_phone = Column(String, nullable=True)
     application_link = Column(String, nullable=True)
     application_email = Column(String, nullable=True)
+    policy = Column(String, nullable=True) # UGC or AICTE
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
-    # Relationship to employer
-    employer = relationship("EmployerProfile", backref="internships")
+    # Relationships
+    employer = relationship("EmployerProfile", back_populates="internships")
+    applications = relationship("Application", back_populates="internship")

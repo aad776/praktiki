@@ -384,8 +384,8 @@ export function SignupPage() {
                   Back
                 </button>
 
-                {/* Student Specific Fields */}
-                {role === 'student' && (
+                {/* Student Specific Fields - APAAR ID hidden as per requirements, moved to ABC Status Dashboard */}
+                {/* {role === 'student' && (
                   <>
                     <div className="input-group">
                       <label htmlFor="apaarId" className="label">
@@ -416,7 +416,7 @@ export function SignupPage() {
                       </p>
                     </div>
                   </>
-                )}
+                )} */}
 
                 {/* Employer Specific Fields */}
                 {role === 'employer' && (

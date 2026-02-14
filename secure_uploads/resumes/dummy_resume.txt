@@ -1,0 +1,5 @@
+This is a dummy resume for testing purposes.
+Name: Test Student
+Email: test.student@example.com
+Skills: Python, FastAPI, SQL
+Experience: 1 year as a Junior Developer

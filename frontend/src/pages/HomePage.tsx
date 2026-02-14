@@ -1,8 +1,17 @@
 import { Link, useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
 import { PublicNavbar } from "../components/PublicNavbar";
 
 export function HomePage() {
   const navigate = useNavigate();
+  const { isAuthenticated, role, isLoading } = useAuth();
+
+  useEffect(() => {
+    if (!isLoading && isAuthenticated && role) {
+      navigate(`/${role}`);
+    }
+  }, [isAuthenticated, role, isLoading, navigate]);
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900">

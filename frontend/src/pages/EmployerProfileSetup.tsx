@@ -705,7 +705,7 @@ export const EmployerProfileSetup = () => {
                     id="logo-upload"
                     onChange={(e) => {
                       if (e.target.files?.[0]) {
-                        handleInputChange("logoUrl", "https://via.placeholder.com/150?text=" + e.target.files[0].name);
+                        handleInputChange("logoUrl", "https://placehold.co/150?text=" + encodeURIComponent(e.target.files[0].name));
                         alert("Logo uploaded successfully (mock)");
                       }
                     }}

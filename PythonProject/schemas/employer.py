@@ -61,15 +61,23 @@ class InternshipCreate(BaseModel):
     contact_phone: Optional[str] = None
     application_link: Optional[str] = None
     application_email: Optional[str] = None
+    policy: Optional[str] = "UGC"
 
 
 class InternshipOut(BaseModel):
     id: int
     employer_id: int
     title: str
+    description: Optional[str] = None
     location: str
     mode: str
     duration_weeks: int
+    deadline: Optional[str] = None
+    skills: Optional[str] = None
+    policy: Optional[str] = None
+    created_at: Optional[datetime] = None
+    company_name: Optional[str] = None
+    logo_url: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -77,6 +85,10 @@ class InternshipOut(BaseModel):
 
 class ApplicationStatusUpdate(BaseModel):
     status: str
+
+class ApplicationComplete(BaseModel):
+    hours_worked: int
+    policy_type: str  # UGC or AICTE
 
 class BulkApplicationStatusUpdate(BaseModel):
     application_ids: List[int]
@@ -97,6 +109,10 @@ class ApplicationOut(BaseModel):
     applied_at: str
     student_name: Optional[str] = None
     internship_title: Optional[str] = None
+    university_name: Optional[str] = None
+    course: Optional[str] = None
+    skills: Optional[str] = None
+    resume_url: Optional[str] = None
 
     class Config:
         from_attributes = True
@@ -107,6 +123,11 @@ class StudentShortOut(BaseModel):
     last_name: Optional[str] = None
     university_name: Optional[str] = None
     skills: Optional[str] = None
+    resume_file_path: Optional[str] = None
+    resume_filename: Optional[str] = None
+    resume_file_size: Optional[int] = None
+    resume_uploaded_at: Optional[datetime] = None
+    resume_json: Optional[str] = None # Added for career_objective, work_experience, etc.
 
     class Config:
         from_attributes = True
@@ -117,6 +138,9 @@ class ApplicationWithStudentOut(BaseModel):
     status: str
     applied_at: Optional[datetime] = None
     student: Optional[StudentShortOut] = None
+    # We can also add these here directly if mapping from ORM is tricky
+    resume_file_path: Optional[str] = None
+    resume_json: Optional[str] = None
 
     class Config:
         from_attributes = True

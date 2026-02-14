@@ -4,10 +4,11 @@
 
 import { config } from '../config';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
+  responseType?: 'json' | 'blob';
 }
 
 /**
@@ -17,7 +18,7 @@ async function apiRequest<T>(
   endpoint: string,
   options: RequestOptions = {}
 ): Promise<T> {
-  const { params, ...fetchOptions } = options;
+  const { params, responseType = 'json', ...fetchOptions } = options;
 
   // Build URL with query params
   let url = `${API_BASE_URL}${endpoint}`;
@@ -88,15 +89,19 @@ async function apiRequest<T>(
     throw new Error(errorMessage);
   }
 
+  if (responseType === 'blob') {
+    return response.blob() as unknown as T;
+  }
+
   return response.json();
 }
 
- /**
+/**
  * API client with methods for different HTTP requests
  */
 const api = {
-  get: <T>(endpoint: string, params?: Record<string, string>): Promise<T> => {
-    return apiRequest<T>(endpoint, { method: 'GET', params });
+  get: <T>(endpoint: string, options?: RequestOptions): Promise<T> => {
+    return apiRequest<T>(endpoint, { method: 'GET', ...options });
   },
 
   post: <T>(endpoint: string, data?: unknown, options?: Omit<RequestOptions, 'body'>): Promise<T> => {

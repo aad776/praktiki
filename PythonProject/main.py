@@ -13,6 +13,12 @@ from api.v1.auth import router as auth_router
 from api.v1.students import router as student_router
 from api.v1.employers import router as employer_router
 from api.v1.institutes import router as institute_router
+from api.v1.autocomplete import router as autocomplete_router
+from api.v1.credits import router as credits_router
+from api.v1.notifications import router as notifications_router
+
+from fastapi.staticfiles import StaticFiles
+import os
 
 # Create FastAPI app
 app = FastAPI(
@@ -22,6 +28,12 @@ app = FastAPI(
     docs_url="/docs",
     redoc_url="/redoc"
 )
+
+# Ensure uploads directory exists
+os.makedirs("uploads/profile_pictures", exist_ok=True)
+os.makedirs("secure_uploads/resumes", exist_ok=True)
+# Only mount public uploads (like profile pictures), NOT secure_uploads
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
 # Configure CORS
 app.add_middleware(
@@ -52,6 +64,9 @@ app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
 app.include_router(student_router, prefix="/students", tags=["Students"])
 app.include_router(employer_router, prefix="/employers", tags=["Employers"])
 app.include_router(institute_router, prefix="/institutes", tags=["Institutes"])
+app.include_router(autocomplete_router, prefix="/autocomplete", tags=["Autocomplete"])
+app.include_router(credits_router, prefix="/credits", tags=["Credits"])
+app.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
 
 @app.on_event("startup")
 def ensure_optional_columns():
@@ -116,7 +131,9 @@ def ensure_optional_columns():
         ("contact_email", "VARCHAR(255)"),
         ("contact_phone", "VARCHAR(255)"),
         ("application_link", "VARCHAR(500)"),
-        ("application_email", "VARCHAR(255)")
+        ("application_email", "VARCHAR(255)"),
+        ("policy", "VARCHAR(50)"),
+        ("created_at", "TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP")
     ]
     for name, sqltype in internship_cols:
         if not has_column("internships", name):
@@ -138,6 +155,42 @@ def ensure_optional_columns():
         if not has_column("users", name):
             add_column_safely("users", name, sqltype)
     
+    # student_resumes
+    resume_cols = [
+        ("resume_file_path", "VARCHAR(500)"),
+        ("resume_filename", "VARCHAR(255)"),
+        ("resume_file_size", "INTEGER"),
+        ("resume_uploaded_at", "TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP")
+    ]
+    for name, sqltype in resume_cols:
+        if not has_column("student_resumes", name):
+            add_column_safely("student_resumes", name, sqltype)
+
+    # notifications
+    if not has_column("notifications", "is_read"):
+        add_column_safely("notifications", "is_read", "BOOLEAN DEFAULT FALSE")
+
+    # applications
+    if not has_column("applications", "hours_worked"):
+        add_column_safely("applications", "hours_worked", "INTEGER")
+    if not has_column("applications", "policy_used"):
+        add_column_safely("applications", "policy_used", "VARCHAR")
+    if not has_column("applications", "credits_awarded"):
+        add_column_safely("applications", "credits_awarded", "FLOAT")
+    if not has_column("applications", "rejection_reason"):
+        add_column_safely("applications", "rejection_reason", "VARCHAR")
+
+    # credit_requests
+    if not has_column("credit_requests", "remarks"):
+        add_column_safely("credit_requests", "remarks", "VARCHAR")
+    if not has_column("credit_requests", "created_at"):
+        add_column_safely("credit_requests", "created_at", "TIMESTAMP")
+
+    # audit_logs table should be created by Base.metadata.create_all(bind=engine)
+    # but let's check if it exists or needs columns
+    if not has_column("audit_logs", "details"):
+        add_column_safely("audit_logs", "details", "VARCHAR")
+
     print("Database schema check complete.")
 
 
@@ -164,4 +217,4 @@ if __name__ == "__main__":
     Base.metadata.create_all(bind=engine)
     
     import uvicorn
-    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
