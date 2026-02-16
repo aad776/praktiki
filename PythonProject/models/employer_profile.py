@@ -22,3 +22,4 @@ class EmployerProfile(Base):
     # Verification fields moved to User model
     
     user = relationship("User", back_populates="employer_profile")
+    internships = relationship("Internship", back_populates="employer")

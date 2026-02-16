@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, ReactNode, useMemo } from 'react';
 
 // Types
 export type ToastType = 'success' | 'error' | 'warning' | 'info';
@@ -53,8 +53,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const warning = useCallback((message: string) => showToast(message, 'warning'), [showToast]);
   const info = useCallback((message: string) => showToast(message, 'info'), [showToast]);
 
+  // Memoize the value object to prevent unnecessary re-renders of consumers
+  const value = useMemo(() => ({
+    toasts,
+    showToast,
+    hideToast,
+    success,
+    error,
+    warning,
+    info
+  }), [toasts, showToast, hideToast, success, error, warning, info]);
+
   return (
-    <ToastContext.Provider value={{ toasts, showToast, hideToast, success, error, warning, info }}>
+    <ToastContext.Provider value={value}>
       {children}
       <ToastContainer toasts={toasts} onDismiss={hideToast} />
     </ToastContext.Provider>

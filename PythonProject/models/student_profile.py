@@ -1,6 +1,7 @@
-from sqlalchemy import Column, Integer, String, ForeignKey,Boolean,Text
+from sqlalchemy import Column, Integer, String, ForeignKey,Boolean,Text, DateTime
 from db.session import Base
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 
 class StudentProfile(Base):
     __tablename__ = "student_profiles"
@@ -10,19 +11,11 @@ class StudentProfile(Base):
     user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
     institute_id = Column(Integer, ForeignKey("institute_profiles.id"), nullable=True)
     year = Column(Integer, nullable=True)
-    department = Column(String, nullable=True)
     preferred_location = Column(String, nullable=True)
-
-
-    apaar_id = Column(String, unique=True, nullable=True)
-    is_apaar_verified = Column(Boolean, default=False)
-
-
-    full_name = Column(String, nullable=True)
+    
     first_name = Column(String, nullable=True)
     last_name = Column(String, nullable=True)
     
-    phone_number = Column(String, nullable=True)
     current_city = Column(String, nullable=True)
     gender = Column(String, nullable=True)
     languages = Column(String, nullable=True)  # Comma separated
@@ -34,6 +27,11 @@ class StudentProfile(Base):
     start_year = Column(Integer, nullable=True)
     end_year = Column(Integer, nullable=True)
     
+    # APAAR ID - Automated Permanent Academic Account Registry (12-digit unique ID)
+    apaar_id = Column(String(12), nullable=True)
+    is_apaar_verified = Column(Boolean, default=False)
+    full_name = Column(String, nullable=True)
+    
     cgpa = Column(String, nullable=True)
     skills = Column(Text, nullable=True)
     interests = Column(Text, nullable=True) # Areas of interest
@@ -42,9 +40,11 @@ class StudentProfile(Base):
     looking_for = Column(String, nullable=True) # Jobs, Internships
     work_mode = Column(String, nullable=True) # In-office, WFH
 
+    # Relationships
     user = relationship("User", back_populates="student_profile")
     institute = relationship("InstituteProfile", back_populates="students")
     resume = relationship("StudentResume", back_populates="student", uselist=False)
+    applications = relationship("Application", back_populates="student")
 
 
 class StudentResume(Base):
@@ -71,6 +71,9 @@ class StudentResume(Base):
     
     # File path for uploaded resume
     resume_file_path = Column(String, nullable=True)
+    resume_filename = Column(String, nullable=True)
+    resume_file_size = Column(Integer, nullable=True) # In bytes
+    resume_uploaded_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
     
     # Additional fields used by frontend resume builder
     education_entries = Column(Text, nullable=True)  # JSON string
@@ -80,3 +83,18 @@ class StudentResume(Base):
     profile_picture = Column(String, nullable=True)
     
     student = relationship("StudentProfile", back_populates="resume")
+    history = relationship("StudentResumeHistory", back_populates="resume", cascade="all, delete-orphan")
+
+
+class StudentResumeHistory(Base):
+    __tablename__ = "student_resume_history"
+
+    id = Column(Integer, primary_key=True, index=True)
+    resume_id = Column(Integer, ForeignKey("student_resumes.id"), nullable=False)
+    
+    file_path = Column(String, nullable=False)
+    filename = Column(String, nullable=False)
+    file_size = Column(Integer, nullable=False)
+    uploaded_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    resume = relationship("StudentResume", back_populates="history")

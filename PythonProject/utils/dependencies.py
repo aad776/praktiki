@@ -31,15 +31,25 @@ def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(
     )
     try:
         payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGO])
-        user_id: str = payload.get("sub")
-        if user_id is None:
+        subject: str = payload.get("sub")
+        if subject is None:
             raise credentials_exception
+            
+        # Handle both ID (Praktiki) and Email (ABC Portal) in 'sub' claim
+        if "@" in subject:
+            user = db.query(User).filter(User.email == subject).first()
+        else:
+            try:
+                user_id = int(subject)
+                user = db.query(User).filter(User.id == user_id).first()
+            except ValueError:
+                # Fallback to email if it's not an integer
+                user = db.query(User).filter(User.email == subject).first()
     except ExpiredSignatureError:
         raise expired_exception
     except JWTError:
         raise credentials_exception
 
-    user = db.query(User).filter(User.id == int(user_id)).first()
     if user is None:
         raise credentials_exception
     return user

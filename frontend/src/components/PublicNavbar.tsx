@@ -7,6 +7,7 @@ export function PublicNavbar() {
 
   const navLinks = [
     { path: '/browse-internships', label: 'Browse Jobs' },
+    { path: 'http://localhost:5174', label: 'ABC Portal', external: true },
     { path: '/about', label: 'About' },
     { path: '/contact', label: 'Contact' },
   ];
@@ -30,19 +31,34 @@ export function PublicNavbar() {
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center gap-1">
             {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className={`
-                  px-4 py-2 rounded-lg text-sm font-medium transition-all
-                  ${isActive(link.path)
-                    ? 'bg-brand-50 text-brand-700'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                  }
-                `}
-              >
-                {link.label}
-              </Link>
+              link.external ? (
+                <a
+                  key={link.path}
+                  href={link.path}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-all flex items-center gap-1.5"
+                >
+                  {link.label}
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              ) : (
+                <Link
+                  key={link.path}
+                  to={link.path}
+                  className={`
+                    px-4 py-2 rounded-lg text-sm font-medium transition-all
+                    ${isActive(link.path)
+                      ? 'bg-brand-50 text-brand-700'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                    }
+                  `}
+                >
+                  {link.label}
+                </Link>
+              )
             ))}
           </div>
 
@@ -88,20 +104,36 @@ export function PublicNavbar() {
           <div className="md:hidden border-t border-slate-100 py-4 animate-fade-in-down">
             <div className="space-y-1">
               {navLinks.map((link) => (
-                <Link
-                  key={link.path}
-                  to={link.path}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`
-                    block px-4 py-3 rounded-lg text-base font-medium transition-colors
-                    ${isActive(link.path)
-                      ? 'bg-brand-50 text-brand-700'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
-                    }
-                  `}
-                >
-                  {link.label}
-                </Link>
+                link.external ? (
+                  <a
+                    key={link.path}
+                    href={link.path}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="flex items-center gap-2 px-4 py-3 rounded-lg text-base font-medium text-slate-600 hover:text-slate-900 hover:bg-slate-50 transition-colors"
+                  >
+                    {link.label}
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                    </svg>
+                  </a>
+                ) : (
+                  <Link
+                    key={link.path}
+                    to={link.path}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`
+                      block px-4 py-3 rounded-lg text-base font-medium transition-colors
+                      ${isActive(link.path)
+                        ? 'bg-brand-50 text-brand-700'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      }
+                    `}
+                  >
+                    {link.label}
+                  </Link>
+                )
               ))}
             </div>
 

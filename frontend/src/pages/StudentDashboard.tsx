@@ -60,6 +60,8 @@ interface Application {
   internship_id: number;
   status: string;
   applied_at: string;
+  hours_worked?: number;
+  policy_used?: string;
   internship: {
     id: number;
     title: string;
@@ -69,6 +71,13 @@ interface Application {
     duration_weeks: number;
     company_name: string;
   };
+}
+
+interface CreditSummary {
+  total_credits: number;
+  approved_credits: number;
+  pending_credits: number;
+  total_hours: number;
 }
 
 export function StudentDashboard() {
@@ -82,6 +91,7 @@ export function StudentDashboard() {
   const [recommendations, setRecommendations] = useState<RecommendedInternship[]>([]);
   const [internships, setInternships] = useState<Internship[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
+  const [creditSummary, setCreditSummary] = useState<CreditSummary | null>(null);
 
   // Loading states
   const [pageLoading, setPageLoading] = useState(true);
@@ -117,6 +127,14 @@ export function StudentDashboard() {
         const appsRes = await api.get<Application[]>('/students/my-applications');
         setApplications(appsRes);
 
+        // Fetch credit summary
+        try {
+          const creditsRes = await api.get<CreditSummary>('/credits/summary');
+          setCreditSummary(creditsRes);
+        } catch {
+          // Credits not available yet
+        }
+
         // Fetch recommendations (may fail if profile incomplete)
         try {
           const recsRes = await api.get<RecommendedInternship[]>('/students/recommendations');
@@ -133,7 +151,7 @@ export function StudentDashboard() {
     };
 
     fetchData();
-  }, [toast]);
+  }, []);
 
   // Check if profile is complete
   const isProfileComplete = useCallback(() => {
@@ -256,6 +274,56 @@ export function StudentDashboard() {
       {/* Main Content - Only show if profile complete */}
       {isProfileComplete() && (
         <>
+          {/* Credit Summary Stats - Hidden as per requirements, shown only in ABC Portal */}
+          {/* {creditSummary && (
+            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <div className="bg-white rounded-2xl p-5 shadow-soft border border-slate-100 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-brand-50 text-brand-600">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Credits</p>
+                  <p className="text-2xl font-bold text-slate-900">{creditSummary.total_credits}</p>
+                </div>
+              </div>
+              <div className="bg-white rounded-2xl p-5 shadow-soft border border-slate-100 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Approved</p>
+                  <p className="text-2xl font-bold text-slate-900">{creditSummary.approved_credits}</p>
+                </div>
+              </div>
+              <div className="bg-white rounded-2xl p-5 shadow-soft border border-slate-100 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-amber-50 text-amber-600">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Pending</p>
+                  <p className="text-2xl font-bold text-slate-900">{creditSummary.pending_credits}</p>
+                </div>
+              </div>
+              <div className="bg-white rounded-2xl p-5 shadow-soft border border-slate-100 flex items-center gap-4">
+                <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4.5m4.5-4.5V17m-9-9V17" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Working Hours</p>
+                  <p className="text-2xl font-bold text-slate-900">{creditSummary.total_hours}h</p>
+                </div>
+              </div>
+            </section>
+          )} */}
+
           {/* Search Section */}
           <section className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <h2 className="text-lg font-semibold text-slate-900 mb-4">Search Internships</h2>

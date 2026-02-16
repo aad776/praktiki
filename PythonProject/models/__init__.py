@@ -8,6 +8,11 @@ from .skill import Skill
 from .student_skills import StudentSkill
 from .internship_skills import InternshipSkill
 from .application import Application
+from .credit import CreditRequest, AuditLog
+from .college import College
+from .course import Course
+from .stream import Stream, Specialization
+from .area_of_interest import AreaOfInterest
 
 __all__ = [
     "User",
@@ -19,5 +24,12 @@ __all__ = [
     "Skill",
     "StudentSkill",
     "InternshipSkill",
-    "Application"
+    "Application",
+    "CreditRequest",
+    "AuditLog",
+    "College",
+    "Course",
+    "Stream",
+    "Specialization",
+    "AreaOfInterest"
 ]

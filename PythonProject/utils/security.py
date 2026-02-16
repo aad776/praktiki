@@ -20,16 +20,43 @@ def get_password_hash(password: str) -> str:
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash, handling edge cases"""
     if not hashed_password:
+        print("DEBUG: Hashed password is empty")
         return False
     try:
-        return pwd_context.verify(str(plain_password), hashed_password)
-    except Exception:
-        # Handle bcrypt 5.0.0 compatibility issue
-        import bcrypt
-        if hashed_password.startswith('$2b$'):
+        # Try normal verification first
+        result = pwd_context.verify(str(plain_password), hashed_password)
+        if result:
+            return True
+        
+        # If normal verification fails, check if it's a legacy bcrypt hash
+        if hashed_password.startswith('$2'):
+            print(f"DEBUG: Attempting bcrypt fallback for hash starting with {hashed_password[:5]}")
             try:
+                import bcrypt
                 return bcrypt.checkpw(str(plain_password).encode(), hashed_password.encode())
-            except Exception:
+            except Exception as be:
+                print(f"DEBUG: Bcrypt fallback error: {be}")
+        
+        # Fallback for sha256_crypt legacy hashes ($5$)
+        if hashed_password.startswith('$5$'):
+            print(f"DEBUG: Attempting sha256_crypt fallback for hash starting with {hashed_password[:5]}")
+            try:
+                from passlib.hash import sha256_crypt
+                return sha256_crypt.verify(str(plain_password), hashed_password)
+            except Exception as se:
+                print(f"DEBUG: Sha256_crypt fallback error: {se}")
+        
+        print(f"DEBUG: Password verification failed for hash type: {pwd_context.identify(hashed_password)}")
+        return False
+    except Exception as e:
+        print(f"DEBUG: Password verification exception: {e}")
+        # Handle bcrypt compatibility issues ($2b$, $2a$, etc)
+        if hashed_password.startswith('$2'):
+            try:
+                import bcrypt
+                return bcrypt.checkpw(str(plain_password).encode(), hashed_password.encode())
+            except Exception as be:
+                print(f"DEBUG: Bcrypt fallback error: {be}")
                 return False
         return False
 

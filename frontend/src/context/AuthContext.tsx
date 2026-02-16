@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode, useMemo } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import api, { setAuthToken, clearAuthToken } from '../services/api';
 import { config } from '../config';
@@ -170,12 +170,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [state.role, fetchUserProfile]);
 
-  const value: AuthContextValue = {
+  const value = useMemo(() => ({
     ...state,
     login,
     logout,
     refreshUser,
-  };
+  }), [state, login, logout, refreshUser]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

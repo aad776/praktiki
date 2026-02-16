@@ -8,11 +8,12 @@ from sqlalchemy import engine_from_config
 from sqlalchemy import pool
 from utils.settings import  settings
 from alembic import context
-from models.student_profile import StudentProfile
+from models.student_profile import StudentProfile, StudentResume, StudentResumeHistory
 from models.user import User
 from models.skill import Skill
 from models.student_skills import StudentSkill
 from models.application import Application
+from models.notification import Notification
 from schemas.students import ApplicationCreate, ApplicationOut
 from datetime import datetime
 from models.employer_profile import EmployerProfile

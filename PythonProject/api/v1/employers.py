@@ -6,13 +6,13 @@ from models.employer_profile import EmployerProfile
 from models.internship import Internship
 from schemas.employer import (
     InternshipCreate, InternshipOut, EmployerProfileUpdate, EmployerProfileOut,
-    ApplicationStatusUpdate, BulkApplicationStatusUpdate, DashboardMetrics, ApplicationOut,
+    ApplicationStatusUpdate, ApplicationComplete, BulkApplicationStatusUpdate, DashboardMetrics, ApplicationOut,
     ApplicationWithStudentOut
 )
 from utils.dependencies import get_current_user, require_verified_employer
 from typing import List, Optional
 from models.application import Application
-from models.student_profile import StudentProfile
+from models.student_profile import StudentProfile, StudentResume
 from models.notification import Notification
 from utils.email import send_application_accepted_email
 from sqlalchemy import func
@@ -89,17 +89,25 @@ def get_all_applications(
     results = db.query(
         Application, 
         Internship.title, 
-        StudentProfile.full_name,
+        User.full_name,
         StudentProfile.first_name,
-        StudentProfile.last_name
+        StudentProfile.last_name,
+        StudentProfile.university_name,
+        StudentProfile.degree,
+        StudentProfile.skills,
+        StudentResume.resume_file_path
     ).join(
         Internship, Application.internship_id == Internship.id
     ).join(
         StudentProfile, Application.student_id == StudentProfile.id
+    ).join(
+        User, StudentProfile.user_id == User.id
+    ).outerjoin(
+        StudentResume, StudentProfile.id == StudentResume.student_id
     ).filter(Internship.employer_id == employer.id).all()
 
     output = []
-    for app, title, full_name, first_name, last_name in results:
+    for app, title, full_name, first_name, last_name, univ, degree, skills, resume_path in results:
         # Construct student name
         name = full_name
         if not name:
@@ -127,7 +135,11 @@ def get_all_applications(
             status=app.status,
             applied_at=applied_at_str,
             student_name=name,
-            internship_title=title
+            internship_title=title,
+            university_name=univ,
+            course=degree,
+            skills=skills,
+            resume_url=resume_path
         ))
     return output
 
@@ -158,7 +170,7 @@ def bulk_update_application_status(
         # Add notification
         notif_msg = f"Your application for '{app.internship.title}' has been {req.status}." if app.internship else f"Your application status has been updated to {req.status}."
         notif = Notification(
-            student_id=app.student_id,
+            user_id=app.student.user_id,
             message=notif_msg
         )
         db.add(notif)
@@ -173,7 +185,7 @@ def bulk_update_application_status(
                 
                 send_application_accepted_email(
                     student_email=user.email,
-                    student_name=student.first_name or student.full_name or "Student",
+                    student_name=student.first_name or user.full_name or "Student",
                     internship_title=app.internship.title,
                     company_name=company_name
                 )
@@ -209,7 +221,7 @@ def update_application_status(
     # Add notification
     notif_msg = f"Your application for '{app.internship.title}' has been {status_update.status}." if app.internship else f"Your application status has been updated to {status_update.status}."
     notif = Notification(
-        student_id=app.student_id,
+        user_id=app.student.user_id,
         message=notif_msg
     )
     db.add(notif)
@@ -223,7 +235,7 @@ def update_application_status(
             
             send_application_accepted_email(
                 student_email=user.email,
-                student_name=student.first_name or student.full_name or "Student",
+                student_name=student.first_name or user.full_name or "Student",
                 internship_title=app.internship.title,
                 company_name=company_name
             )
@@ -232,6 +244,114 @@ def update_application_status(
     
     db.commit()
     return {"message": f"Application status updated to {status_update.status}"}
+
+@router.get("/applications/accepted", response_model=List[ApplicationOut])
+def get_accepted_applications(
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    if current_user.role != "employer":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    employer = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
+    if not employer:
+        raise HTTPException(status_code=404, detail="Employer profile not found")
+
+    # Filter by status 'accepted'
+    results = db.query(
+        Application, 
+        Internship.title, 
+        User.full_name,
+        StudentProfile.first_name,
+        StudentProfile.last_name,
+        StudentProfile.university_name,
+        StudentProfile.degree,
+        StudentProfile.skills,
+        StudentResume.resume_file_path
+    ).join(
+        Internship, Application.internship_id == Internship.id
+    ).join(
+        StudentProfile, Application.student_id == StudentProfile.id
+    ).join(
+        User, StudentProfile.user_id == User.id
+  ).outerjoin(
+        StudentResume, StudentProfile.id == StudentResume.student_id
+    ).filter(
+        Internship.employer_id == employer.id,
+        Application.status == "accepted"
+    ).all()
+
+    output = []
+    for app, title, full_name, first_name, last_name, univ, degree, skills, resume_path in results:
+        name = full_name
+        if not name:
+            if first_name and last_name:
+                name = f"{first_name} {last_name}"
+            elif first_name:
+                name = first_name
+            elif last_name:
+                name = last_name
+            else:
+                name = "Unknown Student"
+
+        applied_at_str = ""
+        if app.applied_at:
+            if isinstance(app.applied_at, datetime):
+                applied_at_str = app.applied_at.isoformat()
+            else:
+                applied_at_str = str(app.applied_at)
+
+        output.append(ApplicationOut(
+            id=app.id,
+            student_id=app.student_id,
+            internship_id=app.internship_id,
+            status=app.status,
+            applied_at=applied_at_str,
+            student_name=name,
+            internship_title=title,
+            university_name=univ,
+            course=degree,
+            skills=skills,
+            resume_url=resume_path
+        ))
+    return output
+
+@router.put("/applications/{application_id}/complete")
+def complete_internship(
+        application_id: int,
+        data: ApplicationComplete,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    if current_user.role != "employer":
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    employer = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
+    
+    app = db.query(Application).join(Internship).filter(
+        Application.id == application_id,
+        Internship.employer_id == employer.id
+    ).first()
+    
+    if not app:
+        raise HTTPException(status_code=404, detail="Application not found")
+        
+    app.status = "completed"
+    app.hours_worked = data.hours_worked
+    app.policy_used = data.policy_type
+    
+    # Notification for student
+    notif = Notification(
+        user_id=app.student.user_id,
+        message=f"Your internship for '{app.internship.title}' has been marked as completed. You can now request credits."
+    )
+    db.add(notif)
+    
+    db.commit()
+    return {
+        "message": "Internship marked as completed. Student can now request credits.",
+        "status": "completed"
+    }
 
 @router.get("/profile")
 def get_employer_profile(
@@ -435,6 +555,9 @@ def view_internship_applications(
 
     # Check if this internship belongs to this employer
     employer = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
+    if not employer:
+        raise HTTPException(status_code=404, detail="Employer profile not found")
+
     internship = db.query(Internship).filter(
         Internship.id == internship_id,
         Internship.employer_id == employer.id
@@ -447,4 +570,62 @@ def view_internship_applications(
     applications = db.query(Application).options(
         joinedload(Application.student)
     ).filter(Application.internship_id == internship_id).all()
-    return applications
+
+    # Manually populate resume data for each application
+    results = []
+    for app in applications:
+        # Create a dictionary for the response
+        student_data = {
+            "id": app.student.id,
+            "first_name": app.student.first_name,
+            "last_name": app.student.last_name,
+            "university_name": app.student.university_name,
+            "skills": app.student.skills,
+            "resume_file_path": None,
+            "resume_filename": None,
+            "resume_file_size": None,
+            "resume_uploaded_at": None,
+            "resume_json": None
+        }
+        
+        app_data = {
+            "id": app.id,
+            "internship_id": app.internship_id,
+            "status": app.status,
+            "applied_at": app.applied_at,
+            "student": student_data,
+            "resume_file_path": None,
+            "resume_json": None
+        }
+        
+        # Get resume if it exists
+        resume = db.query(StudentResume).filter(StudentResume.student_id == app.student.id).first()
+        if resume:
+            app_data["student"]["resume_file_path"] = resume.resume_file_path
+            app_data["student"]["resume_filename"] = resume.resume_filename
+            app_data["student"]["resume_file_size"] = resume.resume_file_size
+            app_data["student"]["resume_uploaded_at"] = resume.resume_uploaded_at
+            
+            # Construct comprehensive resume_json
+            resume_info = {
+                "career_objective": resume.career_objective,
+                "work_experience": resume.work_experience,
+                "projects": resume.projects,
+                "certifications": resume.certifications,
+                "extra_curricular": resume.extra_curricular,
+                "education_entries": resume.education_entries,
+                "skills_categorized": resume.skills_categorized,
+                "title": resume.title,
+                "linkedin": resume.linkedin
+            }
+            import json
+            resume_json_str = json.dumps(resume_info)
+            app_data["student"]["resume_json"] = resume_json_str
+            
+            # Also set at top level for convenience
+            app_data["resume_file_path"] = resume.resume_file_path
+            app_data["resume_json"] = resume_json_str
+            
+        results.append(app_data)
+        
+    return results
