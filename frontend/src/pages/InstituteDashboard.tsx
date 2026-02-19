@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useToast } from '../context/ToastContext';
 import api, { ApiError } from '../services/api';
 import { PageLoader } from '../components/LoadingSpinner';
@@ -39,6 +39,8 @@ interface CreditRequest {
   student_id: number;
   student_name: string;
   application_id: number;
+  internship_title?: string;
+  company_name?: string;
   hours: number;
   credits_calculated: number;
   policy_type: string;
@@ -103,6 +105,7 @@ export function InstituteDashboard() {
   };
 
   useEffect(() => {
+    console.log("Institute Dashboard Loaded v2.0");
     fetchData();
   }, []);
 
@@ -269,12 +272,12 @@ export function InstituteDashboard() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Institute Dashboard</h1>
+          <h1 className="text-2xl font-bold text-slate-900">Institute Dashboard v2.0</h1>
           <p className="text-slate-600">Monitor your students and their internship progress</p>
         </div>
         <div className="flex gap-2">
-          {/* Export buttons hidden as they may contain credential data - only shown in ABC Status Dashboard */}
-          {/* <div className="flex bg-white border border-slate-200 rounded-lg overflow-hidden">
+          {/* Export buttons */}
+          <div className="flex bg-white border border-slate-200 rounded-lg overflow-hidden">
             <button 
               onClick={() => handleExportCSV()}
               className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors border-r border-slate-200"
@@ -295,7 +298,7 @@ export function InstituteDashboard() {
               </svg>
               PDF
             </button>
-          </div> */}
+          </div>
           <button 
             onClick={() => fetchData()}
             className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
@@ -308,8 +311,8 @@ export function InstituteDashboard() {
         </div>
       </div>
 
-      {/* Stats - Hidden as per requirements, shown only in ABC Portal */}
-      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
           <div className="text-3xl font-bold text-slate-900">{stats?.total_students || 0}</div>
           <div className="text-sm text-slate-600">Total Students</div>
@@ -330,7 +333,7 @@ export function InstituteDashboard() {
           <div className="text-3xl font-bold text-amber-600">{stats?.pending_credit_requests || 0}</div>
           <div className="text-sm text-slate-600">Pending Requests</div>
         </div>
-      </div> */}
+      </div>
 
       {/* Tabs */}
       <div className="flex border-b border-slate-200">
@@ -374,8 +377,8 @@ export function InstituteDashboard() {
             </span>
           )}
         </button>
-        {/* Credit Requests hidden - only shown in ABC Status Dashboard */}
-        {/* <button
+        {/* Credit Requests */}
+        <button
           onClick={() => setActiveTab('credits')}
           className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2
             ${activeTab === 'credits'
@@ -389,7 +392,7 @@ export function InstituteDashboard() {
               {creditRequests.filter(r => r.status === 'pending').length}
             </span>
           )}
-        </button> */}
+        </button>
         <button
           onClick={() => setActiveTab('audit')}
           className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors
@@ -474,9 +477,8 @@ export function InstituteDashboard() {
                   </thead>
                   <tbody className="divide-y divide-slate-200">
                     {filteredStudents.map((student) => (
-                      <>
+                      <React.Fragment key={student.id}>
                         <tr 
-                          key={student.id} 
                           className={`hover:bg-slate-50 cursor-pointer transition-colors ${expandedStudentId === student.id ? 'bg-slate-50' : ''}`}
                           onClick={() => setExpandedStudentId(expandedStudentId === student.id ? null : student.id)}
                         >
@@ -626,7 +628,7 @@ export function InstituteDashboard() {
                             </td>
                           </tr>
                         )}
-                      </>
+                      </React.Fragment>
                     ))}
                   </tbody>
                 </table>
@@ -825,6 +827,12 @@ export function InstituteDashboard() {
                       Student
                     </th>
                     <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      Internship
+                    </th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      Company
+                    </th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">
                       Hours
                     </th>
                     <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">
@@ -847,6 +855,12 @@ export function InstituteDashboard() {
                       <td className="px-6 py-4">
                         <div className="text-sm font-medium text-slate-900">{request.student_name}</div>
                         <div className="text-[10px] text-slate-500">ID: #{request.student_id}</div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600">
+                        <div className="font-medium text-slate-900">{request.internship_title || 'Unknown'}</div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-slate-600">
+                        {request.company_name || 'Unknown'}
                       </td>
                       <td className="px-6 py-4 text-sm text-slate-600">
                         {request.hours}h

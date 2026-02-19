@@ -21,6 +21,7 @@ class InternshipResponse(InternshipBase):
     id: int
     employer_id: Optional[int] = None
     status: str
+    company_name: Optional[str] = None
     company: Optional[UserResponse] = None
 
     class Config:
@@ -39,6 +40,14 @@ class ApplicationBase(BaseModel):
 class ApplicationCreate(ApplicationBase):
     pass
 
+class StudentProfileResponse(BaseModel):
+    id: int
+    user: Optional[UserResponse] = None
+    university_name: Optional[str] = None
+    apaar_id: Optional[str] = None
+    class Config:
+        from_attributes = True
+
 class ApplicationResponse(BaseModel):
     id: int
     internship_id: int
@@ -50,7 +59,7 @@ class ApplicationResponse(BaseModel):
     rejection_reason: Optional[str] = None
     applied_at: Optional[datetime] = None
     internship: Optional[InternshipResponse] = None
-    student: Optional[UserResponse] = None
+    student: Optional[StudentProfileResponse] = None
     credit_request: List[CreditShortResponse] = []
 
     class Config:

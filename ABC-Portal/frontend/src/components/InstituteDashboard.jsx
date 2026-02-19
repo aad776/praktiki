@@ -321,8 +321,8 @@ const InstituteDashboard = () => {
                         return (
                         <tr key={app.id}>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {app.student?.username} <br/>
-                                <span className="text-xs text-gray-500">{app.student?.email}</span>
+                                {app.student?.user?.full_name || 'Unknown'} <br/>
+                                <span className="text-xs text-gray-500">{app.student?.user?.email}</span>
                                 {app.student?.apaar_id && (
                                     <div className="text-[10px] text-blue-600 font-bold mt-1">APAAR: {app.student.apaar_id}</div>
                                 )}
@@ -413,26 +413,42 @@ const InstituteDashboard = () => {
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Name</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Internship</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Credits Awarded</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hours</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Credits</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Policy</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                     {applications.map((app) => (
                         <tr key={app.id}>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                {app.student?.username}
+                                {app.student?.user?.full_name || 'Unknown'}
                                 {app.student?.apaar_id && (
                                     <div className="text-[10px] text-blue-600 font-bold">APAAR: {app.student.apaar_id}</div>
                                 )}
                             </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{app.student?.email}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{app.student?.user?.email}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{app.internship?.title}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{app.internship?.company_name || 'Unknown'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{app.hours_worked || '-'}</td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900">{app.credits_awarded || '-'}</td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${app.policy_used === 'UGC' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'}`}>
+                                    {app.policy_used || '-'}
+                                </span>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${app.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
+                                    {app.status}
+                                </span>
+                            </td>
                         </tr>
                     ))}
                     {(!applications || applications.length === 0) && (
                         <tr>
-                            <td colSpan="4" className="px-6 py-4 text-center text-gray-500">No records found</td>
+                            <td colSpan="8" className="px-6 py-4 text-center text-gray-500">No records found</td>
                         </tr>
                     )}
                 </tbody>

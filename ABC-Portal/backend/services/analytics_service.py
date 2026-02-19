@@ -19,13 +19,13 @@ def institute_dashboard(db: Session, start_date: str = None, end_date: str = Non
     # Base query for CreditRequest joined with User to filter by institute
     # Need to join with User and then StudentProfile to get institute mapping
     # Actually, StudentProfile has institute_id or university_name
-    from backend.models.student_profile import StudentProfile
+    from backend.models.user import StudentProfile
     
     query = db.query(CreditRequest).join(StudentProfile, CreditRequest.student_id == StudentProfile.id)
     
     if institute_name:
         # Match by institute_id or university_name (similar to main portal logic)
-        from backend.models.institute_profile import InstituteProfile
+        from backend.models.user import InstituteProfile
         institute = db.query(InstituteProfile).filter(InstituteProfile.institute_name == institute_name).first()
         if institute:
             query = query.filter(

@@ -9,18 +9,8 @@ import time
 
 class AIService:
     def __init__(self):
-        # Try to initialize hybrid matcher, but fall back to basic matching if it fails
-        self.hybrid_matcher = None
-        try:
-            import sys
-            import os
-            # Add ai_matching directory to path
-            sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../ai_matching')))
-            from app.matching.hybrid_matcher import HybridMatcher
-            self.hybrid_matcher = HybridMatcher()
-        except Exception as e:
-            print(f"Failed to initialize hybrid matcher: {e}")
-            print("Falling back to basic skill-based matching")
+        # Lazy load hybrid matcher
+        self._hybrid_matcher = None
         
         # Cache for recommendations (student_id: (timestamp, recommendations))
         self._recommendations_cache = {}
@@ -76,6 +66,21 @@ class AIService:
             if key in lower_map:
                 enriched.extend(lower_map[key])
         return list(set(enriched))
+
+    @property
+    def hybrid_matcher(self):
+        if self._hybrid_matcher is None:
+            try:
+                import sys
+                import os
+                # Add ai_matching directory to path
+                sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../../ai_matching')))
+                from app.matching.hybrid_matcher import HybridMatcher
+                self._hybrid_matcher = HybridMatcher()
+            except Exception as e:
+                print(f"Failed to initialize hybrid matcher: {e}")
+                print("Falling back to basic skill-based matching")
+        return self._hybrid_matcher
 
     def get_recommendations(self, db: Session, profile: StudentProfile) -> List[Dict[str, Any]]:
         student_id = profile.id

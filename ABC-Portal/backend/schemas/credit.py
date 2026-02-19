@@ -12,8 +12,9 @@ class CreditRequestResponse(BaseModel):
     credits_calculated: float
     policy_type: str
     status: str
+    created_at: datetime
     student: Optional[UserResponse] = None
-    # application: Optional[ApplicationResponse] = None # Avoid circular ref if possible, or use forward ref
+    application: Optional[ApplicationResponse] = None
 
     class Config:
         from_attributes = True

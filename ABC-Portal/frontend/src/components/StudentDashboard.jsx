@@ -356,7 +356,7 @@ const StudentDashboard = () => {
                         <tr key={app.id}>
                             <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="text-sm font-medium text-gray-900">{app.internship?.title}</div>
-                                <div className="text-sm text-gray-500">{app.internship?.company?.username || 'Unknown Company'}</div>
+                                <div className="text-sm text-gray-500">{app.internship?.company_name || app.internship?.company?.full_name || 'Unknown Company'}</div>
                             </td>
                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 {new Date(app.created_at).toLocaleDateString()}
@@ -417,7 +417,7 @@ const StudentDashboard = () => {
                         <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-gray-500">
                             <div className="flex items-center gap-1">
                                 <Briefcase size={14} />
-                                <span>{internship.company?.username || 'Company'}</span>
+                                <span>{internship.company?.full_name || 'Company'}</span>
                             </div>
                             <div className="flex items-center gap-1">
                                 <Clock size={14} />
@@ -493,15 +493,19 @@ const StudentDashboard = () => {
                             ) : (
                                 stats.credits.map((credit) => (
                                     <tr key={credit.id}>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                            {/* We might need to join Internship title here if available in backend schema, using ID for now if not */}
-                                            Internship #{credit.application_id} 
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm font-medium text-gray-900">
+                                                {credit.application?.internship?.title || `Internship #${credit.application_id}`}
+                                            </div>
+                                            <div className="text-sm text-gray-500">
+                                                {credit.application?.internship?.company?.full_name || 'Unknown Company'}
+                                            </div>
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{credit.policy_type}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{credit.hours} hrs</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">{credit.credits_calculated}</td>
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                            {new Date(credit.updated_at).toLocaleDateString()}
+                                            {new Date(credit.created_at).toLocaleDateString()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
                                             <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -527,7 +531,7 @@ const StudentDashboard = () => {
                   <div className="space-y-3">
                       <div className="flex justify-between border-b pb-2">
                           <span className="text-gray-500">Company:</span>
-                          <span className="font-medium">{selectedInternship.internship?.company?.username || selectedInternship.company?.username || 'N/A'}</span>
+                          <span className="font-medium">{selectedInternship.internship?.company?.full_name || selectedInternship.company?.full_name || 'N/A'}</span>
                       </div>
                       <div className="flex justify-between border-b pb-2">
                           <span className="text-gray-500">Policy:</span>

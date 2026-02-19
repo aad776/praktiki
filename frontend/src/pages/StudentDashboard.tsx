@@ -62,6 +62,8 @@ interface Application {
   applied_at: string;
   hours_worked?: number;
   policy_used?: string;
+  credit_status?: string;
+  is_pushed_to_abc?: boolean;
   internship: {
     id: number;
     title: string;
@@ -120,7 +122,7 @@ export function StudentDashboard() {
         }
 
         // Fetch internships
-        const internshipsRes = await api.get<Internship[]>('/students/internships');
+        const internshipsRes = await api.get<Internship[]>('/students/internships?limit=1000');
         setInternships(internshipsRes);
 
         // Fetch applications
@@ -178,6 +180,7 @@ export function StudentDashboard() {
       if (searchQuery) params.append('search', searchQuery);
       if (searchLocation) params.append('location', searchLocation);
       if (searchMode) params.append('mode', searchMode);
+      params.append('limit', '1000');
 
       const response = await api.get<Internship[]>(`/students/internships?${params.toString()}`);
       setInternships(response);
@@ -324,6 +327,70 @@ export function StudentDashboard() {
             </section>
           )} */}
 
+          {/* My Applications Section */}
+          <section className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-8">
+            <h2 className="text-lg font-semibold text-slate-900 mb-4">My Applications</h2>
+            {applications.length === 0 ? (
+              <p className="text-slate-500 text-sm">You haven't applied to any internships yet.</p>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm text-left">
+                  <thead className="bg-slate-50 text-slate-500 font-medium">
+                    <tr>
+                      <th className="px-4 py-3 rounded-l-lg">Role</th>
+                      <th className="px-4 py-3">Company</th>
+                      <th className="px-4 py-3">Applied Date</th>
+                      <th className="px-4 py-3">Status</th>
+                      <th className="px-4 py-3 rounded-r-lg">Credits</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {applications.map((app) => (
+                      <tr key={app.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-4 py-3 font-medium text-slate-900">
+                          {app.internship?.title || 'Unknown Role'}
+                        </td>
+                        <td className="px-4 py-3 text-slate-600">
+                          {app.internship?.company_name || 'Unknown Company'}
+                        </td>
+                        <td className="px-4 py-3 text-slate-500">
+                          {new Date(app.applied_at).toLocaleDateString()}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            app.status === 'hired' || app.status === 'completed' ? 'bg-green-100 text-green-700' :
+                            app.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                            'bg-blue-100 text-blue-700'
+                          }`}>
+                            {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                             {/* Credit Status Logic */}
+                             {app.is_pushed_to_abc ? (
+                                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
+                                     Pushed to ABC
+                                 </span>
+                             ) : app.credit_status ? (
+                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                     app.credit_status === 'approved' ? 'bg-green-100 text-green-700' :
+                                     app.credit_status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                     'bg-yellow-100 text-yellow-700'
+                                 }`}>
+                                     {app.credit_status.charAt(0).toUpperCase() + app.credit_status.slice(1)}
+                                 </span>
+                             ) : (
+                                 <span className="text-slate-400 text-xs">-</span>
+                             )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
           {/* Search Section */}
           <section className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <h2 className="text-lg font-semibold text-slate-900 mb-4">Search Internships</h2>
@@ -400,7 +467,21 @@ export function StudentDashboard() {
                     <div className="flex items-start gap-4 mb-4">
                       <div className="w-12 h-12 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-blue-100">
                         {internship.logo_url ? (
-                          <img src={internship.logo_url} alt={internship.company_name} className="w-full h-full object-contain" />
+                          <img 
+                            src={internship.logo_url} 
+                            alt={internship.company_name} 
+                            className="w-full h-full object-contain" 
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                              const parent = e.currentTarget.parentElement;
+                              if (parent) {
+                                  const span = document.createElement('span');
+                                  span.className = "text-xl font-bold text-slate-300 group-hover:text-blue-200";
+                                  span.innerText = internship.company_name?.charAt(0) || 'C';
+                                  parent.appendChild(span);
+                              }
+                            }}
+                          />
                         ) : (
                           <span className="text-xl font-bold text-slate-300 group-hover:text-blue-200">
                             {internship.company_name?.charAt(0) || 'C'}

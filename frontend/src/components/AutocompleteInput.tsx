@@ -35,19 +35,18 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
 
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (value.length < 1) {
+      if (value.length < 2) {
         setSuggestions([]);
         return;
       }
 
-      setLoading(true);
       try {
-        const response = await api.get(`${endpoint}?q=${value}`);
-        setSuggestions(response.data);
+        const response = await api.get<any[]>(`${endpoint}?q=${value}`);
+        // API returns array directly
+        setSuggestions(Array.isArray(response) ? response : []);
       } catch (error) {
-        console.error("Error fetching suggestions:", error);
-      } finally {
-        setLoading(false);
+        console.error('Failed to fetch suggestions', error);
+        setSuggestions([]);
       }
     };
 

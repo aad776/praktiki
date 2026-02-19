@@ -9,3 +9,5 @@ python-multipart
 pydantic-settings
 bcrypt
 email-validator
+PyPDF2
+python-docx

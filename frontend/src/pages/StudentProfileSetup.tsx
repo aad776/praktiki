@@ -50,7 +50,8 @@ const Autocomplete = ({
       setLoading(true);
       try {
         const params = { q: inputValue, ...queryParams };
-        const response: any = await api.get(endpoint, params);
+        const response: any = await api.get(endpoint, { params });
+        // Response is array directly
         const names = Array.isArray(response) ? response.map((item: any) => item.name) : [];
         setFiltered(names);
       } catch (error) {
@@ -1130,6 +1131,16 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
                 </svg>
                 Edit
               </button>
+
+              <Link
+                to="/resume-maker"
+                className="px-6 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 hover:scale-105 transition-all flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Enhance Resume
+              </Link>
               <button
                 onClick={onLogout}
                 className="px-6 py-2 bg-red-50 text-red-600 border border-red-100 rounded-xl text-sm font-semibold hover:bg-red-100 transition-all flex items-center gap-2"

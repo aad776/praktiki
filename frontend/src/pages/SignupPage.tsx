@@ -1,5 +1,5 @@
 import { FormEvent, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
 import api, { ApiError } from '../services/api';
 import { ButtonSpinner } from '../components/LoadingSpinner';
@@ -55,6 +55,7 @@ export function SignupPage() {
   const [apaarId, setApaarId] = useState('');
 
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
 
   const validateStep1 = (): boolean => {
@@ -80,10 +81,15 @@ export function SignupPage() {
     }
 
     // Student validation
+      // Student validation
     if (role === 'student') {
-      if (!apaarId.trim() || apaarId.length !== 12) {
-        toast.error('Please enter a valid 12-digit APAAR ID.');
-        return false;
+      const cleanApaar = apaarId.trim().replace(/\D/g, '');
+      
+      // Only validate if the user has entered something substantial (more than 0 digits)
+      // If it's empty string, we ignore it (optional)
+      if (apaarId.trim().length > 0 && cleanApaar.length !== 12) {
+          toast.error('APAAR ID must be exactly 12 digits. Leave blank if you don\'t have one.');
+          return false;
       }
     }
 
@@ -140,7 +146,12 @@ export function SignupPage() {
       if (role === 'student') {
         endpoint = '/auth/signup';
         payload.role = 'student';
-        payload.apaar_id = apaarId.trim();
+        const cleanApaar = apaarId.trim().replace(/\D/g, '');
+        // Only include apaar_id if it is exactly 12 digits
+        if (cleanApaar.length === 12) {
+          payload.apaar_id = cleanApaar;
+        }
+        console.log('Signup payload:', payload);
       } else if (role === 'employer') {
         endpoint = '/auth/signup/employer';
         payload.company_name = companyName.trim();
@@ -155,7 +166,7 @@ export function SignupPage() {
       await api.post(endpoint, payload);
 
       toast.success('Account created! 🎉 Please login to continue.');
-      navigate('/login');
+      navigate('/login', { state: { from: (location.state as any)?.from } });
 
     } catch (err) {
       const error = err as ApiError;
@@ -384,12 +395,12 @@ export function SignupPage() {
                   Back
                 </button>
 
-                {/* Student Specific Fields - APAAR ID hidden as per requirements, moved to ABC Status Dashboard */}
-                {/* {role === 'student' && (
+                {/* Student Specific Fields - APAAR ID (Optional) */}
+                {role === 'student' && (
                   <>
                     <div className="input-group">
                       <label htmlFor="apaarId" className="label">
-                        APAAR ID <span className="text-rose-500">*</span>
+                        APAAR ID <span className="text-slate-400 font-normal">(Optional)</span>
                       </label>
                       <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -405,18 +416,17 @@ export function SignupPage() {
                           placeholder="123456789012"
                           className="input pl-12"
                           maxLength={12}
-                          required
                         />
                       </div>
                       <p className="mt-1.5 text-xs text-slate-500">
-                        12-digit APAAR ID is required to apply for internships.
+                        12-digit APAAR ID helps in syncing your academic credits. Leave blank if you don't have one.
                         <a href="https://apaar.education.gov.in" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline ml-1">
                           Get your APAAR ID
                         </a>
                       </p>
                     </div>
                   </>
-                )} */}
+                )}
 
                 {/* Employer Specific Fields */}
                 {role === 'employer' && (

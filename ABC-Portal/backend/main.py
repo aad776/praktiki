@@ -57,9 +57,12 @@ async def add_process_time_header(request: Request, call_next):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Global error occurred: {exc}")
+    print(f"DEBUG: GLOBAL HANDLER CAUGHT: {exc}")
+    import traceback
+    traceback.print_exc()
     return JSONResponse(
         status_code=500,
-        content={"message": "Internal Server Error", "detail": str(exc)},
+        content={"message": "Internal Server Error (Custom 2)", "detail": str(exc)},
     )
 
 # Startup Event
@@ -87,4 +90,4 @@ def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.main:app", host="127.0.0.1", port=8001, reload=True)
+    uvicorn.run("backend.main:app", host="127.0.0.1", port=8002, reload=True)

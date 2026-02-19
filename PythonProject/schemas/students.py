@@ -1,6 +1,7 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 from typing import Optional, List, Dict, Any
 from datetime import datetime
+from .employer import InternshipOut
 
 
 # 1. Signup ke waqt (Wahi purana logic)
@@ -9,7 +10,20 @@ class UserCreate(BaseModel):
     full_name: str
     password: str
     role: str = "student"
-    apaar_id: Optional[str] = Field(None, pattern=r"^\d{12}$", description="12 digit APAAR ID (required for students)")
+    # Allow empty string or 12 digits
+    apaar_id: Optional[str] = Field(None, description="12 digit APAAR ID (required for students)")
+
+    @field_validator('apaar_id')
+    @classmethod
+    def validate_apaar(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        v = v.strip()
+        if not v:
+            return None
+        if not v.isdigit() or len(v) != 12:
+             raise ValueError('APAAR ID must be exactly 12 digits')
+        return v
 
 
 # 2. Signup/Login Output
@@ -27,7 +41,20 @@ class UserOut(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
-    apaar_id: Optional[str] = Field(None, pattern=r"^\d{12}$", description="12 digit APAAR ID")
+    # Allow empty string or 12 digits
+    apaar_id: Optional[str] = Field(None, description="12 digit APAAR ID")
+
+    @field_validator('apaar_id')
+    @classmethod
+    def validate_apaar(cls, v: Optional[str]) -> Optional[str]:
+        if v is None:
+            return None
+        v = v.strip()
+        if not v:
+            return None
+        if not v.isdigit() or len(v) != 12:
+             raise ValueError('APAAR ID must be exactly 12 digits')
+        return v
 
 
 
@@ -62,6 +89,44 @@ class StudentProfileUpdate(BaseModel):
     work_mode: Optional[str] = None
 
 
+# --- Resume Schemas ---
+
+class StudentResumeBase(BaseModel):
+    career_objective: Optional[str] = None
+    work_experience: Optional[str] = None # JSON String
+    projects: Optional[str] = None # JSON String
+    certifications: Optional[str] = None # JSON String
+    extra_curricular: Optional[str] = None # JSON String
+    resume_file_path: Optional[str] = None
+    resume_filename: Optional[str] = None
+    resume_file_size: Optional[int] = None
+    resume_uploaded_at: Optional[datetime] = None
+    education_entries: Optional[str] = None # JSON String
+    skills_categorized: Optional[str] = None # JSON String
+    title: Optional[str] = None
+    linkedin: Optional[str] = None
+    profile_picture: Optional[str] = None
+
+class StudentResumeCreate(StudentResumeBase):
+    pass
+
+class StudentResumeUpdate(StudentResumeBase):
+    pass
+
+class StudentResumeOut(StudentResumeBase):
+    id: int
+    student_id: int
+
+    class Config:
+        from_attributes = True
+
+class ResumeParseResponse(BaseModel):
+    career_objective: Optional[str] = None
+    skills: List[str] = []
+    education: List[Dict[str, Any]] = []
+    experience: List[Dict[str, Any]] = []
+    projects: List[Dict[str, Any]] = []
+
 # 5. Profile Output (Details dikhane ke liye)
 class StudentProfileOut(BaseModel):
     id: int
@@ -94,8 +159,8 @@ class StudentProfileOut(BaseModel):
     looking_for: Optional[str]
     work_mode: Optional[str]
     
-    # We might want to include resume id if it exists
-    # resume: Optional[StudentResumeOut] 
+    # Resume Data
+    resume: Optional[StudentResumeOut] = None
 
     class Config:
         from_attributes = True
@@ -132,6 +197,14 @@ class StudentResumeOut(StudentResumeBase):
     class Config:
         from_attributes = True
 
+class ResumeSuggestionRequest(BaseModel):
+    section: str # "career_objective", "projects", "work_experience", "skills", "summary"
+    current_content: Optional[str] = None # For enhancement
+    context: Optional[Dict[str, str]] = None # "stream", "course", "skills"
+
+class ResumeSuggestionResponse(BaseModel):
+    suggestions: List[str]
+
 
 
 # --- Baaki Skills aur Application wala part same rahega ---
@@ -157,6 +230,13 @@ class ApplicationOut(BaseModel):
     internship_id: int
     status: str
     applied_at: datetime
+    internship: Optional[InternshipOut] = None
+    is_credit_requested: bool = False
+    credit_status: Optional[str] = None
+    is_pushed_to_abc: bool = False
+    hours_worked: Optional[int] = None
+    policy_used: Optional[str] = None
+    credits_awarded: Optional[float] = None
 
     class Config:
         from_attributes = True

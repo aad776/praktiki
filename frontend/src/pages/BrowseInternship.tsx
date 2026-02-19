@@ -1,9 +1,12 @@
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import api from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { ButtonSpinner } from "../components/LoadingSpinner";
 import { useToast } from "../context/ToastContext";
+import { InternshipCard } from "../components/InternshipCard";
+import { FilterModal } from "../components/FilterModal";
+import { FilterBar } from "../components/FilterBar";
 
 interface Internship {
   id: number;
@@ -15,9 +18,15 @@ interface Internship {
   duration_weeks: number;
   deadline?: string;
   skills?: string;
+  stipend_amount?: number;
   created_at?: string;
   company_name?: string;
   logo_url?: string;
+  // Academic fields (optional/mocked for now)
+  course?: string;
+  semester?: number;
+  grade_level?: string;
+  completion_status?: string;
 }
 
 interface RecommendedInternship {
@@ -36,34 +45,24 @@ export function BrowseInternshipsPage() {
   const [recommendationLoading, setRecommendationLoading] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [search, setSearch] = useState("");
-  const [locationFilter, setLocationFilter] = useState("");
-  const [modeFilter, setModeFilter] = useState("");
+  
+  // Filter states
+  const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<Record<string, any>>({});
+  
   const navigate = useNavigate();
   const toast = useToast();
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-    if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-  };
-
   useEffect(() => {
     fetchInternships();
-  }, [search, locationFilter, modeFilter]);
+  }, [search]); // Re-fetch when search changes, other filters are applied locally or could trigger fetch
 
   const fetchInternships = async () => {
+    setLoading(true);
     try {
       const params = new URLSearchParams();
       if (search) params.append("search", search);
-      if (locationFilter) params.append("location", locationFilter);
-      if (modeFilter) params.append("mode", modeFilter);
+      params.append("limit", "1000"); // Fetch all for client-side filtering
 
       const res = await api.get<Internship[]>(`/students/internships?${params.toString()}`);
       setInternships(res);
@@ -73,6 +72,81 @@ export function BrowseInternshipsPage() {
       setLoading(false);
     }
   };
+
+  const filteredInternships = useMemo(() => {
+    let result = [...internships];
+
+    // Apply active filters from modal
+    if (activeFilters.locations && activeFilters.locations.length > 0) {
+      result = result.filter(i => activeFilters.locations.some((loc: string) => 
+        i.location.toLowerCase().includes(loc.toLowerCase())
+      ));
+    }
+
+    if (activeFilters.type && activeFilters.type.length > 0) {
+      // Mapping 'type' from filter to 'mode' in internship
+      // This might need adjustment based on exact values
+      result = result.filter(i => {
+         const mode = i.mode.toLowerCase();
+         return activeFilters.type.some((t: string) => {
+             if (t === 'remote') return mode === 'remote';
+             if (t === 'office') return mode === 'onsite' || mode === 'office';
+             if (t === 'hybrid') return mode === 'hybrid';
+             return true;
+         });
+      });
+    }
+
+    if (activeFilters.roles && activeFilters.roles.length > 0) {
+        result = result.filter(i => activeFilters.roles.some((role: string) => 
+            i.title.toLowerCase().includes(role.toLowerCase())
+        ));
+    }
+
+    if (activeFilters.date && activeFilters.date.length > 0) {
+        const now = new Date();
+        result = result.filter(i => {
+            if (!i.created_at) return true;
+            const created = new Date(i.created_at);
+            const diffTime = Math.abs(now.getTime() - created.getTime());
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            return activeFilters.date.some((d: string) => {
+                if (d === 'today') return diffDays <= 1;
+                if (d === 'week') return diffDays <= 7;
+                if (d === 'month') return diffDays <= 30;
+                return true;
+            });
+        });
+    }
+    
+    // Academic Filters
+    if (activeFilters.course && activeFilters.course.length > 0) {
+        result = result.filter(i => {
+            // Check if course requirement exists in description or dedicated field
+            if (i.course) return activeFilters.course.includes(i.course.toLowerCase());
+            // Fallback: check description or title
+            const text = (i.description + " " + i.title).toLowerCase();
+            return activeFilters.course.some((c: string) => text.includes(c));
+        });
+    }
+
+    if (activeFilters.semester && activeFilters.semester.length > 0) {
+        result = result.filter(i => {
+            if (i.semester) return activeFilters.semester.includes(i.semester.toString());
+            return true; // If not specified, assume open to all
+        });
+    }
+
+    if (activeFilters.grade_level && activeFilters.grade_level.length > 0) {
+        result = result.filter(i => {
+            if (i.grade_level) return activeFilters.grade_level.includes(i.grade_level);
+            return true;
+        });
+    }
+
+    return result;
+  }, [internships, activeFilters]);
 
   const fetchRecommendations = async () => {
     setRecommendationLoading(true);
@@ -89,6 +163,21 @@ export function BrowseInternshipsPage() {
     } finally {
       setRecommendationLoading(false);
     }
+  };
+
+  const handleApplyFilters = (filters: any) => {
+      setActiveFilters(filters);
+      setIsFilterModalOpen(false);
+      // Reset page to 1 if pagination exists
+  };
+
+  const getFilterCount = () => {
+      let count = 0;
+      Object.values(activeFilters).forEach((val: any) => {
+          if (Array.isArray(val)) count += val.length;
+          else if (val) count++;
+      });
+      return count;
   };
 
   return (
@@ -109,41 +198,25 @@ export function BrowseInternshipsPage() {
             </button>
         </div>
 
-        {/* Filters */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-8 flex flex-col md:flex-row gap-4">
-            <div className="flex-1 relative">
+        {/* Search and Filters */}
+        <div className="mb-8 space-y-4">
+            <div className="relative">
                 <span className="absolute left-3 top-3 text-slate-400">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 </span>
                 <input 
                     type="text" 
                     placeholder="Search by role, skill, or company..." 
-                    className="w-full pl-10 pr-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
+                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm transition-all"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
             </div>
-            <div className="w-full md:w-48">
-                <input 
-                    type="text" 
-                    placeholder="Location (e.g. Delhi)" 
-                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                    value={locationFilter}
-                    onChange={(e) => setLocationFilter(e.target.value)}
-                />
-            </div>
-            <div className="w-full md:w-48">
-                <select 
-                    className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none"
-                    value={modeFilter}
-                    onChange={(e) => setModeFilter(e.target.value)}
-                >
-                    <option value="">All Modes</option>
-                    <option value="remote">Remote</option>
-                    <option value="onsite">In-Office</option>
-                    <option value="hybrid">Hybrid</option>
-                </select>
-            </div>
+            
+            <FilterBar 
+                onOpenFilters={() => setIsFilterModalOpen(true)}
+                filterCount={getFilterCount()}
+            />
         </div>
 
         {/* Toggle between Recommendations and All Internships */}
@@ -198,165 +271,52 @@ export function BrowseInternshipsPage() {
                             
                             {/* Matching Skills */}
                             <div className="mb-4">
-                                <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Matching Skills</h4>
-                                <div className="flex flex-wrap gap-1">
-                                    {rec.matching_skills.slice(0, 3).map((skill, idx) => (
-                                        <span key={idx} className="px-2 py-0.5 text-xs rounded-full bg-green-50 text-green-700 border border-green-200">
+                                <p className="text-xs text-slate-500 mb-2 font-medium uppercase tracking-wide">Matching Skills</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {rec.matching_skills.slice(0, 3).map(skill => (
+                                        <span key={skill} className="px-2 py-1 bg-green-50 text-green-700 text-xs rounded border border-green-100">
                                             {skill}
                                         </span>
                                     ))}
                                     {rec.matching_skills.length > 3 && (
-                                        <span className="px-2 py-0.5 text-xs rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                                            +{rec.matching_skills.length - 3} more
+                                        <span className="px-2 py-1 bg-slate-50 text-slate-600 text-xs rounded border border-slate-200">
+                                            +{rec.matching_skills.length - 3}
                                         </span>
                                     )}
                                 </div>
                             </div>
-
-                            {/* Missing Skills */}
-                            {rec.missing_skills.length > 0 && (
-                                <div className="mb-6">
-                                    <h4 className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">Skills to Develop</h4>
-                                    <div className="flex flex-wrap gap-1">
-                                        {rec.missing_skills.slice(0, 2).map((skill, idx) => (
-                                            <span key={idx} className="px-2 py-0.5 text-xs rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-                                                {skill}
-                                            </span>
-                                        ))}
-                                        {rec.missing_skills.length > 2 && (
-                                            <span className="px-2 py-0.5 text-xs rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                                                +{rec.missing_skills.length - 2} more
-                                            </span>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
-
-                            <button 
-                                onClick={() => navigate(`/student/internship/${rec.internship_id}`)}
-                                className="w-full py-2 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors shadow-md hover:shadow-lg"
-                            >
-                                View Details
-                            </button>
                         </div>
                     ))}
                 </div>
             )
-        ) : internships.length === 0 ? (
-            <div className="text-center py-20 bg-white rounded-xl border border-slate-200 border-dashed">
-                <div className="text-4xl mb-4">🔍</div>
-                <h3 className="text-xl font-bold text-slate-900 mb-2">No internships found</h3>
-                <p className="text-slate-500">Try adjusting your search filters.</p>
-            </div>
         ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {internships.map(internship => {
-                    const skillsList = internship.skills ? internship.skills.split(',').map(s => s.trim()) : [];
-                    return (
-                        <div key={internship.id} className="group border border-slate-200 rounded-xl p-5 hover:border-blue-300 hover:shadow-xl transition-all duration-300 bg-white flex flex-col h-full relative">
-                            {/* Company Header */}
-                            <div className="flex items-start gap-4 mb-4">
-                                <div className="w-12 h-12 rounded-lg bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden flex-shrink-0 group-hover:border-blue-100">
-                                    {internship.logo_url ? (
-                                        <img src={internship.logo_url} alt={internship.company_name} className="w-full h-full object-contain" />
-                                    ) : (
-                                        <span className="text-xl font-bold text-slate-300 group-hover:text-blue-200">
-                                            {internship.company_name?.charAt(0) || 'C'}
-                                        </span>
-                                    )}
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <h3
-                                        className="font-bold text-slate-900 truncate group-hover:text-blue-600 transition-colors cursor-pointer"
-                                        title={internship.title}
-                                        onClick={() => navigate(`/student/internship/${internship.id}`)}
-                                    >
-                                        {internship.title}
-                                    </h3>
-                                    <p className="text-sm text-slate-500 truncate font-medium">{internship.company_name || 'Unknown Company'}</p>
-                                </div>
-                            </div>
-
-                            {/* Details Grid */}
-                            <div className="grid grid-cols-2 gap-y-3 gap-x-2 mb-4">
-                                <div className="flex items-center gap-2 text-xs text-slate-600">
-                                    <span className="p-1 rounded bg-blue-50 text-blue-600">
-                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                    </span>
-                                    <span className="truncate">{internship.location}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs text-slate-600">
-                                    <span className="p-1 rounded bg-indigo-50 text-indigo-600">
-                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                        </svg>
-                                    </span>
-                                    <span>{internship.mode}</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs text-slate-600">
-                                    <span className="p-1 rounded bg-purple-50 text-purple-600">
-                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                        </svg>
-                                    </span>
-                                    <span>{internship.duration_weeks} Weeks</span>
-                                </div>
-                                <div className="flex items-center gap-2 text-xs text-slate-600">
-                                    <span className="p-1 rounded bg-rose-50 text-rose-600">
-                                        <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                    </span>
-                                    <span className="truncate">{internship.deadline || 'No Deadline'}</span>
-                                </div>
-                            </div>
-
-                            {/* Short Description */}
-                            {internship.description && (
-                                <p className="text-xs text-slate-500 line-clamp-2 mb-4 leading-relaxed italic">
-                                    "{internship.description}"
-                                </p>
-                            )}
-
-                            {/* Required Skills */}
-                            {skillsList.length > 0 && (
-                                <div className="flex flex-wrap gap-1.5 mb-4 mt-auto">
-                                    {skillsList.slice(0, 3).map((skill, idx) => (
-                                        <span key={idx} className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px] font-medium">
-                                            {skill}
-                                        </span>
-                                    ))}
-                                    {skillsList.length > 3 && (
-                                        <span className="text-[10px] text-slate-400 font-medium self-center">
-                                            +{skillsList.length - 3} more
-                                        </span>
-                                    )}
-                                </div>
-                            )}
-
-                            {/* Footer */}
-                            <div className="flex items-center justify-between mt-4 pt-4 border-t border-slate-50">
-                                <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
-                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                    </svg>
-                                    <span>Posted {internship.created_at ? formatDate(internship.created_at) : 'recently'}</span>
-                                </div>
-                                <button 
-                                    onClick={() => navigate(`/student/internship/${internship.id}`)}
-                                    className="px-4 py-2 text-xs font-bold rounded-lg bg-slate-900 text-white hover:bg-slate-800 shadow-md hover:shadow-lg transition-all transform active:scale-95"
-                                >
-                                    View Details
-                                </button>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+            filteredInternships.length === 0 ? (
+                <div className="text-center py-20 bg-white rounded-xl border border-slate-200 border-dashed">
+                    <div className="text-4xl mb-4">🔍</div>
+                    <h3 className="text-xl font-bold text-slate-900 mb-2">No internships found</h3>
+                    <p className="text-slate-500">Try adjusting your filters or search terms.</p>
+                    <button 
+                        onClick={() => {setSearch(''); setActiveFilters({});}}
+                        className="mt-4 text-blue-600 hover:text-blue-800 font-medium"
+                    >
+                        Clear all filters
+                    </button>
+                </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredInternships.map(internship => (
+                        <InternshipCard key={internship.id} internship={internship} />
+                    ))}
+                </div>
+            )
         )}
+
+        <FilterModal 
+            isOpen={isFilterModalOpen}
+            onClose={() => setIsFilterModalOpen(false)}
+            onApply={handleApplyFilters}
+            initialFilters={activeFilters}
+        />
       </main>
     </div>
   );

@@ -75,6 +75,7 @@ class InternshipOut(BaseModel):
     deadline: Optional[str] = None
     skills: Optional[str] = None
     policy: Optional[str] = None
+    stipend_amount: Optional[float] = None
     created_at: Optional[datetime] = None
     company_name: Optional[str] = None
     logo_url: Optional[str] = None

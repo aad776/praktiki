@@ -66,6 +66,7 @@ export function PublicNavbar() {
           <div className="hidden md:flex items-center gap-3">
             <Link
               to="/login"
+              state={{ from: location }}
               className="px-4 py-2 text-slate-700 font-medium hover:text-slate-900 transition-colors"
             >
               Login
@@ -141,6 +142,7 @@ export function PublicNavbar() {
             <div className="mt-4 pt-4 border-t border-slate-100 space-y-3 px-4">
               <Link
                 to="/login"
+                state={{ from: location }}
                 onClick={() => setMobileMenuOpen(false)}
                 className="block w-full py-3 text-center text-slate-700 font-medium border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors"
               >

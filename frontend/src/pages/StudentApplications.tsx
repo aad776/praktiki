@@ -12,6 +12,8 @@ interface Application {
   hours_worked?: number;
   policy_used?: string;
   is_credit_requested?: boolean;
+  credit_status?: string;
+  is_pushed_to_abc?: boolean;
   internship: {
     id: number;
     title: string;
@@ -58,6 +60,7 @@ export function StudentApplications() {
         else if (categorized.rejected.length > 0) setActiveTab('rejected');
       }
     } catch (err) {
+      console.error('Failed to load applications:', err);
       const error = err as ApiError;
       toast.error(error.message || 'Failed to load applications');
     } finally {
@@ -112,17 +115,31 @@ export function StudentApplications() {
     rejected: applications.filter(app => app.status === 'rejected' && !app.is_credit_requested)
   };
 
-  const ApplicationCard = ({ app }: { app: Application }) => (
+  const ApplicationCard = ({ app }: { app: Application }) => {
+    // Safety check for invalid application data
+    if (!app) return null;
+
+    const internship = app.internship || {
+      id: 0,
+      title: 'Unknown Internship',
+      description: '',
+      location: 'N/A',
+      mode: 'N/A',
+      duration_weeks: 0,
+      company_name: 'Unknown Company',
+    };
+
+    return (
     <div
       key={app.id}
       className="p-6 hover:bg-slate-50 transition-colors cursor-pointer group border-b border-slate-100 last:border-0"
-      onClick={() => navigate(`/student/internship/${app.internship_id}`)}
+      onClick={() => internship.id && navigate(`/student/internship/${app.internship_id}`)}
     >
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-1">
             <h3 className="font-bold text-slate-900 text-lg group-hover:text-brand-600 transition-colors">
-              {app.internship.title}
+              {internship.title}
             </h3>
             <span
               className={`px-2.5 py-0.5 text-xs font-semibold rounded-full capitalize border
@@ -140,25 +157,38 @@ export function StudentApplications() {
               {app.status}
             </span>
             {app.is_credit_requested && (
-              <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-                Credit Requested
+              <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full border
+                ${app.is_pushed_to_abc
+                  ? 'bg-purple-50 text-purple-700 border-purple-200'
+                  : app.credit_status === 'approved' 
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                  : app.credit_status === 'rejected' 
+                  ? 'bg-red-50 text-red-700 border-red-200' 
+                  : 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                }`}
+              >
+                {app.is_pushed_to_abc
+                  ? 'Credited in ABC'
+                  : app.credit_status 
+                    ? `Credit: ${app.credit_status.charAt(0).toUpperCase() + app.credit_status.slice(1)}` 
+                    : 'Credit Requested'}
               </span>
             )}
           </div>
-          <p className="text-slate-600 font-medium mb-2">{app.internship.company_name}</p>
+          <p className="text-slate-600 font-medium mb-2">{internship.company_name}</p>
           <div className="flex flex-wrap gap-4 text-sm text-slate-500">
             <div className="flex items-center gap-1.5">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
-              {app.internship.location}
+              {internship.location}
             </div>
             <div className="flex items-center gap-1.5">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              {app.internship.mode}
+              {internship.mode}
             </div>
           </div>
         </div>
@@ -175,8 +205,9 @@ export function StudentApplications() {
               className="px-4 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/student/internship/${app.internship_id}`);
+                if (internship.id) navigate(`/student/internship/${app.internship_id}`);
               }}
+              disabled={!internship.id}
             >
               View Details
             </button>
@@ -185,6 +216,7 @@ export function StudentApplications() {
       </div>
     </div>
   );
+  };
 
   const TabButton = ({ id, label, count, colorClass }: { id: typeof activeTab, label: string, count: number, colorClass: string }) => (
     <button
