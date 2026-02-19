@@ -33,10 +33,24 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://44.197.97.159",
+
+        "http://ec2-44-197-97-159.compute-1.amazonaws.com",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_origins=["*"],
+    allow_headers=["*"],
+)
+
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Configure appropriately for production
+ 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
