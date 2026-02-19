@@ -24,7 +24,7 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Initialize FastAPI app
+
 app = FastAPI(
     title="Resume Parser API",
     description="Production-grade Resume Parsing API with >90% field-level accuracy",
@@ -33,12 +33,10 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://44.197.97.159",
-
         "http://ec2-44-197-97-159.compute-1.amazonaws.com",
     ],
     allow_credentials=True,
@@ -47,16 +45,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configure CORS
-app.add_middleware(
-    CORSMiddleware,
- 
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Global extractors (initialized on startup)
 pdf_processor: Optional[PDFProcessor] = None
 entity_extractor: Optional[EntityExtractor] = None
 experience_extractor: Optional[ExperienceExtractor] = None
@@ -71,7 +59,6 @@ async def startup_event():
     logger.info("Initializing Resume Parser API...")
     
     try:
-        # Initialize processors
         logger.info("Loading PDF processor...")
         pdf_processor = PDFProcessor()
         
@@ -84,10 +71,10 @@ async def startup_event():
         logger.info("Loading skills extractor with FAISS...")
         skills_extractor = SkillsExtractor()
         
-        logger.info("✅ All extractors loaded successfully!")
+        logger.info(" All extractors loaded successfully!")
     
     except Exception as e:
-        logger.error(f"❌ Failed to initialize extractors: {e}")
+        logger.error(f"Failed to initialize extractors: {e}")
         raise
 
 
