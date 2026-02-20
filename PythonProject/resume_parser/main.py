@@ -38,10 +38,10 @@ app.add_middleware(
     allow_origins=[
         "http://44.197.97.159",
         "http://ec2-44-197-97-159.compute-1.amazonaws.com",
-    ],
+        "http://localhost:5173"    ],
     allow_credentials=True,
     allow_methods=["*"],
-    allow_origins=["*"],
+
     allow_headers=["*"],
 )
 

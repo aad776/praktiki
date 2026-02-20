@@ -46,7 +46,7 @@ const Autocomplete = ({
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (!endpoint) return;
-      
+
       setLoading(true);
       try {
         const params = { q: inputValue, ...queryParams };
@@ -121,7 +121,7 @@ const Autocomplete = ({
           onFocus={() => setShow(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className={minimal 
+          className={minimal
             ? "bg-transparent border-none p-0 focus:ring-0 font-medium w-full"
             : "w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
           }
@@ -303,9 +303,8 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
       />
     </div>
 
-    {/* APAAR ID input hidden as per requirements - moved to ABC Status Dashboard */}
-    {/* <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">APAAR ID <span className="text-red-500">*</span></label>
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">APAAR ID (ABC ID)</label>
       <p className="text-xs text-gray-500 mb-2">
         12-digit APAAR ID is required to apply for internships.
         <a href="https://apaar.education.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline ml-1">
@@ -321,7 +320,7 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
         <input
           type="text"
           name="apaar_id"
-          value={formData.apaar_id}
+          value={formData.apaar_id || ""}
           onChange={(e) => handleChange({ target: { name: 'apaar_id', value: e.target.value.replace(/\D/g, '').slice(0, 12) } } as any)}
           placeholder="123456789012"
           maxLength={12}
@@ -334,7 +333,7 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
       {formData.apaar_id && formData.apaar_id.length === 12 && (
         <p className="text-xs text-green-600 mt-1">✓ Valid APAAR ID format</p>
       )}
-    </div> */}
+    </div>
 
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">Gender <span className="text-red-500">*</span></label>
@@ -471,7 +470,7 @@ const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggeste
 
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">Area(s) of interest <span className="text-red-500">*</span></label>
-      
+
       <div className="mb-4">
         <Autocomplete
           placeholder="Search for interests (e.g. Web Development)"
@@ -665,7 +664,7 @@ const Step4 = ({ formData, setFormData, handleResumeUpload, handleSubmit, loadin
                 }}
               />
             </h1>
-            
+
             <div className="no-print flex items-center gap-3">
               {formData.resume.resume_file_path && (
                 <a
@@ -1420,7 +1419,7 @@ export function StudentProfileSetup() {
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      
+
       // 1. Client-side validation: File size (5MB)
       const MAX_SIZE = 5 * 1024 * 1024;
       if (file.size > MAX_SIZE) {
@@ -1442,7 +1441,7 @@ export function StudentProfileSetup() {
         setLoading(true);
         const response = await api.post("/students/me/resume/upload", formDataUpload);
         toast.success("Resume uploaded successfully!");
-        
+
         // Refresh profile data if in view mode
         if (isViewMode) {
           fetchData();

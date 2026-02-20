@@ -52,7 +52,6 @@ export function SignupPage() {
   const [instituteContact, setInstituteContact] = useState('');
 
   // Student specific
-  const [apaarId, setApaarId] = useState('');
 
   const navigate = useNavigate();
   const toast = useToast();
@@ -81,10 +80,7 @@ export function SignupPage() {
 
     // Student validation
     if (role === 'student') {
-      if (!apaarId.trim() || apaarId.length !== 12) {
-        toast.error('Please enter a valid 12-digit APAAR ID.');
-        return false;
-      }
+      // No specific validation for student currently
     }
 
     if (role === 'employer') {
@@ -140,7 +136,6 @@ export function SignupPage() {
       if (role === 'student') {
         endpoint = '/auth/signup';
         payload.role = 'student';
-        payload.apaar_id = apaarId.trim();
       } else if (role === 'employer') {
         endpoint = '/auth/signup/employer';
         payload.company_name = companyName.trim();
