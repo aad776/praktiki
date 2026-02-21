@@ -40,7 +40,6 @@ const roleConfig = {
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [apaarId, setApaarId] = useState('');
   const [role, setRole] = useState<Role>('student');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -92,25 +91,14 @@ export function LoginPage() {
       return;
     }
 
-    const cleanApaar = apaarId.replace(/\D/g, '');
-    if (role === 'student' && apaarId.trim()) {
-      if (cleanApaar.length !== 12) {
-        toast.error('APAAR ID must be exactly 12 digits.');
-        return;
-      }
-    }
-
     setLoading(true);
 
     try {
       const payload: any = {
-        email: email.trim(),
-        password,
-      };
-
-      if (role === 'student' && cleanApaar) {
-        payload.apaar_id = cleanApaar;
-      }
+      email: email.trim(),
+      password,
+      role, // Send the selected role for verification
+    };
 
       const response = await api.post<LoginResponse>('/auth/login', payload);
 
@@ -310,33 +298,6 @@ export function LoginPage() {
                 </button>
               </div>
             </div>
-
-            {/* APAAR ID (Student Only) - Optional */}
-            {role === 'student' && (
-              <div className="input-group animate-slide-down">
-                <label htmlFor="apaarId" className="label">
-                  APAAR ID <span className="text-slate-400 font-normal">(Optional)</span>
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                    </svg>
-                  </div>
-                  <input
-                    id="apaarId"
-                    type="text"
-                    value={apaarId}
-                    onChange={(e) => setApaarId(e.target.value.replace(/\D/g, '').slice(0, 12))}
-                    placeholder="12-digit APAAR ID"
-                    className="input pl-12"
-                  />
-                </div>
-                <p className="mt-1.5 text-xs text-slate-500">
-                  Provide your 12-digit APAAR ID to sync your academic credits.
-                </p>
-              </div>
-            )}
 
             {/* Submit Button */}
             <button

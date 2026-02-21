@@ -41,6 +41,7 @@ class UserOut(BaseModel):
 class LoginRequest(BaseModel):
     email: str
     password: str
+    role: str  # Mandatory role check
     # Allow empty string or 12 digits
     apaar_id: Optional[str] = Field(None, description="12 digit APAAR ID")
 

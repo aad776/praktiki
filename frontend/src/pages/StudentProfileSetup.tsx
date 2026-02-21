@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import api, { ApiError } from "../services/api";
@@ -1290,6 +1290,7 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
 export function StudentProfileSetup() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const toast = useToast();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -1526,10 +1527,12 @@ export function StudentProfileSetup() {
       // Fetch Profile
       let profileData: any = null;
       try {
+        console.log("Fetching student profile...");
         const profileRes = await api.get<Record<string, any>>("/students/me");
+        console.log("Profile response received:", profileRes);
         profileData = profileRes;
       } catch (err) {
-        console.log("No profile found");
+        console.log("No profile found or error fetching profile:", err);
       }
 
       // Fetch Resume
@@ -1542,8 +1545,18 @@ export function StudentProfileSetup() {
       }
 
       if (profileData) {
+        console.log("Profile data exists. Processing...");
         setHasProfile(true);
-        setIsViewMode(true);
+        // Check if edit mode is requested via URL params
+        const isEditMode = searchParams.get("mode") === "edit";
+        console.log("Edit mode requested:", isEditMode);
+
+        // Simplified Logic: If profile data exists (fetched from API), show View Mode by default
+        // Only show form if explicitly requested via ?mode=edit
+        const shouldView = !isEditMode;
+        console.log("Setting View Mode to:", shouldView);
+        setIsViewMode(shouldView);
+        
         setFormData(prev => ({
           ...prev,
           first_name: profileData.first_name || "",
@@ -1671,7 +1684,7 @@ export function StudentProfileSetup() {
 
   if (isViewMode) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50" key="view-mode">
         <ProfileView
           formData={formData}
           onEdit={handleEdit}
@@ -1683,7 +1696,7 @@ export function StudentProfileSetup() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8" key="form-mode">
       <div className={`${step === 4 ? 'max-w-[10in]' : 'max-w-2xl'} mx-auto bg-white rounded-xl shadow-lg p-8 transition-all duration-500`}>
         {/* Progress Bar */}
         <div className="w-full bg-gray-200 h-1.5 rounded-full mb-8 overflow-hidden">

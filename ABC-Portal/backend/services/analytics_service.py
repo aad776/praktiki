@@ -88,6 +88,30 @@ def institute_dashboard(db: Session, start_date: str = None, end_date: str = Non
     
     active_internships = active_query.count()
 
+    # Total Students
+    student_query = db.query(StudentProfile)
+    if institute_name:
+        if institute:
+            student_query = student_query.filter(
+                (StudentProfile.institute_id == institute.id) | 
+                (StudentProfile.university_name.ilike(f"%{institute_name}%"))
+            )
+        else:
+            student_query = student_query.filter(StudentProfile.university_name.ilike(f"%{institute_name}%"))
+    total_students = student_query.count()
+
+    # Pending Credit Requests
+    pending_query = db.query(CreditRequest).join(StudentProfile, CreditRequest.student_id == StudentProfile.id).filter(CreditRequest.status == CreditStatus.PENDING)
+    if institute_name:
+        if institute:
+            pending_query = pending_query.filter(
+                (StudentProfile.institute_id == institute.id) | 
+                (StudentProfile.university_name.ilike(f"%{institute_name}%"))
+            )
+        else:
+            pending_query = pending_query.filter(StudentProfile.university_name.ilike(f"%{institute_name}%"))
+    pending_credit_requests = pending_query.count()
+
     # Rejected count
     rejected_query = db.query(CreditRequest).join(StudentProfile, CreditRequest.student_id == StudentProfile.id).filter(CreditRequest.status == CreditStatus.REJECTED)
     if institute_name:
@@ -99,10 +123,37 @@ def institute_dashboard(db: Session, start_date: str = None, end_date: str = Non
         else:
             rejected_query = rejected_query.filter(StudentProfile.university_name.ilike(f"%{institute_name}%"))
 
+    # Calculate UGC/AICTE counts from policy_stats
+    ugc_count = 0
+    aicte_count = 0
+    for p in policy_stats:
+        if p[0] == 'UGC':
+            ugc_count = p[1]
+        elif p[0] == 'AICTE':
+            aicte_count = p[1]
+            
+    # Exceptions count
+    exception_query = db.query(CreditRequest).join(StudentProfile, CreditRequest.student_id == StudentProfile.id).filter(CreditRequest.status == CreditStatus.EXCEPTION)
+    if institute_name:
+        if institute:
+            exception_query = exception_query.filter(
+                (StudentProfile.institute_id == institute.id) | 
+                (StudentProfile.university_name.ilike(f"%{institute_name}%"))
+            )
+        else:
+            exception_query = exception_query.filter(StudentProfile.university_name.ilike(f"%{institute_name}%"))
+    exceptions = exception_query.count()
+
     return {
         "total_credits": total,
         "approved": len(approved_requests),
         "rejected": rejected_query.count(),
         "active_internships": active_internships,
-        "policy_stats": [{"name": p[0], "value": p[1]} for p in policy_stats]
+        "total_students": total_students,
+        "pending_credit_requests": pending_credit_requests,
+        "ugc_count": ugc_count,
+        "aicte_count": aicte_count,
+        "exceptions": exceptions,
+        "policy_stats": [{"name": p[0], "value": p[1]} for p in policy_stats],
+        "monthly_stats": []
     }

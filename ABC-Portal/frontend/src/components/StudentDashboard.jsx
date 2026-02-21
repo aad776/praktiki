@@ -292,6 +292,48 @@ const StudentDashboard = () => {
         </div>
       </div>
 
+      {/* CREDIT SUMMARY CARDS (Moved from Main Portal) */}
+      {stats && stats.credit_summary && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600">
+                    <CheckCircle size={24} />
+                </div>
+                <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Credits</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.credit_summary.total_credits}</p>
+                </div>
+            </div>
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div className="p-3 rounded-xl bg-green-50 text-green-600">
+                    <CheckCircle size={24} />
+                </div>
+                <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Approved</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.credit_summary.approved_credits}</p>
+                </div>
+            </div>
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div className="p-3 rounded-xl bg-amber-50 text-amber-600">
+                    <Clock size={24} />
+                </div>
+                <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Pending</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.credit_summary.pending_credits}</p>
+                </div>
+            </div>
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600">
+                    <PieIcon size={24} />
+                </div>
+                <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Working Hours</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.credit_summary.total_hours}h</p>
+                </div>
+            </div>
+        </div>
+      )}
+
       {/* STATUS ALERTS SECTION */}
       {stats && (
         <div className="grid grid-cols-1 gap-4">
@@ -508,9 +550,20 @@ const StudentDashboard = () => {
                                             {new Date(credit.created_at).toLocaleDateString()}
                                         </td>
                                         <td className="px-6 py-4 whitespace-nowrap">
-                                            <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                                APPROVED
-                                            </span>
+                                            <div className="flex flex-col gap-1">
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full w-fit ${
+                                                    credit.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                                                    credit.status === 'rejected' ? 'bg-red-100 text-red-800' : 
+                                                    'bg-yellow-100 text-yellow-800'
+                                                }`}>
+                                                    {credit.status?.toUpperCase() || 'PENDING'}
+                                                </span>
+                                                {credit.is_pushed_to_abc && (
+                                                    <span className="px-2 inline-flex text-[10px] leading-4 font-semibold rounded-full w-fit bg-blue-100 text-blue-800 border border-blue-200">
+                                                        PUSHED TO ABC
+                                                    </span>
+                                                )}
+                                            </div>
                                         </td>
                                     </tr>
                                 ))

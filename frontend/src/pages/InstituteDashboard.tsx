@@ -259,194 +259,161 @@ export function InstituteDashboard() {
   const completedInternships = getInternshipsByStatus('completed');
   const pendingInternships = getInternshipsByStatus('pending');
 
-  // Stats
-  const verifiedCount = students.filter(s => s.is_apaar_verified).length;
-  const withInternships = students.filter(s => s.total_internships > 0).length;
+  // Stats for the new header
+  const totalStudents = students.length;
+  const verifiedStudents = students.filter(s => s.is_apaar_verified).length;
+  const pendingStudents = students.filter(s => !s.is_apaar_verified).length;
+  // We don't have a rejected status for students in the current model, defaulting to 0 or checking specific flag if it existed
+  const rejectedStudents = 0; 
 
   if (pageLoading) {
     return <PageLoader label="Loading dashboard..." />;
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-start">
+    <div className="space-y-8 bg-white min-h-screen p-6">
+      {/* Header Section */}
+      <div className="flex justify-between items-start border-b border-slate-100 pb-6">
         <div>
-          <h1 className="text-2xl font-bold text-slate-900">Institute Dashboard v2.0</h1>
-          <p className="text-slate-600">Monitor your students and their internship progress</p>
+          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Institute Dashboard V2.0</h1>
+          <p className="text-slate-500 mt-1 text-lg">Monitoring student internship progress.</p>
         </div>
-        <div className="flex gap-2">
-          {/* Export buttons */}
-          <div className="flex bg-white border border-slate-200 rounded-lg overflow-hidden">
+        <div className="flex gap-3">
+           <button 
+            onClick={() => fetchData()}
+            className="p-2 text-slate-400 hover:text-slate-600 transition-colors"
+            title="Refresh Data"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+          <div className="flex bg-slate-50 rounded-lg p-1 border border-slate-200">
             <button 
               onClick={() => handleExportCSV()}
-              className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors border-r border-slate-200"
-              title="Export as CSV"
+              className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-white rounded-md transition-all"
             >
-              <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-              </svg>
               CSV
             </button>
+            <div className="w-px bg-slate-200 my-1 mx-1"></div>
             <button 
               onClick={() => handleExportPDF()}
-              className="flex items-center gap-2 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors"
-              title="Export as PDF"
+              className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-900 hover:bg-white rounded-md transition-all"
             >
-              <svg className="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
-              </svg>
               PDF
             </button>
           </div>
-          <button 
-            onClick={() => fetchData()}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-slate-700 bg-white border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+        </div>
+      </div>
+
+      {/* Stats Chips Row */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
+          <div className="p-2 bg-white rounded-full text-slate-600 shadow-sm">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
-            Refresh Data
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-slate-700">{totalStudents}</p>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Students</p>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-3 bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
+          <div className="p-2 bg-white rounded-full text-emerald-600 shadow-sm">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-slate-700">{verifiedStudents}</p>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Verified</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 bg-amber-50/50 p-4 rounded-xl border border-amber-100">
+          <div className="p-2 bg-white rounded-full text-amber-600 shadow-sm">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-slate-700">{pendingStudents}</p>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Pending</p>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-3 bg-red-50/50 p-4 rounded-xl border border-red-100">
+          <div className="p-2 bg-white rounded-full text-red-600 shadow-sm">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <div>
+            <p className="text-2xl font-bold text-slate-700">{rejectedStudents}</p>
+            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Rejected</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Search Bar - Full Width */}
+      <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </div>
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by name, department, or APAAR ID"
+          className="block w-full pl-11 pr-4 py-4 bg-slate-50 border-0 text-slate-900 placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-slate-200 focus:bg-white transition-all shadow-sm"
+        />
+      </div>
+
+      {/* Tabs Navigation */}
+      <div className="flex overflow-x-auto gap-2 pb-2 border-b border-slate-100">
+        {[
+          { id: 'students', label: 'Students' },
+          { id: 'completed', label: 'Completed', count: completedInternships.length, color: 'emerald' },
+          { id: 'pending', label: 'Pending', count: pendingInternships.length, color: 'amber' },
+          { id: 'credits', label: 'Credits', count: creditRequests.filter(r => r.status === 'pending').length, color: 'blue' },
+          { id: 'audit', label: 'Audit Logs' },
+          { id: 'status', label: 'Status', count: students.reduce((acc, s) => acc + (s.total_internships > 0 ? 1 : 0), 0) }
+        ].map(tab => (
+          <button
+            key={tab.id}
+            onClick={() => setActiveTab(tab.id as any)}
+            className={`
+              whitespace-nowrap px-4 py-2 rounded-lg text-sm font-medium transition-all
+              ${activeTab === tab.id 
+                ? 'bg-slate-900 text-white shadow-md' 
+                : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
+            `}
+          >
+            <div className="flex items-center gap-2">
+              {tab.label}
+              {tab.count !== undefined && tab.count > 0 && (
+                <span className={`
+                  px-1.5 py-0.5 rounded-full text-xs
+                  ${activeTab === tab.id 
+                    ? 'bg-white/20 text-white' 
+                    : `bg-${tab.color || 'slate'}-100 text-${tab.color || 'slate'}-700`}
+                `}>
+                  {tab.count}
+                </span>
+              )}
+            </div>
           </button>
-        </div>
+        ))}
       </div>
-
-      {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-          <div className="text-3xl font-bold text-slate-900">{stats?.total_students || 0}</div>
-          <div className="text-sm text-slate-600">Total Students</div>
-        </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-          <div className="text-3xl font-bold text-emerald-600">{stats?.total_credits_approved || 0}</div>
-          <div className="text-sm text-slate-600">Credits Approved</div>
-          <div className="mt-2 flex gap-2">
-            <span className="text-[10px] px-1.5 py-0.5 bg-green-50 text-green-700 rounded border border-green-100">UGC: {stats?.policy_distribution.UGC || 0}</span>
-            <span className="text-[10px] px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded border border-blue-100">AICTE: {stats?.policy_distribution.AICTE || 0}</span>
-          </div>
-        </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-          <div className="text-3xl font-bold text-blue-600">{stats?.active_internships || 0}</div>
-          <div className="text-sm text-slate-600">Active Internships</div>
-        </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-          <div className="text-3xl font-bold text-amber-600">{stats?.pending_credit_requests || 0}</div>
-          <div className="text-sm text-slate-600">Pending Requests</div>
-        </div>
-      </div>
-
-      {/* Tabs */}
-      <div className="flex border-b border-slate-200">
-        <button
-          onClick={() => setActiveTab('students')}
-          className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors
-            ${activeTab === 'students'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
-        >
-          Students
-        </button>
-        <button
-          onClick={() => setActiveTab('completed')}
-          className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2
-            ${activeTab === 'completed'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
-        >
-          Completed
-          {completedInternships.length > 0 && (
-            <span className="bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full text-xs">
-              {completedInternships.length}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('pending')}
-          className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2
-            ${activeTab === 'pending'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
-        >
-          Pending
-          {pendingInternships.length > 0 && (
-            <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs">
-              {pendingInternships.length}
-            </span>
-          )}
-        </button>
-        {/* Credit Requests */}
-        <button
-          onClick={() => setActiveTab('credits')}
-          className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2
-            ${activeTab === 'credits'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
-        >
-          Credit Requests
-          {creditRequests.filter(r => r.status === 'pending').length > 0 && (
-            <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full text-xs">
-              {creditRequests.filter(r => r.status === 'pending').length}
-            </span>
-          )}
-        </button>
-        <button
-          onClick={() => setActiveTab('audit')}
-          className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors
-            ${activeTab === 'audit'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
-        >
-          Audit Logs
-        </button>
-        <button
-          onClick={() => setActiveTab('status')}
-          className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2
-            ${activeTab === 'status'
-              ? 'border-slate-900 text-slate-900'
-              : 'border-transparent text-slate-500 hover:text-slate-700'
-            }`}
-        >
-          Internship Status
-          <span className="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-full text-xs">
-            {students.reduce((acc, s) => acc + (s.total_internships > 0 ? 1 : 0), 0)}
-          </span>
-        </button>
-      </div>
-
-      {/* Search - Show for students, completed, pending, and status tabs */}
-      {(activeTab === 'students' || activeTab === 'completed' || activeTab === 'pending' || activeTab === 'status') && (
-        <div className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-          <div className="max-w-md">
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              {activeTab === 'students' ? 'Search Students' : 'Search Internships'}
-            </label>
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder={activeTab === 'students' ? "Search by name, department, or APAAR ID..." : "Search by student, title, or company..."}
-              className="w-full rounded-lg border border-slate-300 px-4 py-2 text-sm
-                focus:outline-none focus:ring-2 focus:ring-slate-900"
-            />
-          </div>
-        </div>
-      )}
 
       {activeTab === 'students' ? (
         <>
           {/* Students Table */}
-          <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-            <div className="p-6 border-b border-slate-200">
-              <h2 className="text-lg font-semibold text-slate-900">
-                Students ({filteredStudents.length})
-              </h2>
-            </div>
-
+          <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
             {filteredStudents.length === 0 ? (
               <div className="p-12 text-center">
                 <p className="text-slate-500">
@@ -456,84 +423,74 @@ export function InstituteDashboard() {
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-slate-50 border-b border-slate-200">
-                    <tr>
-                      <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">
+                  <thead>
+                    <tr className="bg-slate-50/50 border-b border-slate-200">
+                      <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                         Student
                       </th>
-                      <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                         Department
                       </th>
-                      <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">
+                      <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
                         Year
                       </th>
-                      <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        APAAR Status
+                      <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        APAAR ID
                       </th>
-                      <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">
-                        Internships
+                      <th className="text-left px-6 py-4 text-xs font-semibold text-slate-500 uppercase tracking-wider">
+                        Status
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-200">
+                  <tbody className="divide-y divide-slate-100">
                     {filteredStudents.map((student) => (
                       <React.Fragment key={student.id}>
                         <tr 
-                          className={`hover:bg-slate-50 cursor-pointer transition-colors ${expandedStudentId === student.id ? 'bg-slate-50' : ''}`}
+                          className={`
+                            group transition-all cursor-pointer
+                            ${expandedStudentId === student.id ? 'bg-slate-50' : 'hover:bg-slate-50/50'}
+                          `}
                           onClick={() => setExpandedStudentId(expandedStudentId === student.id ? null : student.id)}
                         >
                           <td className="px-6 py-4">
                             <div className="flex items-center gap-3">
-                              <div className="text-slate-400">
-                                <svg 
-                                  className={`w-4 h-4 transition-transform ${expandedStudentId === student.id ? 'rotate-90' : ''}`} 
-                                  fill="none" viewBox="0 0 24 24" stroke="currentColor"
-                                >
+                              <div className={`
+                                p-1 rounded transition-transform duration-200 text-slate-400 group-hover:text-slate-600
+                                ${expandedStudentId === student.id ? 'rotate-90 bg-slate-200' : ''}
+                              `}>
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                                 </svg>
                               </div>
-                              <div>
-                                <div className="font-medium text-slate-900">{student.name}</div>
-                                {/* APAAR ID hidden as per requirements - only shown in ABC Status Dashboard */}
-                                {/* {student.apaar_id && (
-                                  <div className="text-xs text-slate-500">APAAR: {student.apaar_id}</div>
-                                )} */}
-                              </div>
+                              <span className="font-semibold text-slate-700 group-hover:text-slate-900">{student.name}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-sm text-slate-600">
+                          <td className="px-6 py-4 text-sm text-slate-500">
                             {student.department || '-'}
                           </td>
-                          <td className="px-6 py-4 text-sm text-slate-600">
+                          <td className="px-6 py-4 text-sm text-slate-500">
                             {student.year ? `Year ${student.year}` : '-'}
+                          </td>
+                          <td className="px-6 py-4 text-sm font-mono text-slate-500">
+                            {student.apaar_id || '-'}
                           </td>
                           <td className="px-6 py-4">
                             <span
-                              className={`px-2 py-1 text-xs font-medium rounded-full
+                              className={`
+                                px-3 py-1 text-xs font-medium rounded-md
                                 ${student.is_apaar_verified
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                  : 'bg-amber-50 text-amber-700 border border-amber-200'
-                                }`}
+                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
+                                  : 'bg-amber-50 text-amber-700 border border-amber-100'
+                                }
+                              `}
                             >
                               {student.is_apaar_verified ? 'Verified' : 'Pending'}
                             </span>
                           </td>
-                          <td className="px-6 py-4">
-                            <div className="flex items-center gap-2">
-                              <span className={`px-2 py-1 text-xs font-medium rounded-full ${student.total_internships > 0 ? 'bg-blue-50 text-blue-700 border border-blue-200' : 'bg-slate-50 text-slate-500 border border-slate-200'}`}>
-                                {student.total_internships} Completed/Ongoing
-                              </span>
-                              {student.internships.length > 0 && (
-                                <span className="text-xs text-slate-400">
-                                  ({student.internships.length} total apps)
-                                </span>
-                              )}
-                            </div>
-                          </td>
                         </tr>
                         {expandedStudentId === student.id && (
                           <tr className="bg-slate-50/50">
-                            <td colSpan={5} className="px-12 py-6 border-t border-slate-100">
+                            <td colSpan={5} className="px-8 py-6 border-t border-slate-100 shadow-inner">
                               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 {/* Student Info */}
                                 <div>
@@ -634,7 +591,7 @@ export function InstituteDashboard() {
                 </table>
               </div>
             )}
-          </section>
+          </div>
         </>
       ) : activeTab === 'completed' || activeTab === 'pending' ? (
         <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -850,7 +807,13 @@ export function InstituteDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
-                  {creditRequests.map((request) => (
+                  {creditRequests
+                    .filter(request => 
+                      request.student_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      (request.internship_title && request.internship_title.toLowerCase().includes(searchQuery.toLowerCase())) ||
+                      (request.company_name && request.company_name.toLowerCase().includes(searchQuery.toLowerCase()))
+                    )
+                    .map((request) => (
                     <tr key={request.id} className="hover:bg-slate-50">
                       <td className="px-6 py-4">
                         <div className="text-sm font-medium text-slate-900">{request.student_name}</div>
@@ -968,7 +931,12 @@ export function InstituteDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200">
-                  {auditLogs.map((log) => (
+                  {auditLogs
+                    .filter(log =>
+                      log.action.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      log.details.toLowerCase().includes(searchQuery.toLowerCase())
+                    )
+                    .map((log) => (
                     <tr key={log.id} className="hover:bg-slate-50">
                       <td className="px-6 py-4 text-slate-500 whitespace-nowrap">
                         {new Date(log.timestamp).toLocaleString()}

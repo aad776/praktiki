@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import api, { ApiError } from '../services/api';
@@ -84,6 +84,7 @@ interface CreditSummary {
 
 export function StudentDashboard() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, refreshUser } = useAuth();
   const toast = useToast();
 
@@ -101,9 +102,9 @@ export function StudentDashboard() {
   const [applyingId, setApplyingId] = useState<number | null>(null);
 
   // Search state
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchLocation, setSearchLocation] = useState('');
-  const [searchMode, setSearchMode] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
+  const [searchLocation, setSearchLocation] = useState(searchParams.get('location') || '');
+  const [searchMode, setSearchMode] = useState(searchParams.get('mode') || '');
 
   // Fetch initial data
   useEffect(() => {
@@ -122,8 +123,9 @@ export function StudentDashboard() {
         }
 
         // Fetch internships
-        const internshipsRes = await api.get<Internship[]>('/students/internships?limit=1000');
-        setInternships(internshipsRes);
+        // const internshipsRes = await api.get<Internship[]>('/students/internships?limit=1000');
+        // setInternships(internshipsRes);
+        // Moved to separate useEffect dependent on searchParams
 
         // Fetch applications
         const appsRes = await api.get<Application[]>('/students/my-applications');
@@ -155,6 +157,41 @@ export function StudentDashboard() {
     fetchData();
   }, []);
 
+  // Sync state with URL params (for back/forward navigation)
+  useEffect(() => {
+    setSearchQuery(searchParams.get('search') || '');
+    setSearchLocation(searchParams.get('location') || '');
+    setSearchMode(searchParams.get('mode') || '');
+  }, [searchParams]);
+
+  // Fetch internships based on URL params
+  useEffect(() => {
+    const fetchInternships = async () => {
+      setSearchLoading(true);
+      try {
+        const params = new URLSearchParams();
+        const search = searchParams.get('search');
+        const location = searchParams.get('location');
+        const mode = searchParams.get('mode');
+
+        if (search) params.append('search', search);
+        if (location) params.append('location', location);
+        if (mode) params.append('mode', mode);
+        params.append('limit', '1000');
+        
+        const internshipsRes = await api.get<Internship[]>(`/students/internships?${params.toString()}`);
+        setInternships(internshipsRes);
+      } catch (err) {
+        console.error(err);
+        toast.error('Failed to load internships');
+      } finally {
+        setSearchLoading(false);
+      }
+    };
+    
+    fetchInternships();
+  }, [searchParams]);
+
   // Check if profile is complete
   const isProfileComplete = useCallback(() => {
     if (!profile) return false;
@@ -173,31 +210,22 @@ export function StudentDashboard() {
   }, [profile]);
 
   // Search handler
-  const handleSearch = async () => {
-    setSearchLoading(true);
-    try {
-      const params = new URLSearchParams();
-      if (searchQuery) params.append('search', searchQuery);
-      if (searchLocation) params.append('location', searchLocation);
-      if (searchMode) params.append('mode', searchMode);
-      params.append('limit', '1000');
-
-      const response = await api.get<Internship[]>(`/students/internships?${params.toString()}`);
-      setInternships(response);
-
-      if (response.length === 0) {
-        toast.info('No internships found matching your criteria.');
-      }
-    } catch (err) {
-      const error = err as ApiError;
-      toast.error(error.message || 'Search failed');
-    } finally {
-      setSearchLoading(false);
-    }
+  const handleSearch = () => {
+    const params: Record<string, string> = {};
+    if (searchQuery) params.search = searchQuery;
+    if (searchLocation) params.location = searchLocation;
+    if (searchMode) params.mode = searchMode;
+    setSearchParams(params);
   };
 
   // Apply handler
   const handleApply = async (internshipId: number) => {
+    if (!isProfileComplete()) {
+      toast.error('Please complete your profile to apply for internships.');
+      navigate('/student/setup?mode=edit');
+      return;
+    }
+
     setApplyingId(internshipId);
     try {
       await api.post('/students/apply', { internship_id: internshipId });
@@ -254,144 +282,35 @@ export function StudentDashboard() {
         <p className="text-slate-600">Welcome to your dashboard. Here's what's happening today.</p>
       </div>
 
-      {/* Profile Completion Banner */}
+      {/* Profile Incomplete Warning Banner */}
       {!isProfileComplete() && profile && (
-        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-8 text-center">
-          <div className="text-5xl mb-4">📝</div>
-          <h3 className="text-xl font-bold text-blue-900 mb-2">
-            Complete your profile to unlock opportunities
-          </h3>
-          <p className="text-blue-700 max-w-lg mx-auto mb-6">
-            Build your profile and resume to get personalized internship recommendations.
-          </p>
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 rounded-r-lg shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 mt-0.5">
+              <svg className="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm text-amber-800 font-medium">
+                Attention: You have not completed your profile.
+              </p>
+              <p className="text-sm text-amber-700 mt-1">
+                Incomplete profiles are not visible to employers. Please complete your profile to apply for internships.
+              </p>
+            </div>
+          </div>
           <button
-            onClick={() => navigate('/student/setup')}
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 
-              transition-all font-semibold shadow-lg hover:shadow-xl"
+            onClick={() => navigate('/student/setup?mode=edit')}
+            className="whitespace-nowrap px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 hover:text-amber-800 rounded-lg text-sm font-semibold transition-colors border border-amber-200"
           >
-            Complete Profile Now
+            Complete Profile
           </button>
         </div>
       )}
 
-      {/* Main Content - Only show if profile complete */}
-      {isProfileComplete() && (
-        <>
-          {/* Credit Summary Stats - Hidden as per requirements, shown only in ABC Portal */}
-          {/* {creditSummary && (
-            <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-              <div className="bg-white rounded-2xl p-5 shadow-soft border border-slate-100 flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-brand-50 text-brand-600">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Total Credits</p>
-                  <p className="text-2xl font-bold text-slate-900">{creditSummary.total_credits}</p>
-                </div>
-              </div>
-              <div className="bg-white rounded-2xl p-5 shadow-soft border border-slate-100 flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Approved</p>
-                  <p className="text-2xl font-bold text-slate-900">{creditSummary.approved_credits}</p>
-                </div>
-              </div>
-              <div className="bg-white rounded-2xl p-5 shadow-soft border border-slate-100 flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-amber-50 text-amber-600">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Pending</p>
-                  <p className="text-2xl font-bold text-slate-900">{creditSummary.pending_credits}</p>
-                </div>
-              </div>
-              <div className="bg-white rounded-2xl p-5 shadow-soft border border-slate-100 flex items-center gap-4">
-                <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600">
-                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4.5m4.5-4.5V17m-9-9V17" />
-                  </svg>
-                </div>
-                <div>
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Working Hours</p>
-                  <p className="text-2xl font-bold text-slate-900">{creditSummary.total_hours}h</p>
-                </div>
-              </div>
-            </section>
-          )} */}
-
-          {/* My Applications Section */}
-          <section className="bg-white rounded-xl p-6 shadow-sm border border-slate-200 mb-8">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">My Applications</h2>
-            {applications.length === 0 ? (
-              <p className="text-slate-500 text-sm">You haven't applied to any internships yet.</p>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm text-left">
-                  <thead className="bg-slate-50 text-slate-500 font-medium">
-                    <tr>
-                      <th className="px-4 py-3 rounded-l-lg">Role</th>
-                      <th className="px-4 py-3">Company</th>
-                      <th className="px-4 py-3">Applied Date</th>
-                      <th className="px-4 py-3">Status</th>
-                      <th className="px-4 py-3 rounded-r-lg">Credits</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {applications.map((app) => (
-                      <tr key={app.id} className="hover:bg-slate-50 transition-colors">
-                        <td className="px-4 py-3 font-medium text-slate-900">
-                          {app.internship?.title || 'Unknown Role'}
-                        </td>
-                        <td className="px-4 py-3 text-slate-600">
-                          {app.internship?.company_name || 'Unknown Company'}
-                        </td>
-                        <td className="px-4 py-3 text-slate-500">
-                          {new Date(app.applied_at).toLocaleDateString()}
-                        </td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            app.status === 'hired' || app.status === 'completed' ? 'bg-green-100 text-green-700' :
-                            app.status === 'rejected' ? 'bg-red-100 text-red-700' :
-                            'bg-blue-100 text-blue-700'
-                          }`}>
-                            {app.status.charAt(0).toUpperCase() + app.status.slice(1)}
-                          </span>
-                        </td>
-                        <td className="px-4 py-3">
-                             {/* Credit Status Logic */}
-                             {app.is_pushed_to_abc ? (
-                                 <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">
-                                     Pushed to ABC
-                                 </span>
-                             ) : app.credit_status ? (
-                                 <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                     app.credit_status === 'approved' ? 'bg-green-100 text-green-700' :
-                                     app.credit_status === 'rejected' ? 'bg-red-100 text-red-700' :
-                                     'bg-yellow-100 text-yellow-700'
-                                 }`}>
-                                     {app.credit_status.charAt(0).toUpperCase() + app.credit_status.slice(1)}
-                                 </span>
-                             ) : (
-                                 <span className="text-slate-400 text-xs">-</span>
-                             )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </section>
-
-          {/* Search Section */}
+      {/* Main Content - Always show */}
+      {/* Search Section */}
           <section className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <h2 className="text-lg font-semibold text-slate-900 mb-4">Search Internships</h2>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -677,8 +596,7 @@ export function StudentDashboard() {
               </div>
             </section>
           )}
-        </>
-      )}
+      {/* End of Main Content */}
     </div>
   );
 }

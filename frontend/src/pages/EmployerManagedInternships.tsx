@@ -83,6 +83,7 @@ export function EmployerManagedInternships() {
         hours_worked: hours,
         policy_type: policy
       });
+      setApplications(prev => prev.filter(app => app.id !== appId));
       toast.success('Internship marked as completed successfully!');
       fetchData();
     } catch (err) {

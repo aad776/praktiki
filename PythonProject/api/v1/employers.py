@@ -14,6 +14,7 @@ from typing import List, Optional
 from models.application import Application
 from models.student_profile import StudentProfile, StudentResume
 from models.notification import Notification
+from models.credit import CreditRequest
 from utils.email import send_application_accepted_email
 from sqlalchemy import func
 from pydantic import BaseModel
@@ -368,9 +369,7 @@ def complete_internship(
     # Notification for student
     notif = Notification(
         user_id=app.student.user_id,
-        title="Internship Completed",
-        message=f"Your internship '{app.internship.title}' has been marked as completed. {data.hours_worked} hours recorded. Pending Institute approval.",
-        type="success"
+        message=f"Your internship '{app.internship.title}' has been marked as completed. {data.hours_worked} hours recorded. Pending Institute approval."
     )
     db.add(notif)
     

@@ -137,6 +137,14 @@ def login(
         print(f"DEBUG: No user found with email: {login_in.email}")
         raise HTTPException(status_code=401, detail="Invalid email or password")
     
+    # NEW: Check if the user is logging in with the correct role
+    if user.role != login_in.role:
+        print(f"DEBUG: Role mismatch. User role: {user.role}, Requested role: {login_in.role}")
+        raise HTTPException(
+            status_code=403, 
+            detail=f"This account is registered as a {user.role.capitalize()}. Please select the correct role."
+        )
+
     print(f"DEBUG: User found: {user.email}, role: {user.role}, hash: {user.hashed_password[:15]}...")
     
     # Check if password is correct

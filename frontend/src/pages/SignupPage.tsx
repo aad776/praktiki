@@ -32,10 +32,12 @@ const roleConfig = {
 
 export function SignupPage() {
   const [role, setRole] = useState<Role>('student');
+  const [isRoleSelected, setIsRoleSelected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [step, setStep] = useState(1);
-
+  // We'll treat "step 1" as initial role selection view, and "step 2" as the form filling view
+  // But since we want a "big form", we'll just use isRoleSelected to toggle layout
+  
   // Common fields
   const [email, setEmail] = useState('');
   const [fullName, setFullName] = useState('');
@@ -58,7 +60,7 @@ export function SignupPage() {
   const location = useLocation();
   const toast = useToast();
 
-  const validateStep1 = (): boolean => {
+  const validateForm = (): boolean => {
     if (!email.trim()) {
       toast.error('Please enter your email address.');
       return false;
@@ -67,10 +69,6 @@ export function SignupPage() {
       toast.error('Please enter your full name.');
       return false;
     }
-    return true;
-  };
-
-  const validateStep2 = (): boolean => {
     if (password.length < 8) {
       toast.error('Password must be at least 8 characters.');
       return false;
@@ -81,14 +79,16 @@ export function SignupPage() {
     }
 
     // Student validation
-      // Student validation
     if (role === 'student') {
       const cleanApaar = apaarId.trim().replace(/\D/g, '');
       
-      // Only validate if the user has entered something substantial (more than 0 digits)
-      // If it's empty string, we ignore it (optional)
-      if (apaarId.trim().length > 0 && cleanApaar.length !== 12) {
-          toast.error('APAAR ID must be exactly 12 digits. Leave blank if you don\'t have one.');
+      // APAAR ID is now mandatory
+      if (!apaarId.trim()) {
+          toast.error('APAAR ID is mandatory for students.');
+          return false;
+      }
+      if (cleanApaar.length !== 12) {
+          toast.error('APAAR ID must be exactly 12 digits.');
           return false;
       }
     }
@@ -122,16 +122,10 @@ export function SignupPage() {
     return true;
   };
 
-  const handleNextStep = () => {
-    if (validateStep1()) {
-      setStep(2);
-    }
-  };
-
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
 
-    if (!validateStep2()) return;
+    if (!validateForm()) return;
 
     setLoading(true);
 
@@ -147,11 +141,7 @@ export function SignupPage() {
         endpoint = '/auth/signup';
         payload.role = 'student';
         const cleanApaar = apaarId.trim().replace(/\D/g, '');
-        // Only include apaar_id if it is exactly 12 digits
-        if (cleanApaar.length === 12) {
-          payload.apaar_id = cleanApaar;
-        }
-        console.log('Signup payload:', payload);
+        payload.apaar_id = cleanApaar;
       } else if (role === 'employer') {
         endpoint = '/auth/signup/employer';
         payload.company_name = companyName.trim();
@@ -177,11 +167,11 @@ export function SignupPage() {
   }
 
   return (
-    <main className="min-h-screen flex">
+    <main className="min-h-screen flex bg-slate-50">
       {/* Left Side - Illustration */}
       <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 relative overflow-hidden">
         {/* Background Pattern */}
-        <div className="absolute inset-0">
+        <div className="absolute inset-0 min-w-full">
           <div className="absolute top-20 left-20 w-72 h-72 bg-brand-500/20 rounded-full blur-3xl" />
           <div className="absolute bottom-20 right-20 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl" />
         </div>
@@ -253,7 +243,7 @@ export function SignupPage() {
 
       {/* Right Side - Signup Form */}
       <div className="w-full lg:w-1/2 flex items-center justify-center p-6 sm:p-12 bg-white">
-        <div className="w-full max-w-md animate-fade-in">
+        <div className={`w-full animate-fade-in ${isRoleSelected ? 'max-w-2xl' : 'max-w-md'}`}>
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-8">
             <Link to="/" className="inline-flex items-center justify-center w-16 h-16 bg-brand-600 rounded-2xl mb-4">
@@ -264,68 +254,81 @@ export function SignupPage() {
             <h1 className="text-2xl font-bold text-slate-900">Praktiki</h1>
           </div>
 
-          {/* Progress Steps */}
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all
-              ${step >= 1 ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
-              1
-            </div>
-            <div className={`w-16 h-1 rounded ${step >= 2 ? 'bg-brand-600' : 'bg-slate-200'}`} />
-            <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all
-              ${step >= 2 ? 'bg-brand-600 text-white' : 'bg-slate-200 text-slate-500'}`}>
-              2
-            </div>
-          </div>
-
           {/* Form Header */}
           <div className="text-center mb-8">
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-2">
-              {step === 1 ? 'Create your account' : 'Complete your profile'}
+              {isRoleSelected ? 'Complete your profile' : 'Create your account'}
             </h2>
             <p className="text-slate-500">
-              {step === 1 ? 'Choose your role and enter your details' : 'Set your password and additional info'}
+              {isRoleSelected ? 'Enter your details below' : 'Choose your role to get started'}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {step === 1 && (
-              <>
-                {/* Role Selection */}
-                <div>
-                  <label className="label">I want to join as</label>
-                  <div className="space-y-3">
-                    {(Object.keys(roleConfig) as Role[]).map((r) => {
-                      const config = roleConfig[r];
-                      const isActive = role === r;
-                      return (
-                        <button
-                          key={r}
-                          type="button"
-                          onClick={() => setRole(r)}
-                          className={`
-                            w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-200 text-left
-                            ${isActive ? config.activeClass : 'border-slate-200 hover:border-slate-300 bg-white'}
-                          `}
-                        >
-                          <span className="text-3xl">{config.icon}</span>
-                          <div>
-                            <span className={`block font-semibold ${isActive ? 'text-white' : 'text-slate-900'}`}>
-                              {config.label}
-                            </span>
-                            <span className={`text-sm ${isActive ? 'text-white/80' : 'text-slate-500'}`}>
-                              {config.description}
-                            </span>
-                          </div>
-                          <div className={`ml-auto w-5 h-5 rounded-full border-2 flex items-center justify-center
-                            ${isActive ? 'border-white bg-white' : 'border-slate-300'}`}>
-                            {isActive && <div className="w-2.5 h-2.5 rounded-full bg-brand-600" />}
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
+            {/* Role Selection - Compact if selected, Large if not */}
+            {!isRoleSelected ? (
+              <div className="space-y-3">
+                {(Object.keys(roleConfig) as Role[]).map((r) => {
+                  const config = roleConfig[r];
+                  const isActive = role === r;
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => {
+                        setRole(r);
+                        setIsRoleSelected(true);
+                      }}
+                      className={`
+                        w-full flex items-center gap-4 p-4 rounded-xl border-2 transition-all duration-200 text-left
+                        ${isActive ? config.activeClass : 'border-slate-200 hover:border-slate-300 bg-white'}
+                      `}
+                    >
+                      <span className="text-3xl">{config.icon}</span>
+                      <div>
+                        <span className={`block font-semibold ${isActive ? 'text-white' : 'text-slate-900'}`}>
+                          {config.label}
+                        </span>
+                        <span className={`text-sm ${isActive ? 'text-white/80' : 'text-slate-500'}`}>
+                          {config.description}
+                        </span>
+                      </div>
+                      <div className={`ml-auto w-5 h-5 rounded-full border-2 flex items-center justify-center
+                        ${isActive ? 'border-white bg-white' : 'border-slate-300'}`}>
+                        {isActive && <div className="w-2.5 h-2.5 rounded-full bg-brand-600" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex justify-center gap-4 mb-8">
+                {(Object.keys(roleConfig) as Role[]).map((r) => {
+                  const config = roleConfig[r];
+                  const isActive = role === r;
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => setRole(r)}
+                      className={`
+                        flex items-center gap-2 px-4 py-2 rounded-full border transition-all text-sm font-medium
+                        ${isActive 
+                          ? 'bg-brand-50 border-brand-200 text-brand-700 ring-2 ring-brand-500 ring-offset-2' 
+                          : 'bg-white border-slate-200 text-slate-600 hover:border-slate-300'}
+                      `}
+                    >
+                      <span>{config.icon}</span>
+                      {config.label}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
 
+            {/* Form Fields - Only show if role is selected */}
+            {isRoleSelected && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6 animate-fade-in">
                 {/* Full Name */}
                 <div className="input-group">
                   <label htmlFor="fullName" className="label">Full Name</label>
@@ -368,64 +371,83 @@ export function SignupPage() {
                   </div>
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleNextStep}
-                  className="btn-primary w-full py-3.5"
-                >
-                  Continue
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
-                  </svg>
-                </button>
-              </>
-            )}
+                {/* Password */}
+                <div className="input-group">
+                  <label htmlFor="password" className="label">Password</label>
+                  <div className="relative">
+                    <input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="input pr-12"
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600"
+                    >
+                      {showPassword ? (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
+                        </svg>
+                      ) : (
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                  <p className="mt-1.5 text-xs text-slate-500">Must be at least 8 characters</p>
+                </div>
 
-            {step === 2 && (
-              <>
-                {/* Back Button */}
-                <button
-                  type="button"
-                  onClick={() => setStep(1)}
-                  className="flex items-center gap-2 text-slate-600 hover:text-slate-900 mb-4"
-                >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-                  </svg>
-                  Back
-                </button>
+                {/* Confirm Password */}
+                <div className="input-group">
+                  <label htmlFor="confirmPassword" className="label">Confirm Password</label>
+                  <input
+                    id="confirmPassword"
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    placeholder="••••••••"
+                    className="input"
+                    required
+                  />
+                </div>
 
-                {/* Student Specific Fields - APAAR ID (Optional) */}
+                {/* Student Specific Fields - APAAR ID (Mandatory) */}
                 {role === 'student' && (
-                  <>
-                    <div className="input-group">
-                      <label htmlFor="apaarId" className="label">
-                        APAAR ID <span className="text-slate-400 font-normal">(Optional)</span>
-                      </label>
-                      <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                          <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                          </svg>
-                        </div>
-                        <input
-                          id="apaarId"
-                          type="text"
-                          value={apaarId}
-                          onChange={(e) => setApaarId(e.target.value.replace(/\D/g, '').slice(0, 12))}
-                          placeholder="123456789012"
-                          className="input pl-12"
-                          maxLength={12}
-                        />
+                  <div className="input-group md:col-span-2">
+                    <label htmlFor="apaarId" className="label">
+                      APAAR ID <span className="text-red-500">*</span>
+                    </label>
+                    <div className="relative">
+                      <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                        </svg>
                       </div>
-                      <p className="mt-1.5 text-xs text-slate-500">
-                        12-digit APAAR ID helps in syncing your academic credits. Leave blank if you don't have one.
-                        <a href="https://apaar.education.gov.in" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline ml-1">
-                          Get your APAAR ID
-                        </a>
-                      </p>
+                      <input
+                        id="apaarId"
+                        type="text"
+                        value={apaarId}
+                        onChange={(e) => setApaarId(e.target.value.replace(/\D/g, '').slice(0, 12))}
+                        placeholder="123456789012"
+                        className="input pl-12"
+                        maxLength={12}
+                        required
+                      />
                     </div>
-                  </>
+                    <p className="mt-1.5 text-xs text-slate-500">
+                      12-digit APAAR ID is required for syncing your academic credits.
+                      <a href="https://apaar.education.gov.in" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline ml-1">
+                        Get your APAAR ID
+                      </a>
+                    </p>
+                  </div>
                 )}
 
                 {/* Employer Specific Fields */}
@@ -490,7 +512,7 @@ export function SignupPage() {
                         required
                       />
                     </div>
-                    <div className="input-group">
+                    <div className="input-group md:col-span-2">
                       <label htmlFor="instituteContact" className="label">Contact Number</label>
                       <div className="flex">
                         <span className="inline-flex items-center px-4 border border-r-0 border-slate-200 rounded-l-xl bg-slate-50 text-slate-500 text-sm font-medium">
@@ -510,82 +532,39 @@ export function SignupPage() {
                   </>
                 )}
 
-                {/* Password */}
-                <div className="input-group">
-                  <label htmlFor="password" className="label">Password</label>
-                  <div className="relative">
-                    <input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="input pr-12"
-                      required
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute inset-y-0 right-0 pr-4 flex items-center text-slate-400 hover:text-slate-600"
-                    >
-                      {showPassword ? (
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21" />
-                        </svg>
-                      ) : (
-                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                        </svg>
-                      )}
-                    </button>
-                  </div>
-                  <p className="mt-1.5 text-xs text-slate-500">Must be at least 8 characters</p>
+                {/* Terms - Full Width */}
+                <div className="md:col-span-2">
+                  <p className="text-xs text-slate-500 text-center">
+                    By creating an account, you agree to our{' '}
+                    <Link to="/terms" className="text-brand-600 hover:underline">Terms of Service</Link>
+                    {' '}and{' '}
+                    <Link to="/privacy" className="text-brand-600 hover:underline">Privacy Policy</Link>
+                  </p>
                 </div>
 
-                {/* Confirm Password */}
-                <div className="input-group">
-                  <label htmlFor="confirmPassword" className="label">Confirm Password</label>
-                  <input
-                    id="confirmPassword"
-                    type="password"
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="input"
-                    required
-                  />
+                {/* Submit Button - Full Width */}
+                <div className="md:col-span-2">
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="btn-primary w-full py-3.5"
+                  >
+                    {loading ? (
+                      <>
+                        <ButtonSpinner />
+                        Creating account...
+                      </>
+                    ) : (
+                      <>
+                        Create account
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </>
+                    )}
+                  </button>
                 </div>
-
-                {/* Terms */}
-                <p className="text-xs text-slate-500 text-center">
-                  By creating an account, you agree to our{' '}
-                  <Link to="/terms" className="text-brand-600 hover:underline">Terms of Service</Link>
-                  {' '}and{' '}
-                  <Link to="/privacy" className="text-brand-600 hover:underline">Privacy Policy</Link>
-                </p>
-
-                {/* Submit Button */}
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="btn-primary w-full py-3.5"
-                >
-                  {loading ? (
-                    <>
-                      <ButtonSpinner />
-                      Creating account...
-                    </>
-                  ) : (
-                    <>
-                      Create account
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    </>
-                  )}
-                </button>
-              </>
+              </div>
             )}
 
             {/* Login Link */}

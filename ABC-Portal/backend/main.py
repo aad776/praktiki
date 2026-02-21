@@ -33,6 +33,7 @@ app = FastAPI(
 origins = [
     "http://localhost",
     "http://localhost:5173", # Vite Frontend
+    "http://localhost:5174", # ABC Portal Frontend
 ]
 
 app.add_middleware(

@@ -47,6 +47,11 @@ interface Internship {
   location: string;
   mode: string;
   duration_weeks: number;
+  description?: string;
+  stipend_amount?: number;
+  skills?: string;
+  deadline?: string;
+  start_date?: string;
 }
 
 interface Application {
@@ -413,6 +418,15 @@ export function EmployerDashboard() {
           </div>
           <button
             onClick={() => {
+              setShowPostModal(true);
+            }}
+            className="flex items-center gap-2 bg-teal-50 border border-teal-100 text-teal-700 px-8 py-4 rounded-xl font-bold text-xl hover:bg-teal-100 transition-all shadow-sm"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Post Job
+          </button>
+          <button
+            onClick={() => {
               logout();
               window.location.href = "/";
             }}
@@ -481,107 +495,108 @@ export function EmployerDashboard() {
           </div>
         )}
 
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1">
-            <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-xl sticky top-6">
-              <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                <span className="bg-teal-100 text-teal-700 p-1.5 rounded-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                </span>
-                Post a Job
-              </h2>
-              <div className="text-center p-8 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="text-slate-600 mb-6">Create a new internship listing to find the best talent.</p>
-                <button
-                  onClick={() => {
-                    setShowPostModal(true);
-                  }}
-                  className="inline-flex justify-center items-center rounded-xl px-6 py-3 text-sm font-bold shadow-lg transform transition-all w-full bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white shadow-teal-500/30 hover:shadow-teal-500/40 hover:-translate-y-0.5"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                  Post New Internship
-                </button>
+        <section className="space-y-6">
+          <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-sm min-h-[500px]">
+            <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <span className="bg-blue-100 text-blue-700 p-1.5 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+              </span>
+              My Internships
+            </h2>
+
+            {internships.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                <div className="bg-slate-100 p-4 rounded-full mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                </div>
+                <p>No internships posted yet.</p>
               </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-sm min-h-[500px]">
-              <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                <span className="bg-blue-100 text-blue-700 p-1.5 rounded-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-                </span>
-                My Internships
-              </h2>
-
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-xs mb-4">
-                  <thead>
-                    <tr className="text-slate-400 border-b border-slate-100">
-                      <th className="py-3 px-2 font-bold uppercase tracking-wider">Title</th>
-                      <th className="py-3 px-2 font-bold uppercase tracking-wider">Location</th>
-                      <th className="py-3 px-2 font-bold uppercase tracking-wider">Mode</th>
-                      <th className="py-3 px-2 font-bold uppercase tracking-wider">Duration</th>
-                      <th className="py-3 px-2 font-bold uppercase tracking-wider text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {internships.map((job) => (
-                      <tr key={job.id} className="group hover:bg-slate-50/50 transition-colors">
-                        <td className="py-4 px-2 font-bold text-slate-800">{job.title}</td>
-                        <td className="py-4 px-2 text-slate-600">{job.location}</td>
-                        <td className="py-4 px-2">
-                          <span className={`px-2 py-1 rounded text-[10px] font-bold ${job.mode === 'remote' ? 'bg-purple-100 text-purple-700' :
-                            job.mode === 'onsite' ? 'bg-orange-100 text-orange-700' :
+            ) : (
+              <div className="flex flex-col gap-6">
+                {internships.map((job) => (
+                  <div key={job.id} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all hover:border-blue-200 group">
+                    <div className="flex flex-col lg:flex-row gap-6">
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                          <div className="flex items-center gap-4">
+                            <h3 className="font-bold text-2xl text-slate-900 leading-tight" title={job.title}>{job.title}</h3>
+                            <span className={`px-4 py-1.5 rounded-lg text-sm font-bold uppercase tracking-wider shrink-0 ${
+                              job.mode === 'remote' ? 'bg-purple-100 text-purple-700' :
+                              job.mode === 'onsite' ? 'bg-orange-100 text-orange-700' :
                               'bg-blue-100 text-blue-700'
                             }`}>
-                            {job.mode}
-                          </span>
-                        </td>
-                        <td className="py-4 px-2 text-slate-600">{job.duration_weeks} weeks</td>
-                        <td className="py-4 px-2 flex justify-end gap-2">
-                          <Link
-                            to={`/employer/internship/${job.id}`}
-                            className="inline-flex items-center rounded-lg bg-slate-50 border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all shadow-sm"
-                            title="View Details"
-                          >
-                            View
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={() => loadApplications(job.id)}
-                            className="inline-flex items-center rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
-                          >
-                            {loadingId === job.id ? "..." : "Applications"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => loadRecommendations(job.id)}
-                            className="inline-flex items-center rounded-lg bg-teal-50 border border-teal-200 px-3 py-1.5 text-xs font-bold text-teal-700 hover:bg-teal-100 transition-all shadow-sm"
-                          >
-                            {loadingRecsId === job.id ? "..." : "AI Matches ✨"}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {internships.length === 0 && (
-                      <tr>
-                        <td colSpan={5} className="py-12 text-center text-slate-400">
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="bg-slate-100 p-3 rounded-full">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
-                            </div>
-                            <p>No internships posted yet.</p>
+                              {job.mode}
+                            </span>
                           </div>
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                          <div className="flex items-center gap-6 text-slate-600 text-base">
+                            <div className="flex items-center" title="Duration">
+                               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 shrink-0"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                               {job.duration_weeks} weeks
+                            </div>
+                            {job.stipend_amount !== undefined && (
+                              <div className="flex items-center font-medium text-slate-800" title="Stipend">
+                                <span className="mr-1 text-xl">₹</span>
+                                <span className="text-lg">{job.stipend_amount ? job.stipend_amount.toLocaleString() : 'Unpaid'}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-start text-slate-600 text-base mb-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3 mt-1 shrink-0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                          <span className="leading-relaxed">{job.location}</span>
+                        </div>
 
-            <div className="space-y-6 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
+                        {job.description && (
+                          <p className="text-base text-slate-600 mb-4 line-clamp-2 leading-relaxed">
+                            {job.description}
+                          </p>
+                        )}
+
+                        {job.skills && (
+                          <div className="flex flex-wrap gap-2.5">
+                            {job.skills.split(',').slice(0, 8).map((skill, i) => (
+                              <span key={i} className="px-3 py-1.5 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg border border-slate-200">
+                                {skill.trim()}
+                              </span>
+                            ))}
+                            {job.skills.split(',').length > 8 && (
+                              <span className="px-3 py-1.5 bg-slate-50 text-slate-500 text-sm font-medium rounded-lg border border-slate-100">
+                                +{job.skills.split(',').length - 8}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex lg:flex-col gap-3 justify-center min-w-[200px] border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6">
+                        <Link
+                          to={`/employer/internship/${job.id}`}
+                          className="inline-flex justify-center items-center rounded-xl bg-slate-50 border border-slate-200 px-6 py-3 text-base font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-all w-full"
+                        >
+                          View Details
+                        </Link>
+                        <button
+                          onClick={() => loadApplications(job.id)}
+                          className="inline-flex justify-center items-center rounded-xl bg-blue-50 border border-blue-200 px-6 py-3 text-base font-bold text-blue-700 hover:bg-blue-100 transition-all w-full"
+                        >
+                          {loadingId === job.id ? "..." : "Applications"}
+                        </button>
+                        <button
+                          onClick={() => loadRecommendations(job.id)}
+                          className="inline-flex justify-center items-center rounded-xl bg-teal-50 border border-teal-200 px-6 py-3 text-base font-bold text-teal-700 hover:bg-teal-100 transition-all w-full"
+                        >
+                          {loadingRecsId === job.id ? "..." : "AI Matches"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-6 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
               {/* Applications Display */}
               {internships.map((job) => {
                 const apps = applicationsByInternship[job.id] || [];
@@ -869,7 +884,6 @@ export function EmployerDashboard() {
                 );
               })}
             </div>
-          </div>
         </section>
       </div>
 

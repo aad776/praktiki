@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
-from backend.schemas.user import UserResponse
+from backend.schemas.user import UserResponse, StudentProfileResponse
 from backend.schemas.internship import ApplicationResponse
 
 class CreditRequestResponse(BaseModel):
@@ -13,7 +13,8 @@ class CreditRequestResponse(BaseModel):
     policy_type: str
     status: str
     created_at: datetime
-    student: Optional[UserResponse] = None
+    is_pushed_to_abc: bool = False
+    student: Optional[StudentProfileResponse] = None
     application: Optional[ApplicationResponse] = None
 
     class Config:

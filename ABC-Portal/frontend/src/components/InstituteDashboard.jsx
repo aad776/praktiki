@@ -497,7 +497,11 @@ const InstituteDashboard = () => {
         <>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white p-6 rounded-lg shadow border-l-4 border-slate-500">
+                <h3 className="text-gray-500 text-sm">Total Students</h3>
+                <p className="text-3xl font-bold text-slate-700">{stats.total_students || 0}</p>
+            </div>
             <div className="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
                 <h3 className="text-gray-500 text-sm">Total Approved Credits</h3>
                 <p className="text-3xl font-bold">{stats.total_credits}</p>
@@ -509,17 +513,21 @@ const InstituteDashboard = () => {
                 <h3 className="text-gray-500 text-sm">Active Internships</h3>
                 <p className="text-3xl font-bold text-indigo-600">{stats.active_internships}</p>
             </div>
+            <div className="bg-white p-6 rounded-lg shadow border-l-4 border-amber-500">
+                <h3 className="text-gray-500 text-sm">Pending Requests</h3>
+                <p className="text-3xl font-bold text-amber-600">{stats.pending_credit_requests || 0}</p>
+            </div>
             <div className="bg-white p-6 rounded-lg shadow border-l-4 border-green-500">
                 <h3 className="text-gray-500 text-sm">UGC Policy</h3>
-                <p className="text-3xl font-bold text-green-600">{stats.ugc_count}</p>
+                <p className="text-3xl font-bold text-green-600">{stats.ugc_count || 0}</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow border-l-4 border-purple-500">
                 <h3 className="text-gray-500 text-sm">AICTE Policy</h3>
-                <p className="text-3xl font-bold text-purple-600">{stats.aicte_count}</p>
+                <p className="text-3xl font-bold text-purple-600">{stats.aicte_count || 0}</p>
             </div>
             <div className="bg-white p-6 rounded-lg shadow border-l-4 border-yellow-500">
                 <h3 className="text-gray-500 text-sm">Exceptions</h3>
-                <p className="text-3xl font-bold text-yellow-600">{stats.exceptions}</p>
+                <p className="text-3xl font-bold text-yellow-600">{stats.exceptions || 0}</p>
             </div>
             </div>
 
