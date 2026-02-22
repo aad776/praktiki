@@ -35,6 +35,10 @@ log_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
+log_step() {
+    echo -e "\n${GREEN}===> $1${NC}\n"
+}
+
 #-------------------------------------------------------------------------------
 # Step 1: System Update & Dependencies
 #-------------------------------------------------------------------------------
@@ -224,29 +228,163 @@ log_info "Setting correct permissions..."
 chown -R $APP_USER:$APP_USER $APP_DIR
 
 #-------------------------------------------------------------------------------
-# Step 10: Start Services
+# Step 10: Start AI Matching Service
 #-------------------------------------------------------------------------------
-log_info "Starting services..."
+log_info "Starting AI Matching service..."
 
 systemctl daemon-reload
 systemctl enable ${SERVICE_NAME}
 systemctl start ${SERVICE_NAME}
+
+#===============================================================================
+# RESUME PARSER SERVICE (port 8002)
+#===============================================================================
+RESUME_DIR="/home/ubuntu/ai_matching/resume_parser"
+RESUME_VENV="$RESUME_DIR/venv"
+RESUME_SERVICE="praktiki-resume-parser"
+RESUME_PORT=8002
+
+if [ -d "$RESUME_DIR" ]; then
+    log_step "Setting up Resume Parser Service on port $RESUME_PORT..."
+
+    #---------------------------------------------------------------------------
+    # Resume Parser: Create Virtual Environment
+    #---------------------------------------------------------------------------
+    log_info "Creating resume parser virtual environment..."
+    cd "$RESUME_DIR"
+    python3 -m venv "$RESUME_VENV"
+    source "$RESUME_VENV/bin/activate"
+    pip install --upgrade pip
+
+    log_info "Installing resume parser dependencies..."
+    pip install -r requirements.txt
+    pip install gunicorn
+
+    # Download spaCy model
+    log_info "Downloading spaCy model..."
+    python3 -m spacy download en_core_web_sm || true
+
+    deactivate
+
+    #---------------------------------------------------------------------------
+    # Resume Parser: Environment Configuration
+    #---------------------------------------------------------------------------
+    if [ ! -f "$RESUME_DIR/.env" ]; then
+        log_warn "Resume parser .env not found! Creating default..."
+        cat > "$RESUME_DIR/.env" << 'EOF'
+DEBUG=false
+ENVIRONMENT=production
+EOF
+    fi
+
+    #---------------------------------------------------------------------------
+    # Resume Parser: Create Systemd Service
+    #---------------------------------------------------------------------------
+    log_info "Creating systemd service for $RESUME_SERVICE..."
+
+    cat > /etc/systemd/system/${RESUME_SERVICE}.service << EOF
+[Unit]
+Description=Praktiki Resume Parser Service
+After=network.target
+
+[Service]
+Type=simple
+User=$APP_USER
+Group=$APP_USER
+WorkingDirectory=$RESUME_DIR
+Environment="PATH=$RESUME_VENV/bin"
+EnvironmentFile=-$RESUME_DIR/.env
+ExecStart=$RESUME_VENV/bin/gunicorn main:app \\
+    --workers 2 \\
+    --worker-class uvicorn.workers.UvicornWorker \\
+    --bind 0.0.0.0:$RESUME_PORT \\
+    --timeout 120 \\
+    --access-logfile /var/log/${RESUME_SERVICE}/access.log \\
+    --error-logfile /var/log/${RESUME_SERVICE}/error.log \\
+    --capture-output \\
+    --enable-stdio-inheritance
+Restart=always
+RestartSec=10
+
+MemoryMax=2G
+MemoryHigh=1.5G
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+    #---------------------------------------------------------------------------
+    # Resume Parser: Log Directory
+    #---------------------------------------------------------------------------
+    mkdir -p /var/log/${RESUME_SERVICE}
+    chown -R $APP_USER:$APP_USER /var/log/${RESUME_SERVICE}
+
+    #---------------------------------------------------------------------------
+    # Resume Parser: Nginx config (add upstream block for port 8002)
+    #---------------------------------------------------------------------------
+    log_info "Adding resume parser to Nginx config..."
+
+    cat > /etc/nginx/sites-available/${RESUME_SERVICE} << EOF
+server {
+    listen 8002;
+    server_name _;
+
+    location / {
+        proxy_pass http://127.0.0.1:$RESUME_PORT;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade \$http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host \$host;
+        proxy_set_header X-Real-IP \$remote_addr;
+        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto \$scheme;
+        proxy_cache_bypass \$http_upgrade;
+
+        # Increased timeouts for ML inference
+        proxy_read_timeout 120s;
+        proxy_connect_timeout 60s;
+        proxy_send_timeout 120s;
+    }
+}
+EOF
+
+    ln -sf /etc/nginx/sites-available/${RESUME_SERVICE} /etc/nginx/sites-enabled/
+
+    #---------------------------------------------------------------------------
+    # Resume Parser: Set Permissions & Start
+    #---------------------------------------------------------------------------
+    chown -R $APP_USER:$APP_USER $RESUME_DIR
+
+    systemctl daemon-reload
+    systemctl enable ${RESUME_SERVICE}
+    systemctl start ${RESUME_SERVICE}
+
+    log_info "✅ Resume Parser service configured on port $RESUME_PORT!"
+else
+    log_warn "Resume parser directory not found at $RESUME_DIR, skipping..."
+fi
+
+#-------------------------------------------------------------------------------
+# Restart Nginx (for both services)
+#-------------------------------------------------------------------------------
+nginx -t
 systemctl restart nginx
 
 #-------------------------------------------------------------------------------
-# Step 11: Configure Firewall
+# Configure Firewall
 #-------------------------------------------------------------------------------
 log_info "Configuring firewall..."
 ufw allow 22/tcp    # SSH
 ufw allow 80/tcp    # HTTP
 ufw allow 443/tcp   # HTTPS
-ufw allow $APP_PORT/tcp  # Direct API access (optional)
+ufw allow $APP_PORT/tcp   # AI Matching direct access
+ufw allow $RESUME_PORT/tcp  # Resume Parser direct access
 ufw --force enable
 
 #-------------------------------------------------------------------------------
-# Step 12: Verify Deployment
+# Verify Deployment
 #-------------------------------------------------------------------------------
-log_info "Verifying deployment (AI service may take longer to start)..."
+log_info "Verifying deployment (services may take longer to start)..."
 sleep 10  # Extra time for ML model loading
 
 if systemctl is-active --quiet ${SERVICE_NAME}; then
@@ -254,26 +392,49 @@ if systemctl is-active --quiet ${SERVICE_NAME}; then
 else
     log_error "❌ ${SERVICE_NAME} service failed to start!"
     log_error "Check logs: journalctl -u ${SERVICE_NAME} -n 50"
-    exit 1
 fi
 
-# Test API endpoint
+# Test AI Matching API
 if curl -s http://localhost:$APP_PORT/ > /dev/null; then
     log_info "✅ AI Matching API is responding on port $APP_PORT!"
 else
-    log_warn "⚠️ API not responding yet. ML models may still be loading..."
-    log_warn "Check logs: journalctl -u ${SERVICE_NAME} -f"
+    log_warn "⚠️ AI Matching not responding yet. ML models may still be loading..."
+fi
+
+# Test Resume Parser API
+if [ -d "$RESUME_DIR" ]; then
+    if systemctl is-active --quiet ${RESUME_SERVICE}; then
+        log_info "✅ ${RESUME_SERVICE} service is running!"
+    else
+        log_error "❌ ${RESUME_SERVICE} service failed to start!"
+        log_error "Check logs: journalctl -u ${RESUME_SERVICE} -n 50"
+    fi
+
+    if curl -s http://localhost:$RESUME_PORT/ > /dev/null; then
+        log_info "✅ Resume Parser API is responding on port $RESUME_PORT!"
+    else
+        log_warn "⚠️ Resume Parser not responding yet..."
+    fi
 fi
 
 echo ""
 echo "=========================================="
-echo "  AI Matching Setup Complete!"
+echo "  AI Matching + Resume Parser Setup Complete!"
 echo "=========================================="
 echo ""
-echo "Service Status: systemctl status ${SERVICE_NAME}"
-echo "View Logs: journalctl -u ${SERVICE_NAME} -f"
-echo "API URL: http://$(curl -s ifconfig.me):$APP_PORT"
+echo "Service Status:"
+echo "  systemctl status ${SERVICE_NAME}"
+echo "  systemctl status ${RESUME_SERVICE}"
 echo ""
-echo "⚠️  NOTE: This service requires more RAM for ML models."
+echo "View Logs:"
+echo "  journalctl -u ${SERVICE_NAME} -f"
+echo "  journalctl -u ${RESUME_SERVICE} -f"
+echo ""
+echo "API URLs:"
+echo "  AI Matching:    http://$(curl -s ifconfig.me):$APP_PORT"
+echo "  Resume Parser:  http://$(curl -s ifconfig.me):$RESUME_PORT"
+echo ""
+echo "⚠️  NOTE: This instance requires more RAM for ML models."
 echo "⚠️  Recommended instance: t2.medium or larger (4GB+ RAM)"
 echo ""
+

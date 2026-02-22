@@ -1,0 +1,32 @@
+{
+  "filename": "sample_resume.pdf",
+  "name": "Jane Smith",
+  "email": "jane.smith@example.com",
+  "phone": "+1-555-987-6543",
+  "skills": [
+    "Python",
+    "JavaScript",
+    "React",
+    "Node.js",
+    "PostgreSQL",
+    "Docker",
+    "AWS",
+    "Git",
+    "FastAPI",
+    "REST API"
+  ],
+  "experience": [
+    {
+      "company": "Tech Solutions Inc.",
+      "position": "Senior Full Stack Developer",
+      "duration": "2021-Present",
+      "description": "Led development of microservices architecture"
+    },
+    {
+      "company": "Startup Co.",
+      "position": "Software Engineer",
+      "duration": "2019-2021",
+      "description": "Built scalable web applications"
+    }
+  ]
+}

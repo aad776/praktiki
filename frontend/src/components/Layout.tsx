@@ -35,7 +35,7 @@ const roleNavConfig: Record<string, RoleConfig> = {
     navItems: [
       { path: '/student', label: 'Dashboard', icon: 'home' },
       { path: '/student/applications', label: 'My Applications', icon: 'fileText' },
-      { path: 'http://localhost:5174', label: 'ABC Status', icon: 'star', external: true },
+      { path: import.meta.env.VITE_ABC_PORTAL_URL || 'http://44.197.97.159:3000', label: 'ABC Status', icon: 'star', external: true },
       { path: '/student/setup', label: 'Profile', icon: 'user' },
     ],
   },
@@ -56,7 +56,7 @@ const roleNavConfig: Record<string, RoleConfig> = {
     navItems: [
       { path: '/institute', label: 'Dashboard', icon: 'home' },
       { path: '/institute/students', label: 'Students', icon: 'users' },
-      { path: 'http://localhost:5174', label: 'ABC Status', icon: 'star', external: true },
+      { path: import.meta.env.VITE_ABC_PORTAL_URL || 'http://44.197.97.159:3000', label: 'ABC Status', icon: 'star', external: true },
     ],
   },
 };
@@ -134,7 +134,7 @@ export function Layout({ children }: LayoutProps) {
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem('praktiki_token');
-      const res = await axios.get('http://localhost:8000/notifications/', {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://44.205.136.199:8000'}/notifications/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(res.data);
@@ -146,7 +146,7 @@ export function Layout({ children }: LayoutProps) {
   const markAllAsRead = async () => {
     try {
       const token = localStorage.getItem('praktiki_token');
-      await axios.post('http://localhost:8000/notifications/mark-all-read', {}, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://44.205.136.199:8000'}/notifications/mark-all-read`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(notifications.map(n => ({ ...n, is_read: 1 })));
@@ -169,16 +169,17 @@ export function Layout({ children }: LayoutProps) {
   // Get auth token for SSO
   const getSSOUrl = (basePath: string) => {
     console.log('Generating SSO URL for:', basePath);
-    if (!basePath.includes('localhost:5174') && !basePath.includes('127.0.0.1:5174')) {
+    const abcPortalUrl = import.meta.env.VITE_ABC_PORTAL_URL || 'http://44.197.97.159:3000';
+    if (!basePath.includes(abcPortalUrl) && !basePath.includes('localhost:5174') && !basePath.includes('127.0.0.1:5174')) {
       console.log('Not an ABC Portal URL, returning as is');
       return basePath;
     }
-    
+
     const token = localStorage.getItem('praktiki_token');
     console.log('Praktiki token found:', !!token);
-    
+
     if (!token) return basePath;
-    
+
     try {
       const url = new URL(basePath);
       url.searchParams.set('sso_token', token);
@@ -230,8 +231,8 @@ export function Layout({ children }: LayoutProps) {
                         rel="noopener noreferrer"
                         className={`
                           flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all
-                          ${item.label === 'ABC Status' 
-                            ? 'bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100' 
+                          ${item.label === 'ABC Status'
+                            ? 'bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100'
                             : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
                         `}
                       >
@@ -268,7 +269,7 @@ export function Layout({ children }: LayoutProps) {
               <div className="flex items-center gap-3">
                 {/* Notifications */}
                 <div className="relative" ref={notifRef}>
-                  <button 
+                  <button
                     onClick={() => setNotifOpen(!notifOpen)}
                     className={`relative p-2 rounded-xl transition-colors ${notifOpen ? 'bg-slate-100 text-slate-900' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
                   >
@@ -288,7 +289,7 @@ export function Layout({ children }: LayoutProps) {
                       <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                         <h3 className="font-bold text-slate-900">Notifications</h3>
                         {unreadCount > 0 && (
-                          <button 
+                          <button
                             onClick={markAllAsRead}
                             className="text-xs font-semibold text-brand-600 hover:text-brand-700 transition-colors"
                           >
@@ -300,8 +301,8 @@ export function Layout({ children }: LayoutProps) {
                         {notifications.length > 0 ? (
                           <div className="divide-y divide-slate-50">
                             {notifications.map((notif) => (
-                              <div 
-                                key={notif.id} 
+                              <div
+                                key={notif.id}
                                 className={`p-4 transition-colors ${notif.is_read === 0 ? 'bg-brand-50/30' : 'hover:bg-slate-50'}`}
                               >
                                 <p className={`text-sm ${notif.is_read === 0 ? 'text-slate-900 font-medium' : 'text-slate-600'}`}>
@@ -429,8 +430,8 @@ export function Layout({ children }: LayoutProps) {
                       onClick={() => setMobileNavOpen(false)}
                       className={`
                         flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors
-                        ${item.label === 'ABC Status' 
-                          ? 'bg-blue-50 text-blue-700 border border-blue-100' 
+                        ${item.label === 'ABC Status'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-100'
                           : 'text-slate-600 hover:bg-slate-50'}
                       `}
                     >
