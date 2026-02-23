@@ -153,46 +153,26 @@ class SkillsExtractor:
     
     def get_skill_categories(self, skills: List[str]) -> dict:
         """
-        Categorize extracted skills (optional advanced feature)
+        Categorize extracted skills using the SkillGraph hierarchy.
         
         Args:
             skills: List of extracted skills
             
         Returns:
-            Dictionary of skill categories
+            Dictionary mapping domain/category names to skill lists.
         """
-        categories = {
-            "languages": [],
-            "frontend": [],
-            "backend": [],
-            "databases": [],
-            "devops": [],
-            "other": []
-        }
-        
-        # Simple categorization logic (can be enhanced)
-        language_keywords = {"python", "javascript", "java", "c++", "c#", "go", "typescript", "ruby", "php"}
-        frontend_keywords = {"react", "angular", "vue", "html", "css", "bootstrap", "tailwind"}
-        backend_keywords = {"node.js", "django", "flask", "fastapi", "spring", "express"}
-        database_keywords = {"postgresql", "mysql", "mongodb", "redis", "sqlite", "oracle"}
-        devops_keywords = {"docker", "kubernetes", "aws", "azure", "gcp", "jenkins", "terraform"}
-        
+        from app.skills.skill_graph import get_skill_graph
+        graph = get_skill_graph()
+
+        categories: dict[str, list[str]] = {}
+
         for skill in skills:
-            skill_lower = skill.lower()
-            
-            if any(kw in skill_lower for kw in language_keywords):
-                categories["languages"].append(skill)
-            elif any(kw in skill_lower for kw in frontend_keywords):
-                categories["frontend"].append(skill)
-            elif any(kw in skill_lower for kw in backend_keywords):
-                categories["backend"].append(skill)
-            elif any(kw in skill_lower for kw in database_keywords):
-                categories["databases"].append(skill)
-            elif any(kw in skill_lower for kw in devops_keywords):
-                categories["devops"].append(skill)
+            domain = graph.get_domain(skill)
+            if domain:
+                categories.setdefault(domain, []).append(skill)
             else:
-                categories["other"].append(skill)
-        
+                categories.setdefault("Other", []).append(skill)
+
         return categories
 
 
