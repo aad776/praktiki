@@ -131,19 +131,20 @@ class SectionDetector:
 
     @staticmethod
     def _looks_like_heading(line: str, lines: List[str], idx: int) -> bool:
-        """Heuristic: short, mostly alpha, title/upper-cased, surrounded by
-        longer lines or blank lines."""
+        """Heuristic: very strict -- only ALL-CAPS lines of 1-3 words that
+        are surrounded by blank lines.  Title-cased lines are too common
+        inside experience/education blocks to be reliable headings."""
         words = line.split()
-        if len(words) > 5 or len(words) == 0:
+        if len(words) > 3 or len(words) == 0:
+            return False
+        if not line.isupper():
             return False
         alpha_ratio = sum(c.isalpha() for c in line) / max(len(line), 1)
-        if alpha_ratio < 0.7:
-            return False
-        if not (line.istitle() or line.isupper()):
+        if alpha_ratio < 0.8:
             return False
         prev_blank = idx == 0 or lines[idx - 1].strip() == ""
         next_blank = idx >= len(lines) - 1 or lines[idx + 1].strip() == ""
-        return prev_blank or next_blank
+        return prev_blank and next_blank
 
     @staticmethod
     def _build_sections(
