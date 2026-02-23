@@ -1,187 +1,159 @@
 """
 Experience Extraction Module
-Extracts work experience entries using rule-based pattern matching
+
+Two-stage approach:
+  1. Primary: RelationExtractor groups Title <-> Company <-> Date entities
+     using proximity-graph clustering (Phase 4).
+  2. Fallback: legacy regex-based extraction for resumes where the relation
+     extractor finds no groups.
 """
+
 import re
 import logging
-from typing import List
+from typing import List, Optional
+
 from schemas import Experience
-from config import YEAR_RANGE_PATTERN, MONTH_YEAR_PATTERN
+from config import YEAR_RANGE_PATTERN
+from relation_extractor import RelationExtractor, EntityGroup
 
 logger = logging.getLogger(__name__)
 
 
 class ExperienceExtractor:
-    """Extracts work experience from resume text"""
-    
-    def __init__(self):
-        """Initialize experience extractor"""
-        logger.info("ExperienceExtractor initialized")
-    
+    """Extracts work experience entries via relation extraction + regex fallback."""
+
+    def __init__(self, nlp=None):
+        self._relation = RelationExtractor(nlp=nlp)
+        logger.info("ExperienceExtractor initialized (relation-extraction mode)")
+
     def extract_experiences(self, text: str) -> List[Experience]:
-        """
-        Extract work experience entries from text
-        
-        Strategy:
-        1. Find date ranges (year ranges like 2020-2022 or month-year ranges)
-        2. Extract surrounding context as experience blocks
-        3. Parse company names and positions from context
-        
-        Args:
-            text: Resume text
-            
-        Returns:
-            List of Experience objects
-        """
         try:
-            experiences = []
-            
-            # Find all year ranges
-            year_matches = list(YEAR_RANGE_PATTERN.finditer(text))
-            
-            if not year_matches:
-                logger.warning("No year ranges found in text")
-                return []
-            
-            logger.info(f"Found {len(year_matches)} potential experience entries")
-            
-            for i, match in enumerate(year_matches):
-                try:
-                    duration = match.group(0).strip()
-                    
-                    # Extract context around the date (before the date)
-                    start_pos = max(0, match.start() - 200)
-                    end_pos = min(len(text), match.end() + 200)
-                    context = text[start_pos:end_pos]
-                    
-                    # Split context into lines
-                    lines = context.split('\n')
-                    
-                    # Find the line with the date
-                    date_line_idx = None
-                    for idx, line in enumerate(lines):
-                        if duration in line:
-                            date_line_idx = idx
-                            break
-                    
-                    if date_line_idx is None:
-                        continue
-                    
-                    # Extract company and position from surrounding lines
-                    company = None
-                    position = None
-                    description_lines = []
-                    
-                    # Look backwards from date line for job title and company
-                    for idx in range(max(0, date_line_idx - 3), date_line_idx):
-                        line = lines[idx].strip()
-                        if line and len(line) > 3 and len(line) < 100:
-                            # First non-empty line before date is usually position
-                            if position is None:
-                                position = line
-                            # Second line might be company
-                            elif company is None:
-                                company = line
-                    
-                    # Look forward from date line for description
-                    for idx in range(date_line_idx + 1, min(len(lines), date_line_idx + 5)):
-                        line = lines[idx].strip()
-                        if line and not YEAR_RANGE_PATTERN.search(line):
-                            description_lines.append(line)
-                    
-                    description = ' '.join(description_lines) if description_lines else None
-                    
-                    # Create Experience object
-                    exp = Experience(
-                        company=company,
-                        position=position,
-                        duration=duration,
-                        description=description[:200] if description else None  # Limit description length
-                    )
-                    
-                    experiences.append(exp)
-                    logger.debug(f"Extracted experience: {position} at {company} ({duration})")
-                
-                except Exception as e:
-                    logger.error(f"Error processing experience match {i}: {e}")
-                    continue
-            
-            # Remove duplicates based on duration
-            unique_experiences = self._deduplicate_experiences(experiences)
-            
-            logger.info(f"Extracted {len(unique_experiences)} unique experience entries")
-            return unique_experiences
-        
+            groups = self._relation.extract_experience_groups(text)
+
+            if groups:
+                experiences = [self._group_to_experience(g, text) for g in groups]
+                experiences = [e for e in experiences if e.duration or e.position]
+            else:
+                logger.info("Relation extractor found 0 groups, falling back to regex")
+                experiences = self._legacy_extract(text)
+
+            unique = self._deduplicate(experiences)
+            logger.info(f"Extracted {len(unique)} experience entries")
+            return unique
         except Exception as e:
             logger.error(f"Error extracting experiences: {e}")
             return []
-    
-    def _deduplicate_experiences(self, experiences: List[Experience]) -> List[Experience]:
-        """
-        Remove duplicate experience entries
-        
-        Args:
-            experiences: List of Experience objects
-            
-        Returns:
-            Deduplicated list
-        """
-        seen_durations = set()
-        unique = []
-        
+
+    @staticmethod
+    def _group_to_experience(group: EntityGroup, full_text: str) -> Experience:
+        position = group.get("JOB_TITLE")
+        company = group.get("ORG")
+        duration = group.get("DATE")
+
+        lines = full_text.split("\n")
+        desc_lines: list[str] = []
+
+        if group.entities:
+            last_line = max(e.line_num for e in group.entities)
+            for ln in range(last_line + 1, min(last_line + 6, len(lines))):
+                line = lines[ln].strip()
+                if not line:
+                    continue
+                if YEAR_RANGE_PATTERN.search(line):
+                    break
+                desc_lines.append(line)
+
+        description = " ".join(desc_lines)[:300] if desc_lines else None
+
+        return Experience(
+            company=company,
+            position=position,
+            duration=duration,
+            description=description,
+        )
+
+    def _legacy_extract(self, text: str) -> List[Experience]:
+        """Original regex-based extraction as fallback."""
+        experiences: list[Experience] = []
+        year_matches = list(YEAR_RANGE_PATTERN.finditer(text))
+        if not year_matches:
+            return []
+
+        for match in year_matches:
+            try:
+                duration = match.group(0).strip()
+                start_pos = max(0, match.start() - 200)
+                end_pos = min(len(text), match.end() + 200)
+                context = text[start_pos:end_pos]
+
+                lines = context.split("\n")
+                date_line_idx: Optional[int] = None
+                for idx, line in enumerate(lines):
+                    if duration in line:
+                        date_line_idx = idx
+                        break
+                if date_line_idx is None:
+                    continue
+
+                company = position = None
+                for idx in range(max(0, date_line_idx - 3), date_line_idx):
+                    line = lines[idx].strip()
+                    if line and 3 < len(line) < 100:
+                        if position is None:
+                            position = line
+                        elif company is None:
+                            company = line
+
+                desc_lines: list[str] = []
+                for idx in range(
+                    date_line_idx + 1, min(len(lines), date_line_idx + 5)
+                ):
+                    line = lines[idx].strip()
+                    if line and not YEAR_RANGE_PATTERN.search(line):
+                        desc_lines.append(line)
+
+                description = " ".join(desc_lines) if desc_lines else None
+                experiences.append(
+                    Experience(
+                        company=company,
+                        position=position,
+                        duration=duration,
+                        description=description[:200] if description else None,
+                    )
+                )
+            except Exception:
+                continue
+        return experiences
+
+    @staticmethod
+    def _deduplicate(experiences: List[Experience]) -> List[Experience]:
+        seen: set[str] = set()
+        unique: list[Experience] = []
         for exp in experiences:
-            if exp.duration and exp.duration not in seen_durations:
-                seen_durations.add(exp.duration)
+            key = (exp.duration or "") + (exp.position or "")
+            if key and key not in seen:
+                seen.add(key)
                 unique.append(exp)
-        
         return unique
-    
-    def extract_total_years_experience(self, experiences: List[Experience]) -> float:
-        """
-        Calculate total years of experience from experience entries
-        
-        Args:
-            experiences: List of Experience objects
-            
-        Returns:
-            Total years of experience
-        """
-        total_years = 0.0
-        
+
+    @staticmethod
+    def extract_total_years_experience(experiences: List[Experience]) -> float:
+        total = 0.0
         for exp in experiences:
             if not exp.duration:
                 continue
-            
             try:
-                # Extract years from duration
-                years = re.findall(r'(19|20)\d{2}', exp.duration)
-                
+                years = re.findall(r"((?:19|20)\d{2})", exp.duration)
                 if len(years) >= 2:
-                    start_year = int(years[0])
-                    end_year = int(years[1])
-                    total_years += (end_year - start_year)
-                elif len(years) == 1 and any(word in exp.duration.lower() for word in ['present', 'current', 'now']):
-                    # If "Present", calculate from start year to 2026
-                    start_year = int(years[0])
-                    total_years += (2026 - start_year)
-            
-            except Exception as e:
-                logger.error(f"Error calculating years for duration {exp.duration}: {e}")
+                    total += int(years[1]) - int(years[0])
+                elif len(years) == 1 and re.search(
+                    r"present|current|now", exp.duration, re.IGNORECASE
+                ):
+                    total += 2026 - int(years[0])
+            except Exception:
                 continue
-        
-        return total_years
+        return total
 
 
-# Module-level function for direct usage
 def extract_experience(text: str) -> List[Experience]:
-    """
-    Convenience function to extract experiences
-    
-    Args:
-        text: Resume text
-        
-    Returns:
-        List of Experience objects
-    """
-    extractor = ExperienceExtractor()
-    return extractor.extract_experiences(text)
+    return ExperienceExtractor().extract_experiences(text)
