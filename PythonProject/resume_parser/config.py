@@ -89,31 +89,160 @@ SKILL_LIST: List[str] = [
     "Excel", "VBA", "Photoshop", "Figma", "Sketch"
 ]
 
-# Skill normalization mapping (variations to canonical form)
-SKILL_NORMALIZATION: Dict[str, str] = {
-    "react.js": "React",
-    "reactjs": "React",
-    "vue.js": "Vue",
-    "vuejs": "Vue",
-    "node": "Node.js",
-    "nodejs": "Node.js",
-    "express": "Express.js",
-    "postgresql": "PostgreSQL",
-    "postgres": "PostgreSQL",
-    "mongodb": "MongoDB",
-    "mongo": "MongoDB",
-    "k8s": "Kubernetes",
-    "aws ec2": "AWS",
-    "amazon web services": "AWS",
-    "google cloud platform": "GCP",
-    "ml": "Machine Learning",
-    "ai": "Machine Learning",
-    "css3": "CSS",
-    "html5": "HTML",
-    "es6": "JavaScript",
-    "js": "JavaScript",
-    "ts": "TypeScript",
-    "py": "Python",
+# Industry-Standard Skill Aliases mapping canonical skills to all variants, acronyms, and misspellings
+SKILL_ALIASES: Dict[str, List[str]] = {
+    "React": ["reactjs", "react.js", "react js"],
+    "Vue": ["vuejs", "vue.js", "vue js"],
+    "Node.js": ["node", "nodejs", "node.js", "node js", "node-js"],
+    "Express.js": ["express", "expressjs", "express.js", "express js"],
+    "PostgreSQL": ["postgres", "postgre sql", "postgresql", "psql"],
+    "MongoDB": ["mongo", "mongodb"],
+    "Kubernetes": ["k8s", "kube", "kubernetes", "microk8s"],
+    "AWS": ["aws", "amazon web services", "aws ec2"],
+    "GCP": ["gcp", "google cloud platform", "google cloud"],
+    "Machine Learning": ["ml", "machine learning"],
+    "Artificial Intelligence": ["ai", "artificial intelligence"],
+    "CSS": ["css", "css3"],
+    "HTML": ["html", "html5"],
+    "JavaScript": ["js", "es6", "javascript", "java script"],
+    "TypeScript": ["ts", "typescript", "type script"],
+    "Python": ["py", "python3", "python"],
+    "C++": ["cpp", "c plus plus", "c/c++"],
+    "C#": ["csharp", "c sharp"],
+    "Go": ["golang"],
+    "Ruby": ["ruby on rails", "ror"], # Optional context mapping
+    "React Native": ["react-native", "react native"],
+    "Next.js": ["nextjs", "next js", "next.js"],
+    "Nuxt.js": ["nuxtjs", "nuxt js", "nuxt.js"],
+    "Tailwind CSS": ["tailwind", "tailwindcss", "tailwind css"]
+}
+
+# Hierarchical Skill Taxonomy for inference (Ontology)
+SKILL_ONTOLOGY: Dict[str, Dict[str, List[str]]] = {
+    "React": {
+        "language": ["JavaScript", "TypeScript"],
+        "domain": ["Web Development", "Frontend"],
+        "parent": ["Frontend Framework"],
+        "equivalents": ["Angular", "Vue"]
+    },
+    "Angular": {
+        "language": ["TypeScript", "JavaScript"],
+        "domain": ["Web Development", "Frontend"],
+        "parent": ["Frontend Framework"],
+        "equivalents": ["React", "Vue"]
+    },
+    "Vue": {
+        "language": ["JavaScript", "TypeScript"],
+        "domain": ["Web Development", "Frontend"],
+        "parent": ["Frontend Framework"],
+        "equivalents": ["React", "Angular"]
+    },
+    "Django": {
+        "language": ["Python"],
+        "domain": ["Web Development", "Backend"],
+        "parent": ["Backend Framework"],
+        "equivalents": ["Flask", "FastAPI"]
+    },
+    "FastAPI": {
+        "language": ["Python"],
+        "domain": ["Web Development", "Backend", "API Development"],
+        "parent": ["Backend Framework"],
+        "equivalents": ["Django", "Flask"]
+    },
+    "Flask": {
+        "language": ["Python"],
+        "domain": ["Web Development", "Backend"],
+        "parent": ["Backend Framework"],
+        "equivalents": ["Django", "FastAPI"]
+    },
+    "Node.js": {
+        "language": ["JavaScript"],
+        "domain": ["Web Development", "Backend"],
+        "parent": ["Runtime Environment"],
+        "equivalents": ["Deno", "Bun"]
+    },
+    "Express.js": {
+        "language": ["JavaScript"],
+        "domain": ["Web Development", "Backend", "API Development"],
+        "parent": ["Backend Framework"],
+        "equivalents": ["Koa", "NestJS"]
+    },
+    "Spring Boot": {
+        "language": ["Java"],
+        "domain": ["Web Development", "Backend"],
+        "parent": ["Backend Framework"],
+        "equivalents": ["Micronaut", "Quarkus"]
+    },
+    "Ruby on Rails": {
+        "language": ["Ruby"],
+        "domain": ["Web Development", "Backend"],
+        "parent": ["Backend Framework"],
+        "equivalents": ["Django", "Laravel"]
+    },
+    "Laravel": {
+        "language": ["PHP"],
+        "domain": ["Web Development", "Backend"],
+        "parent": ["Backend Framework"],
+        "equivalents": ["Symfony", "Ruby on Rails"]
+    },
+    "Docker": {
+        "domain": ["DevOps", "Containerization"],
+        "parent": ["Containerization Tool"],
+        "equivalents": ["Podman"]
+    },
+    "Kubernetes": {
+        "domain": ["DevOps", "Container Orchestration"],
+        "parent": ["Container Orchestration Tool"],
+        "equivalents": ["Docker Swarm", "Nomad"]
+    },
+    "TensorFlow": {
+        "language": ["Python"],
+        "domain": ["Data Science", "Machine Learning", "Deep Learning"],
+        "parent": ["Machine Learning Framework"],
+        "equivalents": ["PyTorch", "Keras"]
+    },
+    "PyTorch": {
+        "language": ["Python"],
+        "domain": ["Data Science", "Machine Learning", "Deep Learning"],
+        "parent": ["Machine Learning Framework"],
+        "equivalents": ["TensorFlow", "Keras"]
+    },
+    "AWS": {
+        "domain": ["Cloud Computing"],
+        "parent": ["Cloud Provider"],
+        "equivalents": ["GCP", "Azure"]
+    },
+    "GCP": {
+        "domain": ["Cloud Computing"],
+        "parent": ["Cloud Provider"],
+        "equivalents": ["AWS", "Azure"]
+    },
+    "Azure": {
+        "domain": ["Cloud Computing"],
+        "parent": ["Cloud Provider"],
+        "equivalents": ["AWS", "GCP"]
+    },
+    "Pandas": {
+        "language": ["Python"],
+        "domain": ["Data Science", "Data Analysis"],
+        "parent": ["Data Analysis Library"],
+        "equivalents": ["Polars", "Dask"]
+    },
+    "PostgreSQL": {
+        "domain": ["Database Management", "Backend"],
+        "parent": ["Relational Database"],
+        "equivalents": ["MySQL", "MariaDB", "Oracle"]
+    },
+    "MySQL": {
+        "domain": ["Database Management", "Backend"],
+        "parent": ["Relational Database"],
+        "equivalents": ["PostgreSQL", "MariaDB", "Oracle"]
+    },
+    "MongoDB": {
+        "domain": ["Database Management", "Backend"],
+        "parent": ["NoSQL Database"],
+        "equivalents": ["DynamoDB", "CouchDB", "Cassandra"]
+    },
 }
 
 # FAISS Configuration

@@ -5,11 +5,14 @@ Hybrid approach: Exact matching + Semantic similarity using FAISS
 import logging
 from typing import List, Set
 import numpy as np
-from sentence_transformers import SentenceTransformer
 import faiss
+import difflib
+import re
+from sentence_transformers import SentenceTransformer
 from config import (
     SKILL_LIST, 
-    SKILL_NORMALIZATION, 
+    SKILL_ALIASES, 
+    SKILL_ONTOLOGY,
     SENTENCE_TRANSFORMER_MODEL,
     FAISS_SIMILARITY_THRESHOLD,
     FAISS_INDEX_DIM
@@ -38,7 +41,13 @@ class SkillsExtractor:
             faiss.normalize_L2(self.skill_embeddings)
             self.index.add(np.array(self.skill_embeddings).astype('float32'))
             
-            logger.info(f"FAISS index built with {len(self.skill_list)} skills")
+            # Create industry standard alias mapping (alias -> canonical)
+            self.alias_to_canonical = {}
+            for canonical, aliases in SKILL_ALIASES.items():
+                for alias in aliases:
+                    self.alias_to_canonical[alias.lower()] = canonical
+                    
+            logger.info(f"FAISS index built with {len(self.skill_list)} skills and {len(self.alias_to_canonical)} aliases")
         
         except Exception as e:
             logger.error(f"Error initializing SkillsExtractor: {e}")
@@ -63,30 +72,63 @@ class SkillsExtractor:
         try:
             found_skills: Set[str] = set()
             
-            # Step 1: Exact matching (case-insensitive)
-            text_lower = text.lower()
+            # Step 1: Pre-process text (clean punctuation and multiple spaces)
+            # Remove punctuation except dots and pluses (which are common in skills like Node.js, C++)
+            clean_text = re.sub(r'[^\w\s.+/-]', ' ', text.lower())
+            clean_text = re.sub(r'\s+', ' ', clean_text)
             
+            # Extract common bi-grams and tri-grams to fuzzy match against
+            words = clean_text.split()
+            tokens = words.copy()
+            for i in range(len(words) - 1):
+                tokens.append(f"{words[i]} {words[i+1]}")
+            for i in range(len(words) - 2):
+                tokens.append(f"{words[i]} {words[i+1]} {words[i+2]}")
+                
+            # Deduplicate tokens to speed up mapping
+            tokens = list(set(tokens))
+            
+            # Step 2: Exact mapping (Case-insensitive & Alias resolution)
             for skill in self.skill_list:
                 skill_lower = skill.lower()
-                
-                # Check if skill appears as a whole word (with word boundaries)
-                import re
                 pattern = r'\b' + re.escape(skill_lower) + r'\b'
                 
-                if re.search(pattern, text_lower):
+                # Check for canonical match
+                if re.search(pattern, text.lower()):
                     found_skills.add(skill)
                     logger.debug(f"Exact match: {skill}")
-            
-            # Step 2: Check normalization mapping
-            for variant, canonical in SKILL_NORMALIZATION.items():
-                variant_lower = variant.lower()
-                pattern = r'\b' + re.escape(variant_lower) + r'\b'
-                
-                if re.search(pattern, text_lower):
+                    
+            # Check Industry Standard Aliases
+            for alias, canonical in self.alias_to_canonical.items():
+                pattern = r'\b' + re.escape(alias) + r'\b'
+                if re.search(pattern, text.lower()) or alias in clean_text:
                     found_skills.add(canonical)
-                    logger.debug(f"Normalized match: {variant} -> {canonical}")
+                    logger.debug(f"Alias match: {alias} -> {canonical}")
+                    
+            # Step 3: Fuzzy matching for simple typos directly against tokens
+            # Only do fuzzy matching if token length is substantial to avoid false positives
+            long_tokens = [t for t in tokens if len(t) > 4]
+            all_known_variants = [s.lower() for s in self.skill_list] + list(self.alias_to_canonical.keys())
             
-            # Step 3: Semantic matching (optional)
+            for token in long_tokens:
+                # Get close matches with 85% similarity (catches "Javscript", "Postgresq")
+                matches = difflib.get_close_matches(token, all_known_variants, n=1, cutoff=0.88)
+                if matches:
+                    matched_str = matches[0]
+                    # Route back to canonical using our inverted index
+                    canonical = self.alias_to_canonical.get(matched_str)
+                    
+                    # If not in aliases, it must be in the canonical list natively
+                    if not canonical:
+                        # Find the matching original canonical skill
+                        idx = all_known_variants.index(matched_str)
+                        canonical = self.skill_list[idx] if idx < len(self.skill_list) else None
+                        
+                    if canonical and canonical not in found_skills:
+                        found_skills.add(canonical)
+                        logger.debug(f"Fuzzy match: {token} -> {canonical}")
+            
+            # Step 4: Semantic matching (FAISS) for broad semantic variations
             if use_semantic:
                 semantic_skills = self._semantic_match(text)
                 found_skills.update(semantic_skills)
@@ -151,6 +193,37 @@ class SkillsExtractor:
             logger.error(f"Error in semantic matching: {e}")
             return set()
     
+    def get_structured_skills(self, extracted_skills: List[str]) -> dict:
+        """
+        Build a hierarchical taxonomy of skills based on the raw extracted skills
+        using the SKILL_ONTOLOGY.
+        """
+        inferred_languages = set()
+        inferred_domains = set()
+        inferred_parents = set()
+        industry_equivalents = set()
+        
+        for skill in extracted_skills:
+            if skill in SKILL_ONTOLOGY:
+                ontology = SKILL_ONTOLOGY[skill]
+                inferred_languages.update(ontology.get("language", []))
+                inferred_domains.update(ontology.get("domain", []))
+                inferred_parents.update(ontology.get("parent", []))
+                industry_equivalents.update(ontology.get("equivalents", []))
+        
+        # Categorize all skills (explicit + inferred)
+        all_skills = list(set(extracted_skills) | inferred_languages | inferred_parents)
+        categories = self.get_skill_categories(all_skills)
+        
+        return {
+            "raw_extracted": extracted_skills,
+            "inferred_languages": sorted(list(inferred_languages)),
+            "inferred_domains": sorted(list(inferred_domains)),
+            "inferred_parents": sorted(list(inferred_parents)),
+            "industry_equivalents": sorted(list(industry_equivalents)),
+            "categories": categories
+        }
+
     def get_skill_categories(self, skills: List[str]) -> dict:
         """
         Categorize extracted skills (optional advanced feature)

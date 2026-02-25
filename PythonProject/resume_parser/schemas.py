@@ -25,6 +25,31 @@ class Experience(BaseModel):
         }
 
 
+class StructuredSkills(BaseModel):
+    """Detailed taxonomy of skills inferred from the resume"""
+    raw_extracted: List[str] = Field(default_factory=list, description="Skills explicitly found in the text")
+    inferred_languages: List[str] = Field(default_factory=list, description="Programming languages inferred from frameworks")
+    inferred_domains: List[str] = Field(default_factory=list, description="Job domains inferred from tools/skills")
+    inferred_parents: List[str] = Field(default_factory=list, description="Parent skills or categories inferred")
+    industry_equivalents: List[str] = Field(default_factory=list, description="Equivalent industry skills")
+    categories: Dict[str, List[str]] = Field(default_factory=dict, description="Skills grouped by category")
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "raw_extracted": ["React", "FastAPI"],
+                "inferred_languages": ["JavaScript", "TypeScript", "Python"],
+                "inferred_domains": ["Web Development", "Frontend", "Backend", "API Development"],
+                "inferred_parents": ["Frontend Framework", "Backend Framework"],
+                "industry_equivalents": ["Angular", "Vue", "Django", "Flask"],
+                "categories": {
+                    "frontend": ["React"],
+                    "backend": ["FastAPI"]
+                }
+            }
+        }
+
+
 class ResumeData(BaseModel):
     """Main structured resume data model"""
     name: Optional[str] = Field(None, description="Full name of the candidate")
@@ -32,6 +57,7 @@ class ResumeData(BaseModel):
     phone: Optional[str] = Field(None, description="Phone number")
     skills: List[str] = Field(default_factory=list, description="Extracted skills")
     experience: List[Experience] = Field(default_factory=list, description="Work experience entries")
+    structured_skills: Optional[StructuredSkills] = Field(None, description="Detailed skill taxonomy inferences")
     raw_text: Optional[str] = Field(None, description="Raw extracted text")
 
     @validator('email')
@@ -69,7 +95,18 @@ class ResumeData(BaseModel):
                         "duration": "2020-Present",
                         "description": "Led backend development"
                     }
-                ]
+                ],
+                "structured_skills": {
+                    "raw_extracted": ["Python", "FastAPI", "Docker", "AWS"],
+                    "inferred_languages": ["Python"],
+                    "inferred_domains": ["Web Development", "Backend", "API Development", "DevOps", "Containerization", "Cloud Computing"],
+                    "inferred_parents": ["Backend Framework", "Containerization Tool", "Cloud Provider"],
+                    "industry_equivalents": ["Django", "Flask", "Podman", "GCP", "Azure"],
+                    "categories": {
+                        "languages": ["Python"],
+                        "devops": ["Docker", "AWS"]
+                    }
+                }
             }
         }
 

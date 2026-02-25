@@ -157,6 +157,7 @@ async def parse_resume(file: UploadFile = File(...)):
         
         # Step 3: Extract skills
         skills = skills_extractor.extract_skills(text, use_semantic=True)
+        structured_skills = skills_extractor.get_structured_skills(skills)
         
         # Step 4: Extract experience
         experience = experience_extractor.extract_experiences(text)
@@ -168,6 +169,7 @@ async def parse_resume(file: UploadFile = File(...)):
             phone=phone,
             skills=skills,
             experience=experience,
+            structured_skills=structured_skills,
             raw_text=text[:500]  # Include first 500 chars as preview
         )
         
