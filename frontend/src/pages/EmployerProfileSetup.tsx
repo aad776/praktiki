@@ -98,10 +98,10 @@ export const EmployerProfileSetup = () => {
             <div className="relative flex justify-between items-end -mt-12 mb-6">
               <div className="w-32 h-32 rounded-2xl bg-white p-1 border-4 border-white shadow-lg overflow-hidden flex items-center justify-center">
                 {data.logoUrl ? (
-                  <img 
-                    src={data.logoUrl} 
-                    alt="Logo" 
-                    className="w-full h-full object-contain" 
+                  <img
+                    src={data.logoUrl}
+                    alt="Logo"
+                    className="w-full h-full object-contain"
                     onError={(e) => {
                       e.currentTarget.style.display = 'none';
                       const parent = e.currentTarget.parentElement;
@@ -219,7 +219,7 @@ export const EmployerProfileSetup = () => {
                 </svg>
                 About the Organization
               </h3>
-              
+
               <div className="prose prose-slate max-w-none mb-8">
                 <p className="text-slate-600 leading-relaxed">
                   {data.organizationDescription || 'No description provided yet. Add a description to help students understand your organization better.'}
@@ -439,10 +439,10 @@ export const EmployerProfileSetup = () => {
   if (isViewMode) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <ProfileView 
-          data={formData} 
-          onEdit={() => setIsViewMode(false)} 
-          onLogout={handleLogout} 
+        <ProfileView
+          data={formData}
+          onEdit={() => setIsViewMode(false)}
+          onLogout={handleLogout}
         />
       </div>
     );

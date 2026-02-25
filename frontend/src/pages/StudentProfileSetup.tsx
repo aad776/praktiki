@@ -1555,7 +1555,7 @@ export function StudentProfileSetup() {
         const shouldView = !isEditMode;
         console.log("Setting View Mode to:", shouldView);
         setIsViewMode(shouldView);
-        
+
         setFormData(prev => ({
           ...prev,
           first_name: profileData.first_name || "",

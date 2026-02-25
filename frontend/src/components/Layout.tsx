@@ -170,7 +170,7 @@ export function Layout({ children }: LayoutProps) {
   const getSSOUrl = (basePath: string) => {
     console.log('Generating SSO URL for:', basePath);
     const abcPortalUrl = import.meta.env.VITE_ABC_PORTAL_URL || 'http://44.197.97.159:3000';
-    if (!basePath.includes(abcPortalUrl) && !basePath.includes('localhost:5174') && !basePath.includes('127.0.0.1:5174')) {
+    if (!basePath.includes(abcPortalUrl) && !basePath.includes('localhost:5174')) {
       console.log('Not an ABC Portal URL, returning as is');
       return basePath;
     }
@@ -406,8 +406,8 @@ export function Layout({ children }: LayoutProps) {
               <div className="px-2 py-3 space-y-1">
                 {/* Mobile version of Internship Link for students */}
                 {role === 'student' && (
-                    <Link
-                      to="/posted-internships"
+                  <Link
+                    to="/posted-internships"
                     onClick={() => setMobileNavOpen(false)}
                     className="flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium text-slate-600 hover:bg-slate-50"
                   >

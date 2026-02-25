@@ -5,6 +5,7 @@ import api, { ApiError } from '../services/api';
 import { ButtonSpinner } from '../components/LoadingSpinner';
 
 type Role = 'student' | 'employer' | 'institute';
+const [apaarId, setApaarId] = useState('');
 
 const roleConfig = {
   student: {
