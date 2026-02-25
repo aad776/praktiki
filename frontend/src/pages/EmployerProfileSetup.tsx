@@ -98,7 +98,21 @@ export const EmployerProfileSetup = () => {
             <div className="relative flex justify-between items-end -mt-12 mb-6">
               <div className="w-32 h-32 rounded-2xl bg-white p-1 border-4 border-white shadow-lg overflow-hidden flex items-center justify-center">
                 {data.logoUrl ? (
-                  <img src={data.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                  <img 
+                    src={data.logoUrl} 
+                    alt="Logo" 
+                    className="w-full h-full object-contain" 
+                    onError={(e) => {
+                      e.currentTarget.style.display = 'none';
+                      const parent = e.currentTarget.parentElement;
+                      if (parent) {
+                        const div = document.createElement('div');
+                        div.className = "text-4xl";
+                        div.innerText = "🏢";
+                        parent.appendChild(div);
+                      }
+                    }}
+                  />
                 ) : (
                   <div className="text-4xl">🏢</div>
                 )}

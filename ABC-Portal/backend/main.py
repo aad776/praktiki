@@ -33,9 +33,13 @@ app = FastAPI(
 origins = [
     "http://localhost",
     "http://localhost:5173", # Vite Frontend
+<<<<<<< HEAD
     "http://localhost:3000",
     "http://44.197.97.159:3000",  # ABC Frontend on EC2
     "http://44.197.97.159",
+=======
+    "http://localhost:5174", # ABC Portal Frontend
+>>>>>>> 44252060ad41c401bdd0b5a62fb5380c85926080
 ]
 
 app.add_middleware(
@@ -60,9 +64,12 @@ async def add_process_time_header(request: Request, call_next):
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     logger.error(f"Global error occurred: {exc}")
+    print(f"DEBUG: GLOBAL HANDLER CAUGHT: {exc}")
+    import traceback
+    traceback.print_exc()
     return JSONResponse(
         status_code=500,
-        content={"message": "Internal Server Error", "detail": str(exc)},
+        content={"message": "Internal Server Error (Custom 2)", "detail": str(exc)},
     )
 
 # Startup Event
@@ -90,4 +97,4 @@ def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.main:app", host="127.0.0.1", port=8001, reload=True)
+    uvicorn.run("backend.main:app", host="127.0.0.1", port=8002, reload=True)

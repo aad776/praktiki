@@ -134,6 +134,10 @@ const api = {
       ...(options || {}),
     });
   },
+  
+  defaults: {
+    baseURL: API_BASE_URL
+  }
 };
 
 /**

@@ -17,6 +17,9 @@ class CreditRequestOut(BaseModel):
     status: str
     created_at: datetime
     is_pushed_to_abc: Optional[bool] = False
+    student_name: Optional[str] = None
+    internship_title: Optional[str] = None
+    company_name: Optional[str] = None
 
     class Config:
         from_attributes = True

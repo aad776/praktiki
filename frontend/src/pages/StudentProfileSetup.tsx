@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import api, { ApiError } from "../services/api";
@@ -50,7 +50,8 @@ const Autocomplete = ({
       setLoading(true);
       try {
         const params = { q: inputValue, ...queryParams };
-        const response: any = await api.get(endpoint, params);
+        const response: any = await api.get(endpoint, { params });
+        // Response is array directly
         const names = Array.isArray(response) ? response.map((item: any) => item.name) : [];
         setFiltered(names);
       } catch (error) {
@@ -1129,6 +1130,16 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
                 </svg>
                 Edit
               </button>
+
+              <Link
+                to="/resume-maker"
+                className="px-6 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 hover:scale-105 transition-all flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Enhance Resume
+              </Link>
               <button
                 onClick={onLogout}
                 className="px-6 py-2 bg-red-50 text-red-600 border border-red-100 rounded-xl text-sm font-semibold hover:bg-red-100 transition-all flex items-center gap-2"
@@ -1278,6 +1289,7 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
 export function StudentProfileSetup() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const toast = useToast();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -1514,10 +1526,12 @@ export function StudentProfileSetup() {
       // Fetch Profile
       let profileData: any = null;
       try {
+        console.log("Fetching student profile...");
         const profileRes = await api.get<Record<string, any>>("/students/me");
+        console.log("Profile response received:", profileRes);
         profileData = profileRes;
       } catch (err) {
-        console.log("No profile found");
+        console.log("No profile found or error fetching profile:", err);
       }
 
       // Fetch Resume
@@ -1530,8 +1544,18 @@ export function StudentProfileSetup() {
       }
 
       if (profileData) {
+        console.log("Profile data exists. Processing...");
         setHasProfile(true);
-        setIsViewMode(true);
+        // Check if edit mode is requested via URL params
+        const isEditMode = searchParams.get("mode") === "edit";
+        console.log("Edit mode requested:", isEditMode);
+
+        // Simplified Logic: If profile data exists (fetched from API), show View Mode by default
+        // Only show form if explicitly requested via ?mode=edit
+        const shouldView = !isEditMode;
+        console.log("Setting View Mode to:", shouldView);
+        setIsViewMode(shouldView);
+        
         setFormData(prev => ({
           ...prev,
           first_name: profileData.first_name || "",
@@ -1659,7 +1683,7 @@ export function StudentProfileSetup() {
 
   if (isViewMode) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50" key="view-mode">
         <ProfileView
           formData={formData}
           onEdit={handleEdit}
@@ -1671,7 +1695,7 @@ export function StudentProfileSetup() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8" key="form-mode">
       <div className={`${step === 4 ? 'max-w-[10in]' : 'max-w-2xl'} mx-auto bg-white rounded-xl shadow-lg p-8 transition-all duration-500`}>
         {/* Progress Bar */}
         <div className="w-full bg-gray-200 h-1.5 rounded-full mb-8 overflow-hidden">

@@ -14,6 +14,7 @@ from typing import List, Optional
 from models.application import Application
 from models.student_profile import StudentProfile, StudentResume
 from models.notification import Notification
+from models.credit import CreditRequest
 from utils.email import send_application_accepted_email
 from sqlalchemy import func
 from pydantic import BaseModel
@@ -31,7 +32,11 @@ def get_dashboard_metrics(
     
     employer = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
     if not employer:
-        raise HTTPException(status_code=404, detail="Employer profile not found")
+        # Auto-create profile if missing for existing user (migration/fallback)
+        employer = EmployerProfile(user_id=current_user.id)
+        db.add(employer)
+        db.commit()
+        db.refresh(employer)
 
     # Get all internships for this employer
     internship_ids = [i.id for i in db.query(Internship.id).filter(Internship.employer_id == employer.id).all()]
@@ -83,7 +88,8 @@ def get_all_applications(
     
     employer = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
     if not employer:
-        raise HTTPException(status_code=404, detail="Employer profile not found")
+        # Return empty list if profile doesn't exist (although auto-creation in other endpoints should handle this)
+        return []
 
     # Join with Internship and StudentProfile to get titles and names
     results = db.query(
@@ -255,7 +261,7 @@ def get_accepted_applications(
     
     employer = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
     if not employer:
-        raise HTTPException(status_code=404, detail="Employer profile not found")
+        return []
 
     # Filter by status 'accepted'
     results = db.query(
@@ -340,18 +346,35 @@ def complete_internship(
     app.hours_worked = data.hours_worked
     app.policy_used = data.policy_type
     
+    # Calculate Credits
+    credits = 0.0
+    if data.policy_type == "UGC":
+        credits = data.hours_worked / 30.0
+    elif data.policy_type == "AICTE":
+        credits = data.hours_worked / 40.0
+    
+    app.credits_awarded = round(credits, 2)
+    
+    # Create Credit Request for Institute
+    credit_request = CreditRequest(
+        student_id=app.student_id,
+        application_id=app.id,
+        hours=data.hours_worked,
+        credits_calculated=app.credits_awarded,
+        policy_type=data.policy_type,
+        status="pending"
+    )
+    db.add(credit_request)
+    
     # Notification for student
     notif = Notification(
         user_id=app.student.user_id,
-        message=f"Your internship for '{app.internship.title}' has been marked as completed. You can now request credits."
+        message=f"Your internship '{app.internship.title}' has been marked as completed. {data.hours_worked} hours recorded. Pending Institute approval."
     )
     db.add(notif)
     
     db.commit()
-    return {
-        "message": "Internship marked as completed. Student can now request credits.",
-        "status": "completed"
-    }
+    return {"message": "Internship marked as completed and sent for credit approval"}
 
 @router.get("/profile")
 def get_employer_profile(
@@ -367,7 +390,11 @@ def get_employer_profile(
     
     profile = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
     if not profile:
-        raise HTTPException(status_code=404, detail="Employer profile not found")
+        # Auto-create if missing
+        profile = EmployerProfile(user_id=current_user.id)
+        db.add(profile)
+        db.commit()
+        db.refresh(profile)
     
     # Check if profile is complete (all required fields filled)
     required_fields = [
@@ -478,6 +505,13 @@ def get_my_posted_internships(
         raise HTTPException(status_code=403, detail="Access denied")
 
     employer = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
+    if not employer:
+        # Auto-create profile if missing for existing user (migration/fallback)
+        employer = EmployerProfile(user_id=current_user.id)
+        db.add(employer)
+        db.commit()
+        db.refresh(employer)
+        
     return db.query(Internship).filter(Internship.employer_id == employer.id).all()
 
 

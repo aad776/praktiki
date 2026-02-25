@@ -108,13 +108,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Try to fetch user profile
         const user = await fetchUserProfile(role);
         
-        setState({
-          token,
-          user,
-          role,
-          isAuthenticated: true,
-          isLoading: false,
-        });
+        if (user) {
+          setState({
+            token,
+            user,
+            role,
+            isAuthenticated: true,
+            isLoading: false,
+          });
+        } else {
+          // If user fetch fails (e.g. invalid token on server), clear auth
+          clearStoredAuth();
+          setState({
+            token: null,
+            user: null,
+            role: null,
+            isAuthenticated: false,
+            isLoading: false,
+          });
+        }
       } else {
         setState({
           token: null,
@@ -139,13 +151,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Fetch user profile
     const user = await fetchUserProfile(role);
 
-    setState({
-      token,
-      user,
-      role,
-      isAuthenticated: true,
-      isLoading: false,
-    });
+    if (user) {
+      setState({
+        token,
+        user,
+        role,
+        isAuthenticated: true,
+        isLoading: false,
+      });
+    } else {
+      // If user fetch fails, don't authenticate
+      console.error('Login failed: Could not fetch user profile');
+      clearStoredAuth();
+      setState({
+        token: null,
+        user: null,
+        role: null,
+        isAuthenticated: false,
+        isLoading: false,
+      });
+      throw new Error('Failed to load user profile');
+    }
   }, [fetchUserProfile]);
 
   // Logout function

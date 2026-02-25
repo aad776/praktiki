@@ -386,9 +386,14 @@ export function EmployerInternshipDetails() {
                                 <button 
                                   onClick={() => {
                                     // In a real app, this would open a modal or new page with the generated resume
-                                    alert("System-generated resume details:\n" + 
-                                      JSON.parse(app.resume_json).career_objective || "No career objective"
-                                    );
+                                    try {
+                                      const resumeData = JSON.parse(app.resume_json || '{}');
+                                      alert("System-generated resume details:\n" + 
+                                        (resumeData.career_objective || "No career objective")
+                                      );
+                                    } catch (e) {
+                                      alert("Error parsing resume data");
+                                    }
                                   }}
                                   className="flex items-center text-[10px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100"
                                 >

@@ -293,6 +293,48 @@ const StudentDashboard = () => {
         </div>
       </div>
 
+      {/* CREDIT SUMMARY CARDS (Moved from Main Portal) */}
+      {stats && stats.credit_summary && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div className="p-3 rounded-xl bg-emerald-50 text-emerald-600">
+                    <CheckCircle size={24} />
+                </div>
+                <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Credits</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.credit_summary.total_credits}</p>
+                </div>
+            </div>
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div className="p-3 rounded-xl bg-green-50 text-green-600">
+                    <CheckCircle size={24} />
+                </div>
+                <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Approved</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.credit_summary.approved_credits}</p>
+                </div>
+            </div>
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div className="p-3 rounded-xl bg-amber-50 text-amber-600">
+                    <Clock size={24} />
+                </div>
+                <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Pending</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.credit_summary.pending_credits}</p>
+                </div>
+            </div>
+            <div className="bg-white rounded-xl p-5 shadow-sm border border-gray-100 flex items-center gap-4 hover:shadow-md transition-shadow">
+                <div className="p-3 rounded-xl bg-indigo-50 text-indigo-600">
+                    <PieIcon size={24} />
+                </div>
+                <div>
+                    <p className="text-xs font-bold text-gray-500 uppercase tracking-wider">Working Hours</p>
+                    <p className="text-2xl font-bold text-gray-900">{stats.credit_summary.total_hours}h</p>
+                </div>
+            </div>
+        </div>
+      )}
+
       {/* STATUS ALERTS SECTION */}
       {stats && (
         <div className="grid grid-cols-1 gap-4">
@@ -341,6 +383,7 @@ const StudentDashboard = () => {
                 You haven't applied to any internships yet. Check the "Available Internships" tab.
               </div>
             ) : (
+<<<<<<< HEAD
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -387,6 +430,54 @@ const StudentDashboard = () => {
                   </tbody>
                 </table>
               </div>
+=======
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                        <tr>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Internship / Company</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied On</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks / Reason</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                        {stats.applications.map((app) => (
+                        <tr key={app.id}>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="text-sm font-medium text-gray-900">{app.internship?.title}</div>
+                                <div className="text-sm text-gray-500">{app.internship?.company_name || app.internship?.company?.full_name || 'Unknown Company'}</div>
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {new Date(app.created_at).toLocaleDateString()}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap">
+                            <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(app.status)}`}>
+                                {getStatusLabel(app.status)}
+                            </span>
+                            </td>
+                            <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                                {app.status === 'rejected' || app.status === 'exception' ? (
+                                    <div className="text-red-600 font-semibold">
+                                        <span className="block text-xs text-gray-400">Reason:</span>
+                                        {app.rejection_reason || 'No reason provided'}
+                                    </div>
+                                ) : (
+                                    <span className="text-gray-400">-</span>
+                                )}
+                            </td>
+                            <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 cursor-pointer hover:text-blue-800">
+                                <button onClick={() => setSelectedInternship(app)}>
+                                    View Details
+                                </button>
+                            </td>
+                        </tr>
+                        ))}
+                    </tbody>
+                    </table>
+                </div>
+>>>>>>> 44252060ad41c401bdd0b5a62fb5380c85926080
             )}
           </div>
         </div>
@@ -395,6 +486,7 @@ const StudentDashboard = () => {
       {/* INTERNSHIPS TAB */}
       {activeTab === 'internships' && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+<<<<<<< HEAD
           {internships.length === 0 && (
             <div className="col-span-2 text-center p-8 text-gray-500 bg-white rounded-lg shadow">
               No active internships available at the moment.
@@ -403,6 +495,43 @@ const StudentDashboard = () => {
           {internships.map(internship => {
             const isApplied = stats?.applications?.some(app => app.internship_id === internship.id);
             const application = stats?.applications?.find(app => app.internship_id === internship.id);
+=======
+            {internships.length === 0 && (
+                <div className="col-span-2 text-center p-8 text-gray-500 bg-white rounded-lg shadow">
+                    No active internships available at the moment.
+                </div>
+            )}
+            {internships.map(internship => {
+                const isApplied = stats?.applications?.some(app => app.internship_id === internship.id);
+                const application = stats?.applications?.find(app => app.internship_id === internship.id);
+                
+                return (
+                <div key={internship.id} className="bg-white p-6 rounded-lg shadow border border-gray-100 flex flex-col justify-between">
+                    <div>
+                        <div className="flex justify-between items-start">
+                            <h3 className="text-xl font-bold text-gray-800">{internship.title}</h3>
+                            <span className={`px-2 py-1 text-xs font-semibold rounded ${internship.policy === 'AICTE' ? 'bg-purple-100 text-purple-800' : 'bg-green-100 text-green-800'}`}>
+                                {internship.policy || 'UGC'}
+                            </span>
+                        </div>
+                        <p className="text-gray-600 mt-2 text-sm">{internship.description}</p>
+                        
+                        <div className="mt-4 grid grid-cols-2 gap-2 text-sm text-gray-500">
+                            <div className="flex items-center gap-1">
+                                <Briefcase size={14} />
+                                <span>{internship.company?.full_name || 'Company'}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                                <Clock size={14} />
+                                <span>{internship.duration || 'N/A'}</span>
+                            </div>
+                            <div className="flex items-center gap-1 col-span-2">
+                                <Info size={14} />
+                                <span>Exp. Hours: {internship.expected_hours} | {internship.start_date} - {internship.end_date}</span>
+                            </div>
+                        </div>
+                    </div>
+>>>>>>> 44252060ad41c401bdd0b5a62fb5380c85926080
 
             return (
               <div key={internship.id} className="bg-white p-6 rounded-lg shadow border border-gray-100 flex flex-col justify-between">
@@ -457,6 +586,7 @@ const StudentDashboard = () => {
 
       {/* CREDITS TAB */}
       {activeTab === 'credits' && stats && (
+<<<<<<< HEAD
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
@@ -469,6 +599,83 @@ const StudentDashboard = () => {
                 {stats.applications.filter(app => app.status === 'completed').length}
               </p>
             </div>
+=======
+          <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white p-6 rounded-lg shadow border-l-4 border-blue-500">
+                    <h3 className="text-gray-500 text-sm">Total Approved Credits</h3>
+                    <p className="text-3xl font-bold text-blue-600">{stats.total_credits}</p>
+                </div>
+                <div className="bg-white p-6 rounded-lg shadow border-l-4 border-green-500">
+                    <h3 className="text-gray-500 text-sm">Completed Internships</h3>
+                    <p className="text-3xl font-bold text-green-600">
+                        {stats.applications.filter(app => app.status === 'completed').length}
+                    </p>
+                </div>
+              </div>
+
+              <div className="bg-white shadow rounded-lg overflow-hidden">
+                <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                    <h3 className="text-lg font-bold text-gray-800">My Credit History (Read-Only)</h3>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Internship</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Policy</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hours Considered</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Credits Awarded</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Approved Date</th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {stats.credits.length === 0 ? (
+                                <tr>
+                                    <td colSpan="6" className="px-6 py-4 text-center text-gray-500">No approved credits yet.</td>
+                                </tr>
+                            ) : (
+                                stats.credits.map((credit) => (
+                                    <tr key={credit.id}>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="text-sm font-medium text-gray-900">
+                                                {credit.application?.internship?.title || `Internship #${credit.application_id}`}
+                                            </div>
+                                            <div className="text-sm text-gray-500">
+                                                {credit.application?.internship?.company?.full_name || 'Unknown Company'}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{credit.policy_type}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{credit.hours} hrs</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm font-bold text-blue-600">{credit.credits_calculated}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            {new Date(credit.created_at).toLocaleDateString()}
+                                        </td>
+                                        <td className="px-6 py-4 whitespace-nowrap">
+                                            <div className="flex flex-col gap-1">
+                                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full w-fit ${
+                                                    credit.status === 'approved' ? 'bg-green-100 text-green-800' : 
+                                                    credit.status === 'rejected' ? 'bg-red-100 text-red-800' : 
+                                                    'bg-yellow-100 text-yellow-800'
+                                                }`}>
+                                                    {credit.status?.toUpperCase() || 'PENDING'}
+                                                </span>
+                                                {credit.is_pushed_to_abc && (
+                                                    <span className="px-2 inline-flex text-[10px] leading-4 font-semibold rounded-full w-fit bg-blue-100 text-blue-800 border border-blue-200">
+                                                        PUSHED TO ABC
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+              </div>
+>>>>>>> 44252060ad41c401bdd0b5a62fb5380c85926080
           </div>
 
           <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -522,9 +729,55 @@ const StudentDashboard = () => {
 
       {/* MODAL FOR DETAILS */}
       {selectedInternship && (
+<<<<<<< HEAD
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
           <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
             <h3 className="text-2xl font-bold mb-4">{selectedInternship.internship?.title}</h3>
+=======
+          <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full flex items-center justify-center z-50">
+              <div className="bg-white p-8 rounded-lg shadow-xl w-full max-w-md">
+                  <h3 className="text-2xl font-bold mb-4">{selectedInternship.internship?.title}</h3>
+                  
+                  <div className="space-y-3">
+                      <div className="flex justify-between border-b pb-2">
+                          <span className="text-gray-500">Company:</span>
+                          <span className="font-medium">{selectedInternship.internship?.company?.full_name || selectedInternship.company?.full_name || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                          <span className="text-gray-500">Policy:</span>
+                          <span className="font-medium">{selectedInternship.internship?.policy || selectedInternship.policy_used || 'N/A'}</span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                          <span className="text-gray-500">Status:</span>
+                          <span className={`px-2 text-xs font-semibold rounded ${getStatusColor(selectedInternship.status)}`}>
+                              {getStatusLabel(selectedInternship.status)}
+                          </span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                          <span className="text-gray-500">Provisional Hours:</span>
+                          <span className="font-medium">{selectedInternship.hours_worked || 0} hrs</span>
+                      </div>
+                      <div className="flex justify-between border-b pb-2">
+                          <span className="text-gray-500">Credits Calculated:</span>
+                          <span className="font-bold text-blue-600">{selectedInternship.credits_awarded || '-'}</span>
+                      </div>
+                      
+                      {/* Rejection Reason Section */}
+                      {(selectedInternship.status === 'rejected' || selectedInternship.status === 'exception') && (
+                          <div className="bg-red-50 p-3 rounded border border-red-200 mt-4">
+                              <h4 className="text-red-800 font-bold text-sm mb-1">
+                                  {selectedInternship.status === 'rejected' ? 'REJECTION REASON' : 'EXCEPTION REMARKS'}
+                              </h4>
+                              <p className="text-red-700 text-sm">
+                                  "{selectedInternship.rejection_reason}"
+                              </p>
+                              <p className="text-red-400 text-xs mt-2 text-right">
+                                  By Institute
+                              </p>
+                          </div>
+                      )}
+                  </div>
+>>>>>>> 44252060ad41c401bdd0b5a62fb5380c85926080
 
             <div className="space-y-3">
               <div className="flex justify-between border-b pb-2">
