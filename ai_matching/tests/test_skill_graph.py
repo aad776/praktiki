@@ -1,84 +1,63 @@
 """
-Tests for the unified SkillGraph, the refactored SkillTaxonomy,
-the hierarchy-aware matcher, and the enhanced vectorizer.
+Tests for the unified SkillGraph, SkillTaxonomy, SkillVectorizer,
+and the hierarchy-aware matcher.
+
+Style notes (real-world practices):
+  - Fixtures via conftest.py instead of constructing objects per test.
+  - @pytest.mark.parametrize for data-driven tests (one code path, many inputs).
+  - Explicit edge-case and boundary tests.
+  - Integration tests assert *relative* properties, not magic numbers.
 """
 
-import sys
-import os
+import pytest
 
-sys.path.insert(
-    0, os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-)
-
-from app.skills.skill_graph import SkillGraph, get_skill_graph
-from app.skills.taxonomy import SkillTaxonomy
+from app.skills.skill_graph import SkillGraph, EXACT_MATCH_CREDIT
 from app.skills.vectorizer import SkillVectorizer
 from app.matching.matcher import match_student_to_internship
-from app.models.students import Student
-from app.models.internship import Internship
+from tests.conftest import make_student, make_internship
 
 
 # ===================================================================
-# SkillGraph -- Synonym Resolution
+# SkillGraph -- Synonym Resolution  (parametrized)
 # ===================================================================
 
 class TestSynonymResolution:
-    def test_js_resolves_to_javascript(self):
-        g = SkillGraph()
-        assert g.normalize("js") == "JavaScript"
+    @pytest.mark.parametrize("raw, expected", [
+        ("js",       "JavaScript"),
+        ("ml",       "Machine Learning"),
+        ("k8s",      "Kubernetes"),
+        ("py",       "Python"),
+        ("ts",       "TypeScript"),
+        ("reactjs",  "React"),
+        ("postgres", "PostgreSQL"),
+        ("nodejs",   "Node.js"),
+        ("dl",       "Deep Learning"),
+        ("sklearn",  "Scikit-learn"),
+        ("tf",       "TensorFlow"),
+        ("gcp",      "Google Cloud"),
+        ("golang",   "Go"),
+        ("cpp",      "C++"),
+        ("csharp",   "C#"),
+    ])
+    def test_synonym_resolves(self, graph, raw, expected):
+        assert graph.normalize(raw) == expected
 
-    def test_ml_resolves_to_machine_learning(self):
-        g = SkillGraph()
-        assert g.normalize("ml") == "Machine Learning"
+    def test_unknown_skill_passes_through(self, graph):
+        assert graph.normalize("SomeRandomTech") == "SomeRandomTech"
 
-    def test_k8s_resolves_to_kubernetes(self):
-        g = SkillGraph()
-        assert g.normalize("k8s") == "Kubernetes"
+    def test_case_insensitive(self, graph):
+        assert graph.normalize("PYTHON") == "Python"
+        assert graph.normalize("react") == "React"
+        assert graph.normalize("  PyTorch  ") == "PyTorch"
 
-    def test_py_resolves_to_python(self):
-        g = SkillGraph()
-        assert g.normalize("py") == "Python"
+    def test_empty_string(self, graph):
+        result = graph.normalize("")
+        assert isinstance(result, str)
 
-    def test_ts_resolves_to_typescript(self):
-        g = SkillGraph()
-        assert g.normalize("ts") == "TypeScript"
-
-    def test_reactjs_resolves_to_react(self):
-        g = SkillGraph()
-        assert g.normalize("reactjs") == "React"
-
-    def test_postgres_resolves_to_postgresql(self):
-        g = SkillGraph()
-        assert g.normalize("postgres") == "PostgreSQL"
-
-    def test_nodejs_resolves_to_node_js(self):
-        g = SkillGraph()
-        assert g.normalize("nodejs") == "Node.js"
-
-    def test_dl_resolves_to_deep_learning(self):
-        g = SkillGraph()
-        assert g.normalize("dl") == "Deep Learning"
-
-    def test_sklearn_resolves_to_scikit_learn(self):
-        g = SkillGraph()
-        assert g.normalize("sklearn") == "Scikit-learn"
-
-    def test_tf_resolves_to_tensorflow(self):
-        g = SkillGraph()
-        assert g.normalize("tf") == "TensorFlow"
-
-    def test_gcp_resolves_to_google_cloud(self):
-        g = SkillGraph()
-        assert g.normalize("gcp") == "Google Cloud"
-
-    def test_unknown_skill_passes_through(self):
-        g = SkillGraph()
-        assert g.normalize("SomeRandomTech") == "SomeRandomTech"
-
-    def test_case_insensitive(self):
-        g = SkillGraph()
-        assert g.normalize("PYTHON") == "Python"
-        assert g.normalize("React") == "React"
+    def test_special_chars_in_skill(self, graph):
+        assert graph.normalize("C++") == "C++"
+        assert graph.normalize("c#") == "C#"
+        assert graph.normalize("ci/cd") == "CI/CD"
 
 
 # ===================================================================
@@ -86,44 +65,43 @@ class TestSynonymResolution:
 # ===================================================================
 
 class TestHierarchyLookups:
-    def test_pytorch_parent_is_deep_learning(self):
-        g = SkillGraph()
-        assert g.get_parent("PyTorch") == "Deep Learning"
+    @pytest.mark.parametrize("skill, expected_parent", [
+        ("PyTorch",    "Deep Learning"),
+        ("React",      "Frontend"),
+        ("Django",     "Backend"),
+        ("PostgreSQL", "Relational"),
+        ("Docker",     "Containerization"),
+        ("Pandas",     "Data Analysis"),
+    ])
+    def test_get_parent(self, graph, skill, expected_parent):
+        assert graph.get_parent(skill) == expected_parent
 
-    def test_pytorch_domain_is_data_science(self):
-        g = SkillGraph()
-        assert g.get_domain("PyTorch") == "Data Science"
+    @pytest.mark.parametrize("skill, expected_domain", [
+        ("PyTorch", "Data Science"),
+        ("React",   "Web Development"),
+        ("Docker",  "DevOps"),
+        ("MongoDB", "Databases"),
+        ("Flutter", "Mobile Development"),
+    ])
+    def test_get_domain(self, graph, skill, expected_domain):
+        assert graph.get_domain(skill) == expected_domain
 
-    def test_react_parent_is_frontend(self):
-        g = SkillGraph()
-        assert g.get_parent("React") == "Frontend"
-
-    def test_react_domain_is_web_development(self):
-        g = SkillGraph()
-        assert g.get_domain("React") == "Web Development"
-
-    def test_siblings_of_pytorch(self):
-        g = SkillGraph()
-        sibs = g.get_siblings("PyTorch")
+    def test_siblings_of_pytorch(self, graph):
+        sibs = graph.get_siblings("PyTorch")
         assert "TensorFlow" in sibs
         assert "Keras" in sibs
-        assert "PyTorch" not in sibs
+        assert "PyTorch" not in sibs, "A skill should not be its own sibling"
 
-    def test_children_of_deep_learning(self):
-        g = SkillGraph()
-        kids = g.get_children("Deep Learning")
-        assert "PyTorch" in kids
-        assert "TensorFlow" in kids
-        assert "Keras" in kids
+    def test_children_of_deep_learning(self, graph):
+        kids = graph.get_children("Deep Learning")
+        assert {"PyTorch", "TensorFlow", "Keras"} <= kids
 
-    def test_unknown_skill_returns_none(self):
-        g = SkillGraph()
-        assert g.get_parent("SomeRandomTech") is None
-        assert g.get_domain("SomeRandomTech") is None
+    def test_unknown_skill_returns_none(self, graph):
+        assert graph.get_parent("FakeSkill123") is None
+        assert graph.get_domain("FakeSkill123") is None
 
-    def test_siblings_of_unknown_is_empty(self):
-        g = SkillGraph()
-        assert g.get_siblings("SomeRandomTech") == set()
+    def test_siblings_of_unknown_is_empty(self, graph):
+        assert graph.get_siblings("FakeSkill123") == set()
 
 
 # ===================================================================
@@ -131,60 +109,29 @@ class TestHierarchyLookups:
 # ===================================================================
 
 class TestHierarchyDistance:
-    def test_same_skill_distance_zero(self):
-        g = SkillGraph()
-        assert g.hierarchy_distance("Python", "Python") == 0
-        assert g.hierarchy_distance("py", "Python") == 0
-
-    def test_siblings_distance_one(self):
-        g = SkillGraph()
-        assert g.hierarchy_distance("PyTorch", "TensorFlow") == 1
-
-    def test_same_domain_distance_two(self):
-        g = SkillGraph()
-        # PyTorch is Deep Learning, Pandas is Data Analysis -- both Data Science
-        assert g.hierarchy_distance("PyTorch", "Pandas") == 2
-
-    def test_unrelated_distance_three(self):
-        g = SkillGraph()
-        assert g.hierarchy_distance("React", "PyTorch") == 3
+    @pytest.mark.parametrize("a, b, expected", [
+        ("Python",     "Python",     0),
+        ("py",         "Python",     0),  # synonym resolves first
+        ("PyTorch",    "TensorFlow", 1),  # siblings
+        ("PyTorch",    "Pandas",     2),  # same domain, different category
+        ("React",      "PyTorch",    3),  # unrelated domains
+    ])
+    def test_distance(self, graph, a, b, expected):
+        assert graph.hierarchy_distance(a, b) == expected
 
 
 class TestHierarchyCredit:
-    def test_exact_match_is_1(self):
-        g = SkillGraph()
-        assert g.hierarchy_credit("Python", "Python") == 1.0
-
-    def test_synonym_exact_match(self):
-        g = SkillGraph()
-        assert g.hierarchy_credit("js", "JavaScript") == 1.0
-
-    def test_child_to_parent_credit(self):
-        """Student has PyTorch (child), job wants Deep Learning (category)."""
-        g = SkillGraph()
-        credit = g.hierarchy_credit("PyTorch", "Deep Learning")
-        assert credit == 0.7
-
-    def test_parent_to_child_credit(self):
-        """Student has Machine Learning (category name used as skill),
-        job wants Scikit-learn (child)."""
-        g = SkillGraph()
-        credit = g.hierarchy_credit("Machine Learning", "Scikit-learn")
-        assert credit == 0.3
-
-    def test_sibling_credit(self):
-        g = SkillGraph()
-        credit = g.hierarchy_credit("PyTorch", "TensorFlow")
-        assert credit == 0.5
-
-    def test_same_domain_credit(self):
-        g = SkillGraph()
-        credit = g.hierarchy_credit("PyTorch", "Pandas")
-        assert credit == 0.2
-
-    def test_unrelated_credit_is_zero(self):
-        g = SkillGraph()
-        assert g.hierarchy_credit("React", "PyTorch") == 0.0
+    @pytest.mark.parametrize("student_skill, required_skill, expected_credit", [
+        ("Python",           "Python",         1.0),   # exact
+        ("js",               "JavaScript",     1.0),   # synonym -> exact
+        ("PyTorch",          "Deep Learning",  0.7),   # child -> parent
+        ("Machine Learning", "Scikit-learn",   0.3),   # parent -> child
+        ("PyTorch",          "TensorFlow",     0.5),   # sibling
+        ("PyTorch",          "Pandas",         0.2),   # same domain
+        ("React",            "PyTorch",        0.0),   # unrelated
+    ])
+    def test_credit(self, graph, student_skill, required_skill, expected_credit):
+        assert graph.hierarchy_credit(student_skill, required_skill) == expected_credit
 
 
 # ===================================================================
@@ -192,33 +139,23 @@ class TestHierarchyCredit:
 # ===================================================================
 
 class TestStackDetection:
-    def test_mern_detected(self):
-        g = SkillGraph()
-        skills = {"MongoDB", "Express.js", "React", "Node.js", "Python"}
-        stacks = g.detect_stacks(skills)
-        assert "MERN" in stacks
+    @pytest.mark.parametrize("skills, expected_stack", [
+        ({"MongoDB", "Express.js", "React", "Node.js"}, "MERN"),
+        ({"MongoDB", "Express.js", "Angular", "Node.js"}, "MEAN"),
+        ({"Python", "Django", "PostgreSQL"}, "Django Stack"),
+    ])
+    def test_stack_detected(self, graph, skills, expected_stack):
+        assert expected_stack in graph.detect_stacks(skills)
 
-    def test_mean_detected(self):
-        g = SkillGraph()
-        skills = {"MongoDB", "Express.js", "Angular", "Node.js"}
-        stacks = g.detect_stacks(skills)
-        assert "MEAN" in stacks
+    def test_partial_stack_not_detected(self, graph):
+        assert "MERN" not in graph.detect_stacks({"MongoDB", "React"})
 
-    def test_django_stack_detected(self):
-        g = SkillGraph()
-        skills = {"Python", "Django", "PostgreSQL"}
-        stacks = g.detect_stacks(skills)
-        assert "Django Stack" in stacks
+    def test_superset_still_detects(self, graph):
+        skills = {"MongoDB", "Express.js", "React", "Node.js", "Python", "AWS"}
+        assert "MERN" in graph.detect_stacks(skills)
 
-    def test_partial_stack_not_detected(self):
-        g = SkillGraph()
-        skills = {"MongoDB", "React"}
-        stacks = g.detect_stacks(skills)
-        assert "MERN" not in stacks
-
-    def test_empty_skills_returns_empty(self):
-        g = SkillGraph()
-        assert g.detect_stacks(set()) == []
+    def test_empty_skills_returns_empty(self, graph):
+        assert graph.detect_stacks(set()) == []
 
 
 # ===================================================================
@@ -226,16 +163,16 @@ class TestStackDetection:
 # ===================================================================
 
 class TestAllCanonicalSkills:
-    def test_returns_nonempty_list(self):
-        g = SkillGraph()
-        skills = g.all_canonical_skills()
+    def test_returns_nonempty_sorted_list(self, graph):
+        skills = graph.all_canonical_skills()
         assert len(skills) > 50
+        assert skills == sorted(skills), "Should be alphabetically sorted"
 
-    def test_known_skills_present(self):
-        g = SkillGraph()
-        skills = set(g.all_canonical_skills())
-        for s in ["Python", "React", "Docker", "PyTorch", "PostgreSQL"]:
-            assert s in skills, f"{s} should be in all_canonical_skills"
+    @pytest.mark.parametrize("skill", [
+        "Python", "React", "Docker", "PyTorch", "PostgreSQL",
+    ])
+    def test_known_skill_present(self, graph, skill):
+        assert skill in set(graph.all_canonical_skills())
 
 
 # ===================================================================
@@ -243,19 +180,16 @@ class TestAllCanonicalSkills:
 # ===================================================================
 
 class TestTaxonomyCompat:
-    def test_normalize_single_skill(self):
-        t = SkillTaxonomy()
-        assert t.normalize("js") == "JavaScript"
-        assert t.normalize("py") == "Python"
+    def test_normalize_delegates_to_graph(self, taxonomy):
+        assert taxonomy.normalize("js") == "JavaScript"
 
-    def test_normalize_skills_dict_merges_duplicates(self):
-        t = SkillTaxonomy()
-        result = t.normalize_skills({"js": 3, "JavaScript": 5})
+    def test_normalize_skills_merges_duplicates(self, taxonomy):
+        result = taxonomy.normalize_skills({"js": 3, "JavaScript": 5})
         assert result["JavaScript"] == 5
+        assert len(result) == 1
 
-    def test_hierarchy_credit_delegates(self):
-        t = SkillTaxonomy()
-        assert t.hierarchy_credit("PyTorch", "TensorFlow") == 0.5
+    def test_hierarchy_credit_delegates(self, taxonomy):
+        assert taxonomy.hierarchy_credit("PyTorch", "TensorFlow") == 0.5
 
 
 # ===================================================================
@@ -263,106 +197,110 @@ class TestTaxonomyCompat:
 # ===================================================================
 
 class TestVectorizerExpansion:
-    def test_expanded_index_larger_than_base(self):
+    def test_expanded_index_is_superset(self):
         student = {"Python": 3}
         internship = {"Django": 2}
         base = SkillVectorizer.build_index(student, internship, expand_hierarchy=False)
         expanded = SkillVectorizer.build_index(student, internship, expand_hierarchy=True)
-        assert len(expanded) >= len(base)
+        assert set(base.keys()) <= set(expanded.keys())
 
     def test_sibling_appears_in_expanded_index(self):
-        student = {"React": 4}
-        internship = {"Angular": 3}
-        expanded = SkillVectorizer.build_index(student, internship, expand_hierarchy=True)
-        assert "Vue" in expanded
+        expanded = SkillVectorizer.build_index(
+            {"React": 4}, {"Angular": 3}, expand_hierarchy=True,
+        )
+        assert "Vue" in expanded, "Sibling of React/Angular should appear"
 
-    def test_vectorize_with_expansion_fills_siblings(self):
-        student = {"React": 4}
-        internship = {"Angular": 3}
-        idx = SkillVectorizer.build_index(student, internship, expand_hierarchy=True)
-        v = SkillVectorizer(idx)
-        vec = v.vectorize({"React": 4}, expand=True)
+    def test_vectorize_fills_siblings_fractionally(self):
+        idx = SkillVectorizer.build_index(
+            {"React": 4}, {"Angular": 3}, expand_hierarchy=True,
+        )
+        vec = SkillVectorizer(idx).vectorize({"React": 4}, expand=True)
         assert vec[idx["React"]] == 4.0
-        # Vue is a sibling; should have a fractional level
         if "Vue" in idx:
-            assert vec[idx["Vue"]] > 0
+            assert 0 < vec[idx["Vue"]] < 4.0, "Sibling should get partial level"
+
+    def test_no_expansion_leaves_siblings_zero(self):
+        idx = SkillVectorizer.build_index(
+            {"React": 4}, {"Angular": 3}, expand_hierarchy=True,
+        )
+        vec = SkillVectorizer(idx).vectorize({"React": 4}, expand=False)
+        if "Vue" in idx:
+            assert vec[idx["Vue"]] == 0.0
 
 
 # ===================================================================
 # Integration -- Hierarchy-Aware Matcher
+#
+# These test *relative* properties rather than magic score thresholds.
 # ===================================================================
 
 class TestMatcherIntegration:
-    def _make_student(self, skills, **kwargs):
-        defaults = dict(id=1, year=3, location="Delhi", preferences={})
-        defaults.update(kwargs)
-        return Student(skills=skills, **defaults)
-
-    def _make_internship(self, required_skills, **kwargs):
-        defaults = dict(id=1, min_year=2, location="Delhi", is_remote=True)
-        defaults.update(kwargs)
-        return Internship(required_skills=required_skills, **defaults)
-
-    def test_exact_match_scores_high(self):
-        student = self._make_student({"python": 4, "django": 3})
-        internship = self._make_internship({"python": 3, "django": 2})
-        result = match_student_to_internship(student, internship)
-        assert result["status"] == "MATCHED"
-        assert result["final_score"] > 50
-
-    def test_ml_student_matches_rag_job(self):
-        """A student with ML + PyTorch should get partial credit for a
-        job requiring RAG (both under Data Science)."""
-        student = self._make_student({
-            "Machine Learning": 4,
-            "PyTorch": 3,
-            "Python": 4,
-        })
-        internship = self._make_internship({
-            "RAG": 3,
-            "Python": 3,
-        })
-        result = match_student_to_internship(student, internship)
+    def test_exact_match_returns_matched(self):
+        result = match_student_to_internship(
+            make_student({"python": 4, "django": 3}),
+            make_internship({"python": 3, "django": 2}),
+        )
         assert result["status"] == "MATCHED"
         assert result["final_score"] > 0
-        partials = result["matched_skills"]["partial"]
-        partial_skills = [p["required"] for p in partials]
+
+    def test_exact_match_scores_higher_than_sibling(self):
+        exact = match_student_to_internship(
+            make_student({"PyTorch": 4, "Python": 3}),
+            make_internship({"PyTorch": 3, "Python": 3}),
+        )
+        sibling = match_student_to_internship(
+            make_student({"TensorFlow": 4, "Python": 3}),
+            make_internship({"PyTorch": 3, "Python": 3}),
+        )
+        assert exact["final_score"] > sibling["final_score"]
+
+    def test_sibling_scores_higher_than_unrelated(self):
+        sibling = match_student_to_internship(
+            make_student({"TensorFlow": 4, "Python": 3}),
+            make_internship({"PyTorch": 3, "Python": 3}),
+        )
+        unrelated = match_student_to_internship(
+            make_student({"React": 4, "Python": 3}),
+            make_internship({"PyTorch": 3, "Python": 3}),
+        )
+        assert sibling["final_score"] > unrelated["final_score"]
+
+    def test_ml_student_gets_partial_credit_for_rag(self):
+        result = match_student_to_internship(
+            make_student({"Machine Learning": 4, "PyTorch": 3, "Python": 4}),
+            make_internship({"RAG": 3, "Python": 3}),
+        )
+        assert result["status"] == "MATCHED"
+        partial_skills = [p["required"] for p in result["matched_skills"]["partial"]]
         assert "RAG" in partial_skills
 
-    def test_pytorch_gives_credit_for_deep_learning(self):
-        """Student: PyTorch (child), Job: Deep Learning (category)."""
-        student = self._make_student({"PyTorch": 4, "Python": 3})
-        internship = self._make_internship({"Deep Learning": 3, "Python": 3})
-        result = match_student_to_internship(student, internship)
-        assert result["status"] == "MATCHED"
-        partials = result["matched_skills"]["partial"]
-        dl_match = [p for p in partials if p["required"] == "Deep Learning"]
-        assert len(dl_match) == 1
-        assert dl_match[0]["credit"] == 0.7
-
-    def test_sibling_match_gives_half_credit(self):
-        """Student: TensorFlow, Job: PyTorch  (siblings under Deep Learning)."""
-        student = self._make_student({"TensorFlow": 4, "Python": 3})
-        internship = self._make_internship({"PyTorch": 3, "Python": 3})
-        result = match_student_to_internship(student, internship)
-        assert result["status"] == "MATCHED"
-        partials = result["matched_skills"]["partial"]
-        pt = [p for p in partials if p["required"] == "PyTorch"]
-        assert len(pt) == 1
-        assert pt[0]["credit"] == 0.5
-
-    def test_detected_stacks_in_output(self):
-        student = self._make_student({
-            "MongoDB": 3, "Express.js": 3, "React": 4, "Node.js": 3,
-        })
-        internship = self._make_internship({"React": 3})
-        result = match_student_to_internship(student, internship)
-        assert "MERN" in result["detected_stacks"]
+    def test_child_to_parent_gives_0_7_credit(self):
+        result = match_student_to_internship(
+            make_student({"PyTorch": 4, "Python": 3}),
+            make_internship({"Deep Learning": 3, "Python": 3}),
+        )
+        dl = [p for p in result["matched_skills"]["partial"] if p["required"] == "Deep Learning"]
+        assert len(dl) == 1
+        assert dl[0]["credit"] == 0.7
 
     def test_synonym_normalization_in_matching(self):
-        """'js' in student skills should match 'JavaScript' in job."""
-        student = self._make_student({"js": 4})
-        internship = self._make_internship({"JavaScript": 3})
-        result = match_student_to_internship(student, internship)
+        result = match_student_to_internship(
+            make_student({"js": 4}),
+            make_internship({"JavaScript": 3}),
+        )
         assert result["status"] == "MATCHED"
         assert "JavaScript" in result["matched_skills"]["exact"]
+
+    def test_detected_stacks_in_output(self):
+        result = match_student_to_internship(
+            make_student({"MongoDB": 3, "Express.js": 3, "React": 4, "Node.js": 3}),
+            make_internship({"React": 3}),
+        )
+        assert "MERN" in result["detected_stacks"]
+
+    def test_completely_unrelated_skills_score_low(self):
+        result = match_student_to_internship(
+            make_student({"Figma": 4, "Photoshop": 3}),
+            make_internship({"PyTorch": 3, "Python": 3}),
+        )
+        assert result["final_score"] < 30

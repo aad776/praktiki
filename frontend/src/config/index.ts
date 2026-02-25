@@ -6,23 +6,23 @@
 export const config = {
   // API Configuration
   api: {
-    baseUrl: import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000',
+    baseUrl: import.meta.env.VITE_API_URL || 'http://44.205.136.199:8000',
     timeout: 30000, // 30 seconds
   },
-  
+
   // App Info
   app: {
     name: import.meta.env.VITE_APP_NAME || 'Praktiki',
     version: import.meta.env.VITE_APP_VERSION || '1.0.0',
   },
-  
+
   // Auth Configuration
   auth: {
     tokenKey: 'praktiki_token',
     userKey: 'praktiki_user',
     roleKey: 'praktiki_role',
   },
-  
+
   // Feature Flags
   features: {
     enableAnalytics: import.meta.env.PROD,

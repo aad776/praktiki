@@ -668,7 +668,7 @@ const Step4 = ({ formData, setFormData, handleResumeUpload, handleSubmit, loadin
             <div className="no-print flex items-center gap-3">
               {formData.resume.resume_file_path && (
                 <a
-                  href={`http://127.0.0.1:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
+                  href={`http://44.205.136.199:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-4 py-1.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-lg text-xs font-bold hover:bg-blue-100 transition-all flex items-center gap-2"
@@ -1108,7 +1108,7 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
 
               {formData.resume.resume_file_path && (
                 <a
-                  href={`http://127.0.0.1:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
+                  href={`http://44.205.136.199:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-6 py-2 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl text-sm font-semibold hover:bg-blue-100 transition-all flex items-center gap-2"

@@ -55,7 +55,7 @@ pip install -r requirements.txt
 # Run Server
 uvicorn backend.main:app --reload
 ```
-Server runs at: `http://127.0.0.1:8000`
+Server runs at: `http://44.205.136.199:8000`
 
 ### 2. Frontend (React)
 
