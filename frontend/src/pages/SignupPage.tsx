@@ -5,7 +5,6 @@ import api, { ApiError } from '../services/api';
 import { ButtonSpinner } from '../components/LoadingSpinner';
 
 type Role = 'student' | 'employer' | 'institute';
-const [apaarId, setApaarId] = useState('');
 
 const roleConfig = {
   student: {
@@ -55,7 +54,7 @@ export function SignupPage() {
   const [instituteContact, setInstituteContact] = useState('');
 
   // Student specific
-
+  const [apaarId, setApaarId] = useState('');
   const navigate = useNavigate();
   const location = useLocation();
   const toast = useToast();
