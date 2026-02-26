@@ -36,13 +36,15 @@ origins = [
     "http://localhost:5174", # ABC Portal Frontend
     "http://localhost:3000",
     "http://44.197.97.159:3000",  # ABC Frontend on EC2
+    
     "http://44.197.97.159",
-
+    "http://ec2-44-197-97-159.compute-1.amazonaws.com",
+    "http://ec2-44-197-97-159.compute-1.amazonaws.com:3000",
 ]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # Allow all for development
+    allow_origins=origins, 
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
