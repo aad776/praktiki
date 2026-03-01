@@ -182,6 +182,9 @@ class AIService:
                 if internship.mode.lower() in normalized_modes:
                     match_score += 10
 
+            # Cap score at 100%
+            match_score = min(100, match_score)
+
             if match_score > 0:
                 recommendations.append({
                     "internship_id": internship.id,

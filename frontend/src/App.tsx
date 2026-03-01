@@ -53,6 +53,7 @@ export function App() {
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/resume-maker" element={<ResumeMakerPage />} />
         <Route path="/posted-internships" element={<BrowseInternshipsPage />} />
+        <Route path="/internship/:id" element={<InternshipDetails />} />
 
         {/* Student Routes */}
         <Route

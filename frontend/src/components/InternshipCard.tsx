@@ -51,12 +51,26 @@ export const InternshipCard: React.FC<InternshipCardProps> = ({ internship }) =>
   };
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg transition-all duration-300 relative group">
+    <div
+      className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg transition-all duration-300 relative group cursor-pointer"
+      onClick={() => navigate(`/internship/${internship.id}`)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          navigate(`/internship/${internship.id}`);
+        }
+      }}
+    >
       <div className="flex justify-between items-start mb-4">
         <div>
           <h3 
             className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors cursor-pointer mb-1"
-            onClick={() => navigate(`/student/internship/${internship.id}`)}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/internship/${internship.id}`);
+            }}
           >
             {internship.title}
           </h3>
