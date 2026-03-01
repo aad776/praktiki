@@ -1,17 +1,59 @@
 import { Link, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { PublicNavbar } from "../components/PublicNavbar";
+import api from "../services/api";
+import { InternshipCard } from "../components/InternshipCard";
+
+interface Internship {
+  id: number;
+  employer_id: number;
+  title: string;
+  description?: string;
+  location: string;
+  mode: string;
+  duration_weeks: number;
+  deadline?: string;
+  skills?: string;
+  stipend_amount?: number;
+  created_at?: string;
+  company_name?: string;
+  logo_url?: string;
+}
 
 export function HomePage() {
   const navigate = useNavigate();
   const { isAuthenticated, role, isLoading } = useAuth();
+  const [latestInternships, setLatestInternships] = useState<Internship[]>([]);
+  const [loadingInternships, setLoadingInternships] = useState(true);
+  const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (!isLoading && isAuthenticated && role) {
       navigate(`/${role}`);
     }
   }, [isAuthenticated, role, isLoading, navigate]);
+
+  useEffect(() => {
+    const fetchLatestInternships = async () => {
+      try {
+        setLoadingInternships(true);
+        // Fetch latest 10 internships
+        const res = await api.get<Internship[]>("/students/internships?limit=10");
+        setLatestInternships(res);
+      } catch (err) {
+        console.error("Failed to fetch latest internships", err);
+      } finally {
+        setLoadingInternships(false);
+      }
+    };
+
+    fetchLatestInternships();
+  }, []);
+
+  const scroll = (direction: 'left' | 'right') => {
+    // Scroll functionality disabled for continuous marquee
+  };
 
   return (
     <div className="min-h-screen bg-white font-sans text-slate-900">
@@ -32,7 +74,7 @@ export function HomePage() {
                 Now Live for 2025 Internships
               </div>
               
-              <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-6 leading-tight">
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-6 leading-tight">
                 Find Your Dream <br />
                 <span className="gradient-text">Internship Today</span>
               </h1>
@@ -136,6 +178,108 @@ export function HomePage() {
                       </div>
                   </div>
                </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Latest Opportunities Section */}
+      <section className="py-24 bg-gradient-to-b from-slate-50 to-white overflow-hidden">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+            <div className="max-w-2xl">
+               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold uppercase tracking-wider mb-6 border border-indigo-100 shadow-sm">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
+                  </span>
+                  Fresh Opportunities
+               </div>
+               <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-6 tracking-tight">Latest Internships</h2>
+               <p className="text-slate-600 text-lg leading-relaxed">Handpicked opportunities from top companies, updated daily to help you find the right match.</p>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => navigate("/posted-internships")}
+                className="group flex items-center gap-2 text-brand-600 font-bold hover:text-brand-700 transition-all whitespace-nowrap"
+              >
+                View All
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-1 transition-transform"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+              </button>
+            </div>
+          </div>
+
+          <div className="relative group/marquee">
+            <div 
+              ref={scrollRef}
+              className="flex gap-8 overflow-x-hidden pb-12 pause-marquee"
+            >
+              {loadingInternships ? (
+                <div className="flex gap-8">
+                  {[1, 2, 3, 4].map((i) => (
+                    <div key={i} className="flex-none w-[350px] sm:w-[400px] bg-white rounded-3xl p-8 h-[320px] border border-slate-100 animate-pulse flex flex-col gap-6 shadow-sm">
+                      <div className="flex justify-between items-start">
+                        <div className="w-2/3 h-8 bg-slate-100 rounded-lg"></div>
+                        <div className="w-14 h-14 bg-slate-100 rounded-2xl"></div>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="w-1/2 h-4 bg-slate-100 rounded"></div>
+                        <div className="w-full h-4 bg-slate-100 rounded"></div>
+                      </div>
+                      <div className="mt-auto flex gap-3">
+                        <div className="w-24 h-10 bg-slate-100 rounded-full"></div>
+                        <div className="w-24 h-10 bg-slate-100 rounded-full"></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : latestInternships.length > 0 ? (
+                <div className="animate-marquee flex gap-8">
+                  {/* Original Items */}
+                  {latestInternships.map((internship) => (
+                    <div 
+                      key={internship.id} 
+                      className="flex-none w-[350px] sm:w-[400px] group/card transition-all duration-500"
+                    >
+                      <div className="relative p-[1px] rounded-3xl bg-transparent group-hover/card:bg-gradient-to-r group-hover/card:from-blue-400 group-hover/card:to-indigo-500 transition-all duration-500 shadow-sm group-hover/card:shadow-xl group-hover/card:-translate-y-2">
+                        <div className="bg-white/95 backdrop-blur-sm rounded-[23px] overflow-hidden">
+                          <InternshipCard internship={internship} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                  {/* Duplicated Items for Seamless Loop */}
+                  {latestInternships.map((internship) => (
+                    <div 
+                      key={`${internship.id}-dup`} 
+                      className="flex-none w-[350px] sm:w-[400px] group/card transition-all duration-500"
+                    >
+                      <div className="relative p-[1px] rounded-3xl bg-transparent group-hover/card:bg-gradient-to-r group-hover/card:from-blue-400 group-hover/card:to-indigo-500 transition-all duration-500 shadow-sm group-hover/card:shadow-xl group-hover/card:-translate-y-2">
+                        <div className="bg-white/95 backdrop-blur-sm rounded-[23px] overflow-hidden">
+                          <InternshipCard internship={internship} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="w-full text-center py-24 bg-white rounded-3xl border-2 border-slate-100 border-dashed">
+                  <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <svg className="w-10 h-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-slate-900 mb-3">No internships found</h3>
+                  <p className="text-slate-500 mb-8 max-w-sm mx-auto">Be the first to see new opportunities as they arrive. Check back soon!</p>
+                  <button 
+                    onClick={() => navigate("/login?role=employer")}
+                    className="btn-primary px-8 py-3"
+                  >
+                    Post an Internship
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

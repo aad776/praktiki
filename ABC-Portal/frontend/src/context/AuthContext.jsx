@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }) => {
       if (token) {
         try {
           const userData = await authService.getCurrentUser();
-          console.log('User data fetched successfully:', userData.username);
+          console.log('User data fetched successfully:', userData.full_name || userData.email);
           setUser({ ...userData, role: localStorage.getItem('role') }); // Ensure role is available
         } catch (error) {
           console.error("Auth check failed", error);

@@ -12,8 +12,22 @@
     -moz-osx-font-smoothing: grayscale;
   }
 
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
   body {
-    @apply font-sans text-slate-900 bg-slate-50;
+    @apply font-sans text-slate-900 bg-slate-50 min-h-screen flex flex-col;
+  }
+
+  #root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -183,6 +197,22 @@
 
   .section-subtitle {
     @apply text-sm text-slate-500;
+  }
+
+  /* Marquee Animation */
+  @keyframes marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+  }
+
+  .animate-marquee {
+    display: flex;
+    width: max-content;
+    animation: marquee 30s linear infinite;
+  }
+
+  .pause-marquee:hover {
+    animation-play-state: paused;
   }
 
   /* Empty State */

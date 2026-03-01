@@ -49,9 +49,10 @@ const Autocomplete = ({
       
       setLoading(true);
       try {
-        const params = { q: inputValue, ...queryParams };
-        const response: any = await api.get(endpoint, { params });
-        // Response is array directly
+        const response: any = await api.get(endpoint, { 
+          params: { q: inputValue || '', ...queryParams } 
+        });
+        // Correct response handling
         const names = Array.isArray(response) ? response.map((item: any) => item.name) : [];
         setFiltered(names);
       } catch (error) {
@@ -63,7 +64,9 @@ const Autocomplete = ({
 
     if (endpoint) {
       const timeoutId = setTimeout(() => {
-        if (show || Object.keys(queryParams).length > 0) fetchSuggestions();
+        // Fetch if show is true OR if queryParams exist (dependent fields)
+        // OR if inputValue changes (real-time search)
+        fetchSuggestions();
       }, 300);
       return () => clearTimeout(timeoutId);
     } else {
@@ -150,9 +153,9 @@ const Autocomplete = ({
                 </li>
               ))}
             </ul>
-          ) : !loading && value.length > 0 && (
+          ) : !loading && inputValue.length > 0 && (
             <div className="px-4 py-3 text-sm text-gray-500 text-center italic">
-              No results found
+              No results found. Feel free to type yours.
             </div>
           )}
         </div>
@@ -165,21 +168,23 @@ const YearPicker = ({
   label,
   value,
   onChange,
-  required = false
+  required = false,
+  maxYear
 }: {
   label: string,
   value: string,
   onChange: (val: string) => void,
-  required?: boolean
+  required?: boolean,
+  maxYear?: number
 }) => {
   // A simple dropdown is actually cleaner than a full calendar for just "Year"
   // But user asked for "proper calendar like date choose", so let's make a grid UI
   const [show, setShow] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const currentYear = new Date().getFullYear();
-  const startYear = 1980;
-  const endYear = currentYear + 6; // Future years for graduation
-  const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => endYear - i); // Descending
+  const startYearLimit = 1980;
+  const endYearLimit = maxYear || (currentYear + 6); // Future years for graduation
+  const years = Array.from({ length: endYearLimit - startYearLimit + 1 }, (_, i) => endYearLimit - i); // Descending
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -410,6 +415,8 @@ const Step2 = ({ formData, handleChange, setFormData }: any) => (
       value={formData.course}
       onChange={(val) => {
         handleChange({ target: { name: "course", value: val } } as any);
+        // Clear dependent fields when course changes
+        setFormData((prev: any) => ({ ...prev, stream: "", specialization: "" }));
       }}
       required
     />
@@ -427,9 +434,12 @@ const Step2 = ({ formData, handleChange, setFormData }: any) => (
       label="Stream"
       placeholder="Eg. Engineering"
       endpoint="/autocomplete/streams"
+      queryParams={{ course_name: formData.course }}
       value={formData.stream}
       onChange={(val) => {
         handleChange({ target: { name: "stream", value: val } } as any);
+        // Clear dependent fields when stream changes
+        setFormData((prev: any) => ({ ...prev, specialization: "" }));
       }}
       required
     />
@@ -438,6 +448,7 @@ const Step2 = ({ formData, handleChange, setFormData }: any) => (
       label="Specialization"
       placeholder="Eg. Computer Science"
       endpoint="/autocomplete/specializations"
+      queryParams={{ stream_name: formData.stream }}
       value={formData.specialization}
       onChange={(val) => {
         handleChange({ target: { name: "specialization", value: val } } as any);
@@ -451,12 +462,14 @@ const Step2 = ({ formData, handleChange, setFormData }: any) => (
         value={formData.start_year}
         onChange={(val) => handleChange({ target: { name: "start_year", value: val } } as any)}
         required
+        maxYear={new Date().getFullYear()}
       />
       <YearPicker
         label="End year"
         value={formData.end_year}
         onChange={(val) => handleChange({ target: { name: "end_year", value: val } } as any)}
         required
+        maxYear={new Date().getFullYear() + 6}
       />
     </div>
   </div>
@@ -1066,7 +1079,7 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 animate-fadeIn">
+    <div className="max-w-[1200px] mx-auto py-4 sm:py-8 px-2 sm:px-4 animate-fadeIn">
       {/* Upload Resume Hidden Input */}
       <input
         type="file"
@@ -1480,6 +1493,10 @@ export function StudentProfileSetup() {
         setError("Please fill all mandatory fields to proceed.");
         return false;
       }
+      if (parseInt(formData.start_year) >= parseInt(formData.end_year)) {
+        setError("Start year must be before the end year.");
+        return false;
+      }
     } else if (currentStep === 3) {
       if (!formData.interests.length || !formData.looking_for.length || !formData.work_mode.length) {
         setError("Please select at least one option for each preference.");
@@ -1696,8 +1713,8 @@ export function StudentProfileSetup() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8" key="form-mode">
-      <div className={`${step === 4 ? 'max-w-[10in]' : 'max-w-2xl'} mx-auto bg-white rounded-xl shadow-lg p-8 transition-all duration-500`}>
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-12 px-2 sm:px-6 lg:px-8" key="form-mode">
+      <div className={`${step === 4 ? 'max-w-[1100px]' : 'max-w-4xl'} w-full mx-auto bg-white rounded-xl shadow-lg p-4 sm:p-8 transition-all duration-500`}>
         {/* Progress Bar */}
         <div className="w-full bg-gray-200 h-1.5 rounded-full mb-8 overflow-hidden">
           <div

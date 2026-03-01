@@ -52,6 +52,7 @@ export function App() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/resume-maker" element={<ResumeMakerPage />} />
+        <Route path="/posted-internships" element={<BrowseInternshipsPage />} />
 
         {/* Student Routes */}
         <Route
@@ -83,14 +84,6 @@ export function App() {
           element={
             <ProtectedRoute allowedRoles={['student']}>
               <InternshipDetails />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/posted-internships"
-          element={
-            <ProtectedRoute allowedRoles={['student']}>
-              <BrowseInternshipsPage />
             </ProtectedRoute>
           }
         />

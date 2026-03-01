@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
 import api, { ApiError } from '../services/api';
 import { PageLoader } from '../components/LoadingSpinner';
@@ -72,6 +73,7 @@ interface AuditLog {
 }
 
 export function InstituteDashboard() {
+  const navigate = useNavigate();
   const toast = useToast();
   const [students, setStudents] = useState<StudentInfo[]>([]);
   const [creditRequests, setCreditRequests] = useState<CreditRequest[]>([]);
@@ -81,6 +83,8 @@ export function InstituteDashboard() {
   const [activeTab, setActiveTab] = useState<'students' | 'completed' | 'pending' | 'credits' | 'audit' | 'status'>('students');
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [selectedYear, setSelectedYear] = useState<string>('all');
   const [expandedStudentId, setExpandedStudentId] = useState<number | null>(null);
 
   // Fetch data
@@ -227,12 +231,21 @@ export function InstituteDashboard() {
     }
   };
 
-  // Filter students based on search
-  const filteredStudents = students.filter(student =>
-    student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.apaar_id?.includes(searchQuery)
-  );
+  // Filter students based on search and dropdowns
+  const filteredStudents = students.filter(student => {
+    const matchesSearch = student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.department?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      student.apaar_id?.includes(searchQuery);
+    
+    const matchesDept = selectedDepartment === 'all' || student.department === selectedDepartment;
+    const matchesYear = selectedYear === 'all' || student.year?.toString() === selectedYear;
+    
+    return matchesSearch && matchesDept && matchesYear;
+  });
+
+  // Extract unique values for dropdowns
+  const departments = Array.from(new Set(students.map(s => s.department).filter(Boolean))).sort() as string[];
+  const years = Array.from(new Set(students.map(s => s.year).filter(Boolean))).sort((a, b) => (a || 0) - (b || 0)) as number[];
 
   const getInternshipsByStatus = (status: 'completed' | 'accepted' | 'pending') => {
     return students.flatMap(student => 
@@ -271,12 +284,31 @@ export function InstituteDashboard() {
   }
 
   return (
-    <div className="space-y-8 bg-white min-h-screen p-6">
+    <div className="min-h-screen bg-slate-50 relative overflow-hidden flex flex-col items-center">
+      {/* Dynamic Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-br from-indigo-100/50 via-slate-50 to-transparent -z-10" />
+      <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl -z-10" />
+      <div className="absolute top-1/2 -left-24 w-72 h-72 bg-indigo-100/20 rounded-full blur-3xl -z-10" />
+
+      <div className="w-full px-2 sm:px-4 lg:px-6 py-4 sm:py-6 relative z-10 space-y-6 flex-grow">
       {/* Header Section */}
-      <div className="flex justify-between items-start border-b border-slate-100 pb-6">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-800 tracking-tight">Institute Dashboard V2.0</h1>
-          <p className="text-slate-500 mt-1 text-lg">Monitoring student internship progress.</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start border-b border-slate-100 pb-6 gap-4">
+        <div className="flex items-center gap-3">
+          {/* Back Arrow - Only visible on Mobile */}
+          <button 
+            onClick={() => navigate(-1)}
+            className="sm:hidden p-2 -ml-2 hover:bg-slate-100 rounded-full transition-colors text-slate-600 bg-white/50 backdrop-blur-sm"
+            aria-label="Go back"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+          </button>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight">Institute Dashboard V2.0</h1>
+            <p className="text-slate-500 mt-1 text-sm sm:text-lg">Monitoring student internship progress.</p>
+          </div>
         </div>
         <div className="flex gap-3">
            <button 
@@ -307,7 +339,7 @@ export function InstituteDashboard() {
       </div>
 
       {/* Stats Chips Row */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-4">
         <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
           <div className="p-2 bg-white rounded-full text-slate-600 shadow-sm">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -357,26 +389,86 @@ export function InstituteDashboard() {
         </div>
       </div>
 
-      {/* Search Bar - Full Width */}
-      <div className="relative">
-        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-          <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
+      {/* Search and Filters Bar */}
+      <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 animate-fadeIn">
+        <div className="flex flex-col lg:flex-row gap-4">
+          <div className="flex-1 relative">
+            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by student name, department, or APAAR ID..."
+              className="block w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 text-slate-900 placeholder-slate-400 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 focus:bg-white transition-all outline-none font-medium"
+            />
+          </div>
+          
+          <div className="flex gap-3 sm:flex-row flex-col">
+            <div className="relative min-w-[220px]">
+              <label className="absolute -top-2 left-3 px-1 bg-white text-[10px] font-bold text-slate-400 uppercase tracking-wider z-10">Department</label>
+              <select
+                value={selectedDepartment}
+                onChange={(e) => setSelectedDepartment(e.target.value)}
+                className="w-full pl-4 pr-10 py-3.5 bg-white border border-slate-200 text-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all shadow-sm appearance-none font-medium cursor-pointer outline-none"
+              >
+                <option value="all">All Departments</option>
+                {departments.map(dept => (
+                  <option key={dept} value={dept}>{dept}</option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
+            <div className="relative min-w-[160px]">
+              <label className="absolute -top-2 left-3 px-1 bg-white text-[10px] font-bold text-slate-400 uppercase tracking-wider z-10">Academic Year</label>
+              <select
+                value={selectedYear}
+                onChange={(e) => setSelectedYear(e.target.value)}
+                className="w-full pl-4 pr-10 py-3.5 bg-white border border-slate-200 text-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all shadow-sm appearance-none font-medium cursor-pointer outline-none"
+              >
+                <option value="all">All Years</option>
+                {years.map(year => (
+                  <option key={year} value={year.toString()}>Year {year}</option>
+                ))}
+              </select>
+              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </div>
+            </div>
+
+            {(searchQuery || selectedDepartment !== 'all' || selectedYear !== 'all') && (
+              <button
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedDepartment('all');
+                  setSelectedYear('all');
+                }}
+                className="px-4 py-3.5 text-rose-600 hover:bg-rose-50 rounded-xl transition-all font-bold text-sm flex items-center justify-center gap-2 whitespace-nowrap border border-rose-100"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+                Clear Filters
+              </button>
+            )}
+          </div>
         </div>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by name, department, or APAAR ID"
-          className="block w-full pl-11 pr-4 py-4 bg-slate-50 border-0 text-slate-900 placeholder-slate-500 rounded-xl focus:ring-2 focus:ring-slate-200 focus:bg-white transition-all shadow-sm"
-        />
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex overflow-x-auto gap-2 pb-2 border-b border-slate-100">
+      <div className="flex overflow-x-auto gap-2 pb-2 border-b border-slate-100 custom-scrollbar">
         {[
-          { id: 'students', label: 'Students' },
+          { id: 'students', label: 'Students', count: filteredStudents.length },
           { id: 'completed', label: 'Completed', count: completedInternships.length, color: 'emerald' },
           { id: 'pending', label: 'Pending', count: pendingInternships.length, color: 'amber' },
           { id: 'credits', label: 'Credits', count: creditRequests.filter(r => r.status === 'pending').length, color: 'blue' },
@@ -957,6 +1049,7 @@ export function InstituteDashboard() {
           )}
         </section>
       ) : null}
+      </div>
     </div>
   );
 }

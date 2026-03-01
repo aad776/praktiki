@@ -1,1 +1,25 @@
 @import "tailwindcss";
+
+@layer base {
+  html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+
+  body {
+    background-color: #f9fafb; /* gray-50 */
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #root {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+  }
+}

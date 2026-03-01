@@ -199,11 +199,11 @@ export function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 overflow-x-hidden">
       {/* Authenticated Navbar */}
       {isAuthenticated && (
-        <nav className="bg-white border-b border-slate-200 sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav className="bg-white border-b border-slate-200 sticky top-0 z-40 w-full">
+          <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               {/* Logo and Nav Items */}
               <div className="flex items-center">
@@ -214,6 +214,18 @@ export function Layout({ children }: LayoutProps) {
                     </svg>
                   </div>
                   <span className="font-bold text-slate-900 text-lg hidden sm:block">Praktiki</span>
+                </Link>
+
+                {/* Home Icon - Only visible on Mobile (< 640px) */}
+                <Link 
+                  to={`/${role}`}
+                  className="sm:hidden ml-2 p-2 text-slate-500 hover:bg-slate-100 rounded-xl transition-colors"
+                  aria-label="Home"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                  </svg>
                 </Link>
 
                 {/* Desktop Navigation Links */}
@@ -284,7 +296,7 @@ export function Layout({ children }: LayoutProps) {
 
                   {/* Notifications Dropdown */}
                   {notifOpen && (
-                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-50 animate-fade-in-up">
+                    <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-50 animate-fade-in-up">
                       <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                         <h3 className="font-bold text-slate-900">Notifications</h3>
                         {unreadCount > 0 && (
@@ -478,8 +490,10 @@ export function Layout({ children }: LayoutProps) {
       )}
 
       {/* Main Content */}
-      <main className={isAuthenticated ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8' : ''}>
-        {children}
+      <main className={`flex-grow w-full flex flex-col ${isAuthenticated ? 'px-2 sm:px-4 lg:px-6 py-4 sm:py-6' : ''}`}>
+        <div className={isAuthenticated ? 'w-full flex-grow mx-auto' : 'w-full h-full'}>
+          {children}
+        </div>
       </main>
     </div>
   );

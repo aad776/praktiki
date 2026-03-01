@@ -6,7 +6,7 @@ export function PublicNavbar() {
   const location = useLocation();
 
   const navLinks = [
-    { path: '/browse-internships', label: 'Browse Jobs' },
+    { path: '/posted-internships', label: 'Browse Jobs' },
     { path: 'http://localhost:5174', label: 'ABC Portal', external: true },
     { path: '/about', label: 'About' },
     { path: '/contact', label: 'Contact' },

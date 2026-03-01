@@ -74,5 +74,3 @@ uploads/
 *.pem
 *.key
 credentials.json
-*.db
-*.sqlite3

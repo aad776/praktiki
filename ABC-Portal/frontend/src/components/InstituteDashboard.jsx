@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { instituteService } from '../services/instituteService';
 import { authService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
-import { Download, FileText, Image, Filter, LogOut, Bell } from 'lucide-react';
+import { Download, FileText, Image, Filter, LogOut, Bell, Clock, ArrowLeft } from 'lucide-react';
 import { 
     BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
 } from 'recharts';
@@ -180,87 +180,85 @@ const InstituteDashboard = () => {
   };
 
   return (
-    <div className="space-y-8" ref={dashboardRef}>
-
+    <div className="space-y-6 w-full pb-10" ref={dashboardRef}>
       {/* Header with Logout */}
-      <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm no-print">
-        <div className="flex items-center gap-4">
-            <div>
-                <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Institute ABC Analytics</h1>
-                <p className="text-sm text-gray-500">View aggregated application statistics (Restricted View)</p>
-            </div>
-            <button 
-              onClick={handleBackToMain}
-              className="text-sm bg-orange-50 text-orange-600 px-3 py-1 rounded-full border border-orange-100 hover:bg-orange-100 transition-colors flex items-center gap-1.5"
-            >
-              Back to Praktiki
-            </button>
-        </div>
-        <div className="flex items-center gap-4">
-          {/* Notifications UI */}
-          <div className="relative" ref={notifRef}>
-            <button 
-              onClick={() => setNotifOpen(!notifOpen)}
-              className={`p-2 rounded-lg transition-colors relative ${notifOpen ? 'bg-orange-100 text-orange-700' : 'text-gray-500 hover:bg-gray-100'}`}
-            >
-              <Bell size={24} />
-              {unreadCount > 0 && (
-                <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
-
-            {notifOpen && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
-                <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
-                  <h3 className="font-bold text-gray-900">Notifications</h3>
-                  {unreadCount > 0 && (
-                    <button 
-                      onClick={markAllAsRead}
-                      className="text-xs font-semibold text-orange-600 hover:text-orange-700 transition-colors"
-                    >
-                      Mark all as read
-                    </button>
-                  )}
-                </div>
-                <div className="max-h-[400px] overflow-y-auto">
-                  {notifications.length > 0 ? (
-                    <div className="divide-y divide-gray-50">
-                      {notifications.map((notif) => (
-                        <div 
-                          key={notif.id} 
-                          className={`p-4 transition-colors ${notif.is_read === 0 ? 'bg-orange-50/30' : 'hover:bg-gray-50'}`}
-                        >
-                          <p className={`text-sm ${notif.is_read === 0 ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
-                            {notif.message}
-                          </p>
-                          <p className="text-[11px] text-gray-400 mt-1.5">
-                            {new Date(notif.created_at).toLocaleString()}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="p-8 text-center">
-                      <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
-                        <Bell size={24} className="text-gray-300" />
-                      </div>
-                      <p className="text-sm text-gray-500">No notifications yet</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          {/* Back Arrow - Only visible on Mobile */}
           <button 
-               onClick={handleLogout} 
-               className="flex items-center gap-2 text-red-600 hover:text-red-800 transition-colors px-3 py-1 rounded-md hover:bg-red-50"
+            onClick={() => window.history.back()}
+            className="sm:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600"
+            aria-label="Go back"
           >
-               <LogOut size={18} /> Logout
+            <ArrowLeft size={24} />
           </button>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Institute Portal</h2>
         </div>
+          <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
+            {/* Notification Dropdown */}
+            <div className="relative" ref={notifRef}>
+              <button 
+                onClick={() => setNotifOpen(!notifOpen)}
+                className={`p-2.5 rounded-lg transition-colors relative ${notifOpen ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'}`}
+              >
+                <Bell size={24} />
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] text-center border-2 border-white">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {notifOpen && (
+                <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+                  <div className="p-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
+                    <h3 className="font-bold text-gray-800">Notifications</h3>
+                    {unreadCount > 0 && (
+                      <button 
+                        onClick={markAllAsRead}
+                        className="text-xs text-indigo-600 hover:text-indigo-800 font-semibold"
+                      >
+                        Mark all as read
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-[350px] overflow-y-auto">
+                    {notifications.length > 0 ? (
+                      <div className="divide-y divide-gray-50">
+                        {notifications.map((notif) => (
+                          <div 
+                            key={notif.id} 
+                            className={`p-4 transition-colors ${notif.is_read === 0 ? 'bg-indigo-50/50' : 'hover:bg-gray-50'}`}
+                          >
+                            <p className={`text-sm ${notif.is_read === 0 ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
+                              {notif.message}
+                            </p>
+                            <p className="text-[11px] text-gray-400 mt-2 flex items-center">
+                              <Clock size={12} className="mr-1" />
+                              {new Date(notif.created_at).toLocaleString()}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="p-10 text-center">
+                        <Bell size={40} className="mx-auto text-gray-200 mb-3" />
+                        <p className="text-gray-400 text-sm">No new notifications</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <button 
+              onClick={handleLogout}
+              className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors font-medium text-sm sm:text-base"
+            >
+              <LogOut size={20} />
+              <span>Logout</span>
+            </button>
+          </div>
       </div>
 
       {message && <div className="p-4 bg-blue-100 text-blue-700 rounded">{message}</div>}
@@ -497,7 +495,7 @@ const InstituteDashboard = () => {
         <>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 w-full animate-fadeIn">
             <div className="bg-white p-6 rounded-lg shadow border-l-4 border-slate-500">
                 <h3 className="text-gray-500 text-sm">Total Students</h3>
                 <p className="text-3xl font-bold text-slate-700">{stats.total_students || 0}</p>

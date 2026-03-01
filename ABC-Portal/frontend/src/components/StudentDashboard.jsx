@@ -4,7 +4,7 @@ import { studentService } from '../services/studentService';
 import { authService } from '../services/api';
 import { AuthContext } from '../context/AuthContext';
 import { useNavigate } from 'react-router-dom';
-import { Briefcase, CheckCircle, Clock, PieChart as PieIcon, LogOut, User, AlertTriangle, FileText, Info, CreditCard, Fingerprint, Bell } from 'lucide-react';
+import { Briefcase, CheckCircle, Clock, PieChart as PieIcon, LogOut, User, AlertTriangle, FileText, Info, CreditCard, Fingerprint, Bell, ArrowLeft } from 'lucide-react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 
 const StudentDashboard = () => {
@@ -147,24 +147,34 @@ const StudentDashboard = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* Header with Logout */}
-      <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
-        <div className="flex items-center gap-4">
-          <h2 className="text-2xl font-bold text-gray-800">Student Portal</h2>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
+          <div className="flex items-center gap-3 w-full sm:w-auto">
+            {/* Back Arrow - Only visible on Mobile */}
+            <button 
+              onClick={() => window.history.back()}
+              className="sm:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600"
+              aria-label="Go back"
+            >
+              <ArrowLeft size={24} />
+            </button>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Student Portal</h2>
+          </div>
           <button 
             onClick={handleBackToMain}
-            className="text-sm bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-100 hover:bg-blue-100 transition-colors flex items-center gap-1.5"
+            className="text-sm bg-blue-50 text-blue-600 px-3 py-1.5 rounded-full border border-blue-100 hover:bg-blue-100 transition-colors flex items-center gap-1.5 w-full sm:w-auto justify-center"
           >
             <Briefcase size={14} /> Back to Praktiki
           </button>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
           {/* Notification Dropdown */}
           <div className="relative" ref={notifRef}>
             <button 
               onClick={() => setNotifOpen(!notifOpen)}
-              className={`p-2 rounded-lg transition-colors relative ${notifOpen ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'}`}
+              className={`p-2.5 rounded-lg transition-colors relative ${notifOpen ? 'bg-indigo-100 text-indigo-700' : 'text-gray-500 hover:bg-gray-100'}`}
             >
               <Bell size={24} />
               {unreadCount > 0 && (
@@ -175,7 +185,7 @@ const StudentDashboard = () => {
             </button>
 
             {notifOpen && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+              <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
                 <div className="p-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
                   <h3 className="font-bold text-gray-800">Notifications</h3>
                   {unreadCount > 0 && (
@@ -218,7 +228,7 @@ const StudentDashboard = () => {
 
           <button 
             onClick={handleLogout}
-            className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors font-medium"
+            className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors font-medium text-sm sm:text-base"
           >
             <LogOut size={20} />
             <span>Logout</span>
@@ -227,21 +237,21 @@ const StudentDashboard = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-4 border-b overflow-x-auto">
+      <div className="flex space-x-2 sm:space-x-4 border-b overflow-x-auto scrollbar-hide">
         <button 
-          className={`pb-2 px-4 whitespace-nowrap ${activeTab === 'dashboard' ? 'border-b-2 border-blue-500 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`pb-2 px-3 sm:px-4 whitespace-nowrap text-sm sm:text-base ${activeTab === 'dashboard' ? 'border-b-2 border-blue-500 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
           onClick={() => setActiveTab('dashboard')}
         >
           My Applications
         </button>
         <button 
-          className={`pb-2 px-4 whitespace-nowrap ${activeTab === 'internships' ? 'border-b-2 border-blue-500 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`pb-2 px-3 sm:px-4 whitespace-nowrap text-sm sm:text-base ${activeTab === 'internships' ? 'border-b-2 border-blue-500 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
           onClick={() => setActiveTab('internships')}
         >
           Available Internships
         </button>
         <button 
-          className={`pb-2 px-4 whitespace-nowrap ${activeTab === 'credits' ? 'border-b-2 border-blue-500 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`pb-2 px-3 sm:px-4 whitespace-nowrap text-sm sm:text-base ${activeTab === 'credits' ? 'border-b-2 border-blue-500 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
           onClick={() => setActiveTab('credits')}
         >
           My Credits
@@ -435,7 +445,7 @@ const StudentDashboard = () => {
 
       {/* INTERNSHIPS TAB */}
       {activeTab === 'internships' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full animate-fadeIn">
             {internships.length === 0 && (
                 <div className="col-span-2 text-center p-8 text-gray-500 bg-white rounded-lg shadow">
                     No active internships available at the moment.
