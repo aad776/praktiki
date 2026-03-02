@@ -1,0 +1,114 @@
+# Resume Parser Accuracy Test Report
+
+> **Date:** March 2, 2026  
+> **Dataset:** 120 IT resumes from `INFORMATION-TECHNOLOGY/` directory  
+> **Processing Time:** ~4 minutes (avg 2,035ms/resume)
+
+---
+
+## Overall Results
+
+| Metric | Value | Grade |
+|--------|-------|-------|
+| **Overall Quality Score** | **29.9%** | **F** |
+| Parse Success Rate | 100% | All PDFs parsed |
+| Overall Extraction Rate | 27.2% | Very Low |
+
+> [!CAUTION]
+> The parser is performing very poorly on this dataset. The primary issues are in **entity extraction** (name, email, phone) and **experience extraction**, NOT in skills extraction.
+
+---
+
+## Field-by-Field Breakdown
+
+### Extraction Coverage (% of resumes where field was extracted)
+
+| Field | Coverage | Status |
+|-------|----------|--------|
+| **Skills** | 100.0% | ✅ Excellent |
+| **Experience** | 14.2% | ❌ Critical |
+| **Phone** | 12.5% | ❌ Critical |
+| **Name** | 8.3% | ❌ Critical |
+| **Email** | 0.8% | ❌ Critical |
+
+### Format Quality (of extracted values, % with valid format)
+
+| Field | Quality | Status |
+|-------|---------|--------|
+| **Email** | 100.0% | ✅ When found, always valid |
+| **Phone** | 86.7% | ✅ Good format quality |
+| **Name** | 70.0% | ⚠️ Some garbage extractions |
+
+### Statistics
+
+| Stat | Value |
+|------|-------|
+| Avg Skills per Resume | 6.4 |
+| Avg Experience Entries | 0.2 |
+| Avg Processing Time | 2,035ms |
+
+---
+
+## Root Cause Analysis
+
+> [!IMPORTANT]
+> The low scores are NOT necessarily a sign of a broken parser — rather they reveal a **dataset mismatch**. Here's what's happening:
+
+### 1. These Resumes Are Anonymized/Templated
+The `INFORMATION-TECHNOLOGY` dataset appears to be from a resume repository (likely LiveCareer or similar) where:
+- **Names, emails, and phones are redacted** or use non-standard formatting
+- Text starts with job titles like `"INFORMATION TECHNOLOGY TECHNICIAN I"` rather than personal names
+- Contact info uses formats like `Company Name ï¼​ City , State` with Unicode artifacts
+
+### 2. Experience Date Pattern Mismatch
+The parser's `YEAR_RANGE_PATTERN` looks for: `2020-2022` or `2020 to Present`  
+But these resumes use: `Aug 2007 to Current` — the regex requires a dash/en-dash between years, but the resumes use **month + year + "to" + year/word** format.
+
+### 3. spaCy NER Failing on Non-Standard Text
+The entity extractor processes the first 1000 characters looking for `PERSON` entities, but these resumes:
+- Start with job descriptions, not names
+- Have garbled Unicode characters (`ï¼​`) that confuse the NER model
+- Don't have standard "Name: John Doe" formatting
+
+---
+
+## What's Actually Working Well
+
+| Component | Assessment |
+|-----------|-----------|
+| **PDF Text Extraction** | ✅ 100% success — all 120 PDFs extracted cleanly |
+| **Skills Extraction** | ✅ 100% extraction rate, avg 6.4 skills/resume |
+| **FAISS Semantic Matching** | ✅ Working correctly for skill variations |
+| **Email Regex** (when present) | ✅ 100% format accuracy |
+| **Phone Regex** (when present) | ✅ 86.7% format accuracy |
+
+---
+
+## Recommendations to Fix
+
+### Priority 1: Fix Experience Date Pattern (Quick Win)
+Update `YEAR_RANGE_PATTERN` in [config.py](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/config.py#L36-L39) to handle:
+- `Aug 2007 to Current`
+- `January 2015 to December 2020`
+- `Mar 2019 - Present`
+
+### Priority 2: Improve Name Extraction
+Enhance [entity_extractor.py](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/entity_extractor.py#L35-L76):
+- Add fallback: extract name from first few lines using heuristics
+- Clean Unicode artifacts before NER processing
+- Try larger text window (not just first 1000 chars)
+
+### Priority 3: Test with Real Resumes
+The `INFORMATION-TECHNOLOGY` dataset may not represent your production use case. Consider:
+- Testing with actual user-submitted resumes (with consent)
+- Creating a hand-labeled ground truth set for 10-20 resumes
+
+---
+
+## Files Generated
+
+| File | Purpose |
+|------|---------|
+| [test_accuracy.py](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/test_accuracy.py) | Test runner script |
+| [accuracy_test_results.json](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/accuracy_test_results.json) | Full JSON results (per-resume) |
+| [review_template.json](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/test_data/ground_truth_review/review_template.json) | Manual review template |

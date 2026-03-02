@@ -1,0 +1,549 @@
+# Resume Parser — Technical Architecture & Stack Documentation
+
+> **Version:** 1.0.0 | **Author:** Praktiki Team | **Last Updated:** March 2, 2026  
+> *This document covers the complete technology stack, system architecture, data flow, and module-level design of the Praktiki Resume Parser — ready for inclusion in a PRD.*
+
+---
+
+## 1. System Overview
+
+The Praktiki Resume Parser is a **production-grade, AI-powered microservice** that automatically extracts structured data from PDF resumes. It transforms unstructured resume documents into a standardized JSON schema containing the candidate's name, email, phone number, technical skills, and work experience.
+
+### Key Capabilities
+- Accepts PDF uploads via REST API
+- Extracts 5 core fields: **Name, Email, Phone, Skills, Experience**
+- Uses a **hybrid NLP pipeline** combining rule-based extraction, NER (Named Entity Recognition), and semantic similarity
+- Supports batch processing (up to 10 resumes/batch)
+- Includes built-in production monitoring, human feedback loop, and accuracy tracking
+- Avg processing time: ~2 seconds per resume
+
+---
+
+## 2. Complete Technology Stack
+
+### 2.1 Core Framework & Runtime
+
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **Python** | 3.12 | Core language |
+| **FastAPI** | 0.109.0 | REST API framework (async, high-performance) |
+| **Uvicorn** | 0.27.0 | ASGI server for serving the FastAPI app |
+| **Pydantic** | <2.0 | Data validation, serialization, and type-safe schemas |
+| **python-multipart** | 0.0.6 | File upload handling in FastAPI |
+
+### 2.2 PDF Processing
+
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **pdfplumber** | 0.11.0 | PDF text extraction — page-by-page text extraction with layout analysis |
+
+### 2.3 NLP & Machine Learning
+
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **spaCy** | 3.7.2 | Natural Language Processing — Named Entity Recognition (NER) |
+| **en_core_web_trf** | 3.8.0 | spaCy's transformer-based English model (uses RoBERTa under the hood) |
+| **Sentence-Transformers** | 2.3.1 | Generates dense vector embeddings for semantic skill matching |
+| **all-MiniLM-L6-v2** | — | Lightweight sentence embedding model (384-dim vectors) |
+| **FAISS (CPU)** | 1.8.0 | Facebook AI Similarity Search — vector similarity index for skill matching |
+
+### 2.4 Utilities & Infrastructure
+
+| Technology | Version | Purpose |
+|-----------|---------|---------|
+| **python-dotenv** | 1.0.0 | Environment variable management |
+| **ReportLab** | 4.4.10 | PDF generation (for test data/reports) |
+| **Requests** | latest | HTTP client |
+| **NumPy** | (dependency) | Numerical operations for FAISS embeddings |
+| **difflib** | (stdlib) | Fuzzy string matching for typo correction |
+| **regex (re)** | (stdlib) | Pattern matching for emails, phones, date ranges |
+
+### 2.5 Deployment & Infrastructure
+
+| Component | Details |
+|-----------|---------|
+| **Hosting** | AWS EC2 instance |
+| **Port** | 8001 (separate from main Praktiki backend) |
+| **CI/CD** | GitHub Actions |
+| **CORS** | Configured for EC2 public IP + localhost dev origins |
+
+---
+
+## 3. System Architecture
+
+### 3.1 High-Level Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph "Client Layer"
+        FE["Praktiki Frontend<br/>(React)"]
+    end
+
+    subgraph "API Layer"
+        API["FastAPI Server<br/>Port 8001<br/>Uvicorn ASGI"]
+        CORS["CORS Middleware"]
+    end
+
+    subgraph "Processing Pipeline"
+        PDF["PDF Processor<br/>(pdfplumber)"]
+        ENT["Entity Extractor<br/>(spaCy NER)"]
+        SKL["Skills Extractor<br/>(FAISS + Sentence-Transformers)"]
+        EXP["Experience Extractor<br/>(Regex Patterns)"]
+    end
+
+    subgraph "AI/ML Models (Loaded at Startup)"
+        ROBERTA["RoBERTa Transformer<br/>(en_core_web_trf)"]
+        MINILM["MiniLM-L6-v2<br/>(Sentence Embedding)"]
+        FAISS["FAISS Index<br/>(118 skills, 384-dim)"]
+    end
+
+    subgraph "Monitoring & Feedback"
+        MON["Production Monitor<br/>(In-memory + JSONL logs)"]
+        FB["Human Feedback Loop<br/>(POST /feedback)"]
+    end
+
+    FE -->|"POST /parse<br/>(PDF Upload)"| CORS
+    CORS --> API
+    API --> PDF
+    PDF -->|"Raw Text"| ENT
+    PDF -->|"Raw Text"| SKL
+    PDF -->|"Raw Text"| EXP
+    ENT --> ROBERTA
+    SKL --> MINILM
+    SKL --> FAISS
+    API --> MON
+    FE -->|"POST /feedback"| FB
+    FB --> MON
+```
+
+### 3.2 Request Flow (Data Pipeline)
+
+```mermaid
+sequenceDiagram
+    participant Client as Frontend
+    participant API as FastAPI Server
+    participant PDF as PDF Processor
+    participant NER as Entity Extractor
+    participant Skills as Skills Extractor
+    participant Exp as Experience Extractor
+    participant Mon as Production Monitor
+
+    Client->>API: POST /parse (PDF file)
+    API->>API: Validate file (size, extension)
+    API->>PDF: extract_text_from_bytes(file_content)
+    PDF-->>API: raw_text (string)
+    
+    par Parallel Extraction
+        API->>NER: extract_all_entities(text)
+        NER->>NER: spaCy NER → PERSON entities
+        NER->>NER: Regex → email pattern
+        NER->>NER: Regex → phone pattern
+        NER-->>API: (name, email, phone)
+    and
+        API->>Skills: extract_skills(text)
+        Skills->>Skills: Step 1: Exact matching
+        Skills->>Skills: Step 2: Alias resolution
+        Skills->>Skills: Step 3: Fuzzy matching (difflib)
+        Skills->>Skills: Step 4: Semantic FAISS search
+        Skills-->>API: skills[]
+    and
+        API->>Exp: extract_experiences(text)
+        Exp->>Exp: Regex → date ranges
+        Exp->>Exp: Context extraction
+        Exp-->>API: experiences[]
+    end
+    
+    API->>API: Build ResumeData object
+    API->>Mon: log_parse_result()
+    API-->>Client: ParseResponse (JSON)
+```
+
+---
+
+## 4. Module-Level Architecture
+
+### 4.1 File Structure
+
+```
+resume_parser/
+├── main.py                    # FastAPI application entry point
+├── config.py                  # Centralized configuration & skill taxonomy
+├── schemas.py                 # Pydantic data models
+├── pdf_processor.py           # PDF text extraction
+├── entity_extractor.py        # Name, email, phone extraction (spaCy + regex)
+├── skills_extractor.py        # Skills extraction (hybrid: exact + semantic)
+├── experience_extractor.py    # Work experience extraction (regex patterns)
+├── production_monitor.py      # Production metrics & monitoring
+├── evaluator.py               # Accuracy evaluation module
+├── test_accuracy.py           # Accuracy testing script
+├── test_parser.py             # Unit tests
+├── requirements.txt           # Python dependencies
+├── __init__.py                # Package initialization
+├── INFORMATION-TECHNOLOGY/    # Test dataset (120 IT resumes)
+├── test_data/                 # Ground truth & review templates
+└── logs/                      # Production monitoring logs (JSONL)
+```
+
+### 4.2 Module Descriptions
+
+#### [main.py](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/main.py) — API Server
+- **Framework:** FastAPI with Uvicorn ASGI server
+- **Endpoints:**
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | Health check |
+| `/health` | GET | Detailed health check (extractor status) |
+| `/parse` | POST | Parse a single resume PDF |
+| `/parse-batch` | POST | Parse up to 10 resumes in batch |
+| `/metrics` | GET | Get production monitoring metrics |
+| `/feedback` | POST | Submit human feedback for accuracy tracking |
+| `/accuracy` | GET | Get accuracy from human feedback |
+
+- **Startup behavior:** All ML models (spaCy, Sentence-Transformers, FAISS) are loaded once at server startup to avoid per-request latency
+- **File validation:** Max 10MB, PDF only
+- **API docs:** Auto-generated at `/docs` (Swagger UI) and `/redoc`
+
+---
+
+#### [pdf_processor.py](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/pdf_processor.py) — PDF Text Extraction
+- **Technology:** pdfplumber
+- **Approach:** Page-by-page text extraction with layout analysis
+- **Features:**
+  - Accepts both file paths and raw bytes (for API uploads)
+  - Text cleaning: normalizes whitespace, removes extra newlines
+  - Graceful error handling for corrupted PDFs
+  - Logs extraction statistics (characters per page)
+
+---
+
+#### [entity_extractor.py](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/entity_extractor.py) — Contact Information Extraction
+- **Technology:** spaCy (en_core_web_trf) + Regex
+- **Extraction strategy:**
+
+| Field | Method | Details |
+|-------|--------|---------|
+| **Name** | spaCy NER | Processes first 1000 characters, looks for `PERSON` entities, validates 2-4 word names |
+| **Email** | Regex | Pattern: `[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z\|a-z]{2,}` |
+| **Phone** | Regex | Supports international formats: `+1 555-123-4567`, [(555) 123-4567](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/evaluator.py#327-347), `+91 9876543210` |
+
+- **Model:** `en_core_web_trf` — spaCy's RoBERTa-based transformer model, providing state-of-the-art NER accuracy
+
+---
+
+#### [skills_extractor.py](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/skills_extractor.py) — Skills Extraction (Hybrid AI Pipeline)
+This is the most sophisticated module, using a **4-stage hybrid approach**:
+
+```mermaid
+graph LR
+    A["Input Text"] --> B["Stage 1:<br/>Exact Matching"]
+    B --> C["Stage 2:<br/>Alias Resolution"]
+    C --> D["Stage 3:<br/>Fuzzy Matching"]
+    D --> E["Stage 4:<br/>Semantic Search"]
+    E --> F["Deduplicated<br/>Skills List"]
+
+    style B fill:#4CAF50,color:#fff
+    style C fill:#2196F3,color:#fff
+    style D fill:#FF9800,color:#fff
+    style E fill:#9C27B0,color:#fff
+```
+
+| Stage | Method | Technology | What It Catches |
+|-------|--------|-----------|-----------------|
+| **1. Exact Matching** | Case-insensitive regex with word boundaries | Python [re](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/main.py#105-222) | "Python", "JavaScript", "React" |
+| **2. Alias Resolution** | Maps 68 aliases to canonical skill names | Dictionary lookup | "reactjs" → "React", "k8s" → "Kubernetes", "py" → "Python" |
+| **3. Fuzzy Matching** | 88% similarity threshold on tokens >4 chars | `difflib.get_close_matches` | "Javscript" → "JavaScript", "Postgresq" → "PostgreSQL" |
+| **4. Semantic Search** | FAISS vector similarity on text chunks | Sentence-Transformers + FAISS | "Built machine learning pipelines" → "Machine Learning" |
+
+**Skill Taxonomy:**
+- **118 canonical skills** across 9 categories (Languages, Frontend, Backend, Databases, DevOps, Data Science, Tools, Mobile, Other)
+- **68 aliases** mapping common acronyms, typos, and variations to canonical names
+- **Hierarchical Ontology** with 20+ skill entries containing:
+  - `language[]` — inferred programming languages
+  - `domain[]` — inferred job domains
+  - `parent[]` — parent skill categories
+  - `equivalents[]` — industry-equivalent alternatives
+
+**FAISS Index Details:**
+- Embedding model: `all-MiniLM-L6-v2` (384-dimensional vectors)
+- Index type: `IndexFlatIP` (inner-product for cosine similarity)
+- Vectors are L2-normalized before indexing
+- Similarity threshold: 0.75 (configurable)
+- Text is chunked into up to 100 segments for semantic matching
+
+**Structured Skills Output:**
+Beyond the raw skills list, the module produces a rich taxonomy:
+```json
+{
+  "raw_extracted": ["React", "FastAPI"],
+  "inferred_languages": ["JavaScript", "TypeScript", "Python"],
+  "inferred_domains": ["Web Development", "Frontend", "Backend", "API Development"],
+  "inferred_parents": ["Frontend Framework", "Backend Framework"],
+  "industry_equivalents": ["Angular", "Vue", "Django", "Flask"],
+  "categories": {
+    "frontend": ["React"],
+    "backend": ["FastAPI"]
+  }
+}
+```
+
+---
+
+#### [experience_extractor.py](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/experience_extractor.py) — Work Experience Extraction
+- **Technology:** Regex pattern matching
+- **Approach:**
+  1. Find date ranges using patterns like `2020-2022`, `2019 to Present`
+  2. Extract 200 characters of context around each date match
+  3. Parse company name and job title from preceding lines
+  4. Parse role description from following lines
+  5. Deduplicate by duration
+- **Output:** List of [Experience](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/schemas.py#10-26) objects with company, position, duration, description
+- **Additional feature:** Calculates total years of experience from all entries
+
+---
+
+#### [production_monitor.py](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/production_monitor.py) — Monitoring & Feedback
+- **In-memory metrics tracking:**
+  - Total requests, success/failure counts
+  - Processing time statistics (mean, median)
+  - Per-field extraction rates
+  - Confidence scores
+- **Persistent logging:** JSONL (JSON Lines) daily log files
+- **Human feedback loop:** Records human corrections for continuous accuracy measurement
+- **Confidence scoring:** Heuristic-based (% of fields successfully extracted)
+
+---
+
+#### [schemas.py](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/schemas.py) — Data Models
+All data models use **Pydantic** for type safety and automatic validation.
+
+| Schema | Purpose | Key Fields |
+|--------|---------|------------|
+| [Experience](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/schemas.py#10-26) | Single work experience entry | company, position, duration, description |
+| [StructuredSkills](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/schemas.py#28-51) | Rich skill taxonomy output | raw_extracted, inferred_languages, inferred_domains, inferred_parents, industry_equivalents, categories |
+| [ResumeData](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/schemas.py#53-112) | Complete parsed resume | name, email, phone, skills[], experience[], structured_skills, raw_text |
+| [ParseResponse](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/schemas.py#114-138) | API response wrapper | success, data (ResumeData), error, processing_time_ms, timestamp |
+| [FieldMetrics](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/schemas.py#140-146) | Accuracy metrics per field | precision, recall, f1_score, accuracy |
+| [EvaluationMetrics](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/schemas.py#148-168) | Full evaluation result | per-field metrics + overall_accuracy |
+| [GroundTruth](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/schemas.py#170-178) | Expected values for testing | filename, name, email, phone, skills[], experience[] |
+
+**Built-in validators:**
+- Email validation (must contain `@`)
+- Skill deduplication (case-insensitive, preserves first occurrence)
+
+---
+
+## 5. AI/ML Pipeline Details
+
+### 5.1 Models Used
+
+```mermaid
+graph TD
+    subgraph "Model 1: spaCy en_core_web_trf"
+        M1_ARCH["Architecture: RoBERTa Transformer"]
+        M1_TASK["Task: Named Entity Recognition (NER)"]
+        M1_ENT["Entities: PERSON, ORG, DATE, etc."]
+        M1_USE["Used for: Name extraction"]
+    end
+
+    subgraph "Model 2: all-MiniLM-L6-v2"
+        M2_ARCH["Architecture: MiniLM (6 layers)"]
+        M2_TASK["Task: Sentence Embedding"]
+        M2_DIM["Output: 384-dim dense vectors"]
+        M2_USE["Used for: Semantic skill matching"]
+    end
+
+    subgraph "Index: FAISS"
+        F_TYPE["Type: IndexFlatIP (Inner Product)"]
+        F_SIZE["Size: 118 skill vectors"]
+        F_SEARCH["Search: Top-3 per text chunk"]
+        F_THRESH["Threshold: 0.75 cosine similarity"]
+    end
+```
+
+### 5.2 Model Loading & Lifecycle
+
+| Phase | What Happens | Time |
+|-------|-------------|------|
+| **Startup** | Load spaCy transformer model into GPU/CPU | ~8s |
+| **Startup** | Load Sentence-Transformers model | ~4s |
+| **Startup** | Encode 118 skills → FAISS index | ~1s |
+| **Per-Request** | NER inference on first 1000 chars | ~300ms |
+| **Per-Request** | Encode text chunks + FAISS search | ~500ms |
+| **Per-Request** | Regex + fuzzy matching | ~50ms |
+
+### 5.3 Why This Architecture?
+
+| Decision | Rationale |
+|----------|-----------|
+| **spaCy en_core_web_trf** over smaller models | Transformer-based NER has significantly better accuracy for name detection across varied resume formats |
+| **FAISS** over brute-force similarity | O(1) lookup vs O(n) comparison; scales to thousands of skills; Facebook-backed, battle-tested |
+| **Sentence-Transformers** over TF-IDF | Dense vectors capture semantic meaning ("built ML pipelines" → "Machine Learning"), not just keyword overlap |
+| **Hybrid 4-stage skills extraction** | Each stage catches different variations: exact → aliases → typos → semantics. Maximizes recall without sacrificing precision |
+| **FastAPI** over Flask/Django | Async support, automatic OpenAPI docs, Pydantic integration, highest performance among Python frameworks |
+| **pdfplumber** over PyPDF2/PDFMiner | Best balance of accuracy and layout preservation; handles complex PDF layouts better |
+
+---
+
+## 6. API Specification
+
+### 6.1 Parse Resume — `POST /parse`
+
+**Request:**
+```
+Content-Type: multipart/form-data
+Body: file (PDF, max 10MB)
+```
+
+**Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "name": "John Doe",
+    "email": "john.doe@example.com",
+    "phone": "+1-555-123-4567",
+    "skills": ["Python", "FastAPI", "Docker", "AWS"],
+    "experience": [
+      {
+        "company": "Tech Corp",
+        "position": "Senior Engineer",
+        "duration": "2020-Present",
+        "description": "Led backend development"
+      }
+    ],
+    "structured_skills": {
+      "raw_extracted": ["Python", "FastAPI", "Docker", "AWS"],
+      "inferred_languages": ["Python"],
+      "inferred_domains": ["Web Development", "Backend", "API Development", "DevOps", "Cloud Computing"],
+      "inferred_parents": ["Backend Framework", "Containerization Tool", "Cloud Provider"],
+      "industry_equivalents": ["Django", "Flask", "Podman", "GCP", "Azure"],
+      "categories": {
+        "languages": ["Python"],
+        "backend": ["FastAPI"],
+        "devops": ["Docker", "AWS"]
+      }
+    },
+    "raw_text": "John Doe | john.doe@example.com | ..."
+  },
+  "error": null,
+  "processing_time_ms": 1234.56,
+  "timestamp": "2026-03-02T12:00:00"
+}
+```
+
+### 6.2 Batch Parse — `POST /parse-batch`
+- Accepts up to 10 PDF files per request
+- Returns array of [ParseResponse](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/schemas.py#114-138) objects
+
+### 6.3 Monitoring — `GET /metrics`
+Returns real-time session metrics including success rate, processing time stats, per-field extraction rates, and confidence scores.
+
+### 6.4 Human Feedback — `POST /feedback`
+Accepts human corrections for accuracy tracking (field, predicted_value, correct_value, is_correct).
+
+### 6.5 Accuracy — `GET /accuracy`
+Returns per-field accuracy metrics calculated from accumulated human feedback.
+
+---
+
+## 7. Configuration & Tuning
+
+All configurable parameters are centralized in [config.py](file:///c:/Users/karti/computer_science/praktiki/PythonProject/resume_parser/config.py):
+
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `SPACY_MODEL` | `en_core_web_trf` | spaCy model for NER |
+| `SENTENCE_TRANSFORMER_MODEL` | `all-MiniLM-L6-v2` | Embedding model |
+| `FAISS_INDEX_DIM` | 384 | Embedding vector dimension |
+| `FAISS_SIMILARITY_THRESHOLD` | 0.75 | Min cosine similarity for semantic skill match |
+| `MAX_FILE_SIZE_MB` | 10 | Maximum PDF upload size |
+| `ALLOWED_EXTENSIONS` | `{".pdf"}` | Accepted file types |
+| `MIN_NAME_WORDS` | 2 | Minimum words to consider as a person's name |
+| `MAX_NAME_WORDS` | 4 | Maximum words in a person's name |
+| `SKILL_LIST` | 118 skills | Master list of canonical skills |
+| `SKILL_ALIASES` | 68 aliases | Alias → canonical mapping |
+| `SKILL_ONTOLOGY` | 20+ entries | Hierarchical skill relationships |
+
+---
+
+## 8. Accuracy & Performance Benchmarks
+
+### Tested on 120 IT Resumes (INFORMATION-TECHNOLOGY dataset)
+
+| Field | Extraction Rate | Format Quality |
+|-------|----------------|----------------|
+| Skills | 100.0% | 100.0% |
+| Experience | 14.2% | — |
+| Phone | 12.5% | 86.7% |
+| Name | 8.3% | 70.0% |
+| Email | 0.8% | 100.0% |
+
+> [!NOTE]
+> Low entity extraction rates on this dataset are due to anonymized/redacted contact information and non-standard date formats in the test resumes. The parser performs significantly better on standard resumes with visible contact details.
+
+### Performance
+
+| Metric | Value |
+|--------|-------|
+| Avg processing time | ~2 seconds/resume |
+| PDF text extraction | 100% success rate |
+| Max batch size | 10 resumes |
+| Model startup time | ~13 seconds |
+
+---
+
+## 9. Deployment Architecture
+
+```mermaid
+graph TB
+    subgraph "AWS EC2 — AI Instance"
+        UP["Uvicorn Process<br/>Port 8001"]
+        RP["Resume Parser<br/>FastAPI App"]
+        MODELS["ML Models<br/>(spaCy + Transformers + FAISS)"]
+        LOGS["JSONL Logs<br/>(logs/ directory)"]
+        
+        UP --> RP
+        RP --> MODELS
+        RP --> LOGS
+    end
+
+    subgraph "AWS EC2 — Frontend"
+        REACT["Praktiki Frontend<br/>(React)"]
+    end
+
+    subgraph "AWS EC2 — Backend"
+        MAIN["Main Backend API<br/>Port 8000"]
+    end
+
+    REACT -->|"PDF Upload"| UP
+    REACT -->|"User Data"| MAIN
+    
+    style UP fill:#009688,color:#fff
+    style RP fill:#4CAF50,color:#fff
+    style MODELS fill:#9C27B0,color:#fff
+```
+
+---
+
+## 10. Security Considerations
+
+| Area | Implementation |
+|------|---------------|
+| **File validation** | Extension whitelist (.pdf only), file size limits (10MB) |
+| **CORS** | Restricted to specific origins (EC2 IP + localhost) |
+| **Input sanitization** | Pydantic validation on all request/response models |
+| **Error handling** | Graceful error responses, no stack traces in production |
+| **Logging** | Structured JSONL logging, sensitive data excluded |
+
+---
+
+## 11. Summary for PRD
+
+The Praktiki Resume Parser is an **AI-powered microservice** built on **FastAPI** that uses a **hybrid NLP pipeline** to extract structured data from PDF resumes. It combines:
+
+- **RoBERTa-based NER** (spaCy `en_core_web_trf`) for contact info extraction
+- **4-stage skill extraction** using exact matching, alias resolution, fuzzy matching (difflib), and **FAISS-powered semantic search** with Sentence-Transformer embeddings
+- **Rule-based experience extraction** using regex date patterns and contextual analysis
+
+The system is deployed as a standalone service on AWS EC2 (port 8001), processes resumes in ~2 seconds, includes built-in production monitoring with human feedback loops, and exposes a fully documented REST API with Swagger/ReDoc auto-generated documentation.

@@ -1,0 +1,260 @@
+[
+  {
+    "filename": "10089434.pdf",
+    "_instructions": "Review and correct the extracted values below. Mark 'is_correct' as true/false for each field.",
+    "name": {
+      "extracted": null,
+      "correct_value": null,
+      "is_correct": null
+    },
+    "email": {
+      "extracted": null,
+      "correct_value": null,
+      "is_correct": null
+    },
+    "phone": {
+      "extracted": null,
+      "correct_value": null,
+      "is_correct": null
+    },
+    "skills": {
+      "extracted": [
+        "Android",
+        "Artificial Intelligence",
+        "Azure",
+        "Bash",
+        "CSS",
+        "HTML",
+        "Java",
+        "JavaScript",
+        "Linux",
+        "Machine Learning",
+        "Ruby",
+        "TypeScript",
+        "iOS"
+      ],
+      "correct_value": [
+        "Android",
+        "Artificial Intelligence",
+        "Azure",
+        "Bash",
+        "CSS",
+        "HTML",
+        "Java",
+        "JavaScript",
+        "Linux",
+        "Machine Learning",
+        "Ruby",
+        "TypeScript",
+        "iOS"
+      ],
+      "is_correct": null,
+      "missing_skills": [],
+      "wrong_skills": []
+    },
+    "experience": {
+      "extracted_count": 0,
+      "extracted_details": [],
+      "correct_count": 0,
+      "is_correct": null
+    }
+  },
+  {
+    "filename": "10247517.pdf",
+    "_instructions": "Review and correct the extracted values below. Mark 'is_correct' as true/false for each field.",
+    "name": {
+      "extracted": null,
+      "correct_value": null,
+      "is_correct": null
+    },
+    "email": {
+      "extracted": null,
+      "correct_value": null,
+      "is_correct": null
+    },
+    "phone": {
+      "extracted": null,
+      "correct_value": null,
+      "is_correct": null
+    },
+    "skills": {
+      "extracted": [
+        "Artificial Intelligence",
+        "Excel",
+        "SAP",
+        "TypeScript",
+        "iOS"
+      ],
+      "correct_value": [
+        "Artificial Intelligence",
+        "Excel",
+        "SAP",
+        "TypeScript",
+        "iOS"
+      ],
+      "is_correct": null,
+      "missing_skills": [],
+      "wrong_skills": []
+    },
+    "experience": {
+      "extracted_count": 0,
+      "extracted_details": [],
+      "correct_count": 0,
+      "is_correct": null
+    }
+  },
+  {
+    "filename": "10265057.pdf",
+    "_instructions": "Review and correct the extracted values below. Mark 'is_correct' as true/false for each field.",
+    "name": {
+      "extracted": null,
+      "correct_value": null,
+      "is_correct": null
+    },
+    "email": {
+      "extracted": null,
+      "correct_value": null,
+      "is_correct": null
+    },
+    "phone": {
+      "extracted": null,
+      "correct_value": null,
+      "is_correct": null
+    },
+    "skills": {
+      "extracted": [
+        "Artificial Intelligence",
+        "C#",
+        "C++",
+        "Data Analysis",
+        "Excel",
+        "Java",
+        "MATLAB",
+        "Python",
+        "Statistics",
+        "TypeScript"
+      ],
+      "correct_value": [
+        "Artificial Intelligence",
+        "C#",
+        "C++",
+        "Data Analysis",
+        "Excel",
+        "Java",
+        "MATLAB",
+        "Python",
+        "Statistics",
+        "TypeScript"
+      ],
+      "is_correct": null,
+      "missing_skills": [],
+      "wrong_skills": []
+    },
+    "experience": {
+      "extracted_count": 0,
+      "extracted_details": [],
+      "correct_count": 0,
+      "is_correct": null
+    }
+  },
+  {
+    "filename": "10553553.pdf",
+    "_instructions": "Review and correct the extracted values below. Mark 'is_correct' as true/false for each field.",
+    "name": {
+      "extracted": null,
+      "correct_value": null,
+      "is_correct": null
+    },
+    "email": {
+      "extracted": null,
+      "correct_value": null,
+      "is_correct": null
+    },
+    "phone": {
+      "extracted": null,
+      "correct_value": null,
+      "is_correct": null
+    },
+    "skills": {
+      "extracted": [
+        "Artificial Intelligence",
+        "Excel",
+        "Scrum",
+        "TypeScript"
+      ],
+      "correct_value": [
+        "Artificial Intelligence",
+        "Excel",
+        "Scrum",
+        "TypeScript"
+      ],
+      "is_correct": null,
+      "missing_skills": [],
+      "wrong_skills": []
+    },
+    "experience": {
+      "extracted_count": 0,
+      "extracted_details": [],
+      "correct_count": 0,
+      "is_correct": null
+    }
+  },
+  {
+    "filename": "10641230.pdf",
+    "_instructions": "Review and correct the extracted values below. Mark 'is_correct' as true/false for each field.",
+    "name": {
+      "extracted": null,
+      "correct_value": null,
+      "is_correct": null
+    },
+    "email": {
+      "extracted": null,
+      "correct_value": null,
+      "is_correct": null
+    },
+    "phone": {
+      "extracted": null,
+      "correct_value": null,
+      "is_correct": null
+    },
+    "skills": {
+      "extracted": [
+        "Android",
+        "Artificial Intelligence",
+        "CSS",
+        "HTML",
+        "Java",
+        "JavaScript",
+        "Linux",
+        "Machine Learning",
+        "PHP",
+        "Python",
+        "TypeScript",
+        "iOS"
+      ],
+      "correct_value": [
+        "Android",
+        "Artificial Intelligence",
+        "CSS",
+        "HTML",
+        "Java",
+        "JavaScript",
+        "Linux",
+        "Machine Learning",
+        "PHP",
+        "Python",
+        "TypeScript",
+        "iOS"
+      ],
+      "is_correct": null,
+      "missing_skills": [],
+      "wrong_skills": []
+    },
+    "experience": {
+      "extracted_count": 0,
+      "extracted_details": [],
+      "correct_count": 0,
+      "is_correct": null
+    }
+  }
+]
