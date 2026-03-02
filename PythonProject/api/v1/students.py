@@ -388,10 +388,7 @@ def apply_for_internship(
         if employer:
             notification = Notification(
                 user_id=employer.user_id,
-                title="New Application",
-                message=f"Student {current_user.full_name} has applied for {internship.title}",
-                type="application",
-                link="/dashboard/applications"
+                message=f"Student {current_user.full_name} has applied for {internship.title}"
             )
             db.add(notification)
             db.commit()

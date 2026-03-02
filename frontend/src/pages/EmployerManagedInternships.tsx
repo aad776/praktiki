@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import api, { ApiError } from '../services/api';
 import { useToast } from '../context/ToastContext';
 import { PageLoader } from '../components/LoadingSpinner';
@@ -32,6 +33,7 @@ export function EmployerManagedInternships() {
   const [loading, setLoading] = useState(true);
   const [completingId, setCompletingId] = useState<number | null>(null);
   const toast = useToast();
+  const navigate = useNavigate();
 
   const fetchData = async () => {
     try {
@@ -97,17 +99,30 @@ export function EmployerManagedInternships() {
   if (loading) return <PageLoader label="Loading internships..." />;
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-slate-900">
-            {selectedInternshipId ? selectedInternship?.title : "Managed Internships"}
-          </h1>
-          <p className="text-slate-500 mt-1">
-            {selectedInternshipId 
-              ? `Managing ${filteredApplications.length} ongoing interns` 
-              : "Track and manage active internship programs"}
-          </p>
+    <div className="space-y-6 w-full max-w-full mx-auto px-4 sm:px-8 lg:px-16">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          {/* Back Arrow - Only visible on Mobile */}
+          <button 
+            onClick={() => navigate(-1)}
+            className="sm:hidden p-2 -ml-2 hover:bg-slate-100 rounded-full transition-colors text-slate-600"
+            aria-label="Go back"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+          </button>
+          <div>
+            <h1 className="text-2xl font-bold text-slate-900">
+              {selectedInternshipId ? selectedInternship?.title : "Managed Internships"}
+            </h1>
+            <p className="text-slate-500 mt-1">
+              {selectedInternshipId 
+                ? `Managing ${filteredApplications.length} ongoing interns` 
+                : "Track and manage active internship programs"}
+            </p>
+          </div>
         </div>
         
         <div className="flex items-center gap-3">

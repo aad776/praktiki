@@ -79,6 +79,9 @@ class HybridMatcher:
             RULE_WEIGHT * rule_score
             + EMBEDDING_WEIGHT * embedding_score
         )
+        
+        # Cap at 100%
+        final_score = min(100.0, max(0.0, final_score))
 
         # ---------- 6. TECH STACKS ----------
         detected_stacks = self.taxonomy.detect_stacks(student_skill_names)

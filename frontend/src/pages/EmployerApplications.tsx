@@ -161,18 +161,31 @@ export function EmployerApplications() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-7xl mx-auto px-4 py-8">
+    <div className="min-h-screen bg-slate-50 w-full">
+      <div className="max-w-full mx-auto px-4 sm:px-8 lg:px-16 py-8 w-full">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900">
-              {selectedInternshipId ? selectedInternship?.title : "Applications Management"}
-            </h1>
-            <p className="text-slate-500 mt-1">
-              {selectedInternshipId 
-                ? `Managing ${filtered.length} applications for this internship` 
-                : "Select an internship to view its applications"}
-            </p>
+          <div className="flex items-center gap-3">
+            {/* Back Arrow - Only visible on Mobile */}
+            <button 
+              onClick={() => window.history.back()}
+              className="sm:hidden p-2 -ml-2 hover:bg-slate-200 rounded-full transition-colors text-slate-600"
+              aria-label="Go back"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+            </button>
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">
+                {selectedInternshipId ? selectedInternship?.title : "Applications Management"}
+              </h1>
+              <p className="text-slate-500 mt-1">
+                {selectedInternshipId 
+                  ? `Managing ${filtered.length} applications for this internship` 
+                  : "Select an internship to view its applications"}
+              </p>
+            </div>
           </div>
           
           <div className="flex gap-2">

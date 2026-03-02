@@ -4,6 +4,7 @@ import api from "../services/api";
 import { useNavigate } from "react-router-dom";
 import { ButtonSpinner } from "../components/LoadingSpinner";
 import { useToast } from "../context/ToastContext";
+import { useAuth } from "../context/AuthContext";
 import { InternshipCard } from "../components/InternshipCard";
 import { FilterModal } from "../components/FilterModal";
 import { FilterBar } from "../components/FilterBar";
@@ -45,6 +46,7 @@ export function BrowseInternshipsPage() {
   const [recommendationLoading, setRecommendationLoading] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
   const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
   
   // Filter states
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
@@ -52,10 +54,11 @@ export function BrowseInternshipsPage() {
   
   const navigate = useNavigate();
   const toast = useToast();
+  const { isAuthenticated } = useAuth();
 
   useEffect(() => {
     fetchInternships();
-  }, [search]); // Re-fetch when search changes, other filters are applied locally or could trigger fetch
+  }, [search]); // Re-fetch when search changes, other filters are applied locally
 
   const fetchInternships = async () => {
     setLoading(true);
@@ -84,11 +87,12 @@ export function BrowseInternshipsPage() {
     }
 
     if (activeFilters.type && activeFilters.type.length > 0) {
-      // Mapping 'type' from filter to 'mode' in internship
-      // This might need adjustment based on exact values
       result = result.filter(i => {
          const mode = i.mode.toLowerCase();
+         const isFullTime = i.duration_weeks >= 4; // Mock logic for full time
          return activeFilters.type.some((t: string) => {
+             if (t === 'full_time') return isFullTime;
+             if (t === 'part_time') return !isFullTime;
              if (t === 'remote') return mode === 'remote';
              if (t === 'office') return mode === 'onsite' || mode === 'office';
              if (t === 'hybrid') return mode === 'hybrid';
@@ -123,9 +127,7 @@ export function BrowseInternshipsPage() {
     // Academic Filters
     if (activeFilters.course && activeFilters.course.length > 0) {
         result = result.filter(i => {
-            // Check if course requirement exists in description or dedicated field
             if (i.course) return activeFilters.course.includes(i.course.toLowerCase());
-            // Fallback: check description or title
             const text = (i.description + " " + i.title).toLowerCase();
             return activeFilters.course.some((c: string) => text.includes(c));
         });
@@ -134,7 +136,7 @@ export function BrowseInternshipsPage() {
     if (activeFilters.semester && activeFilters.semester.length > 0) {
         result = result.filter(i => {
             if (i.semester) return activeFilters.semester.includes(i.semester.toString());
-            return true; // If not specified, assume open to all
+            return true;
         });
     }
 
@@ -145,8 +147,25 @@ export function BrowseInternshipsPage() {
         });
     }
 
+    // Apply Sorting
+    result.sort((a, b) => {
+      if (sortBy === 'newest') {
+        return new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime();
+      }
+      if (sortBy === 'oldest') {
+        return new Date(a.created_at || 0).getTime() - new Date(b.created_at || 0).getTime();
+      }
+      if (sortBy === 'stipend_high') {
+        return (b.stipend_amount || 0) - (a.stipend_amount || 0);
+      }
+      if (sortBy === 'duration_short') {
+        return a.duration_weeks - b.duration_weeks;
+      }
+      return 0;
+    });
+
     return result;
-  }, [internships, activeFilters]);
+  }, [internships, activeFilters, sortBy]);
 
   const fetchRecommendations = async () => {
     setRecommendationLoading(true);
@@ -155,11 +174,11 @@ export function BrowseInternshipsPage() {
       setRecommendations(res);
       setShowRecommendations(true);
       if (res.length === 0) {
-        toast.info('No recommendations available yet. This could be because there are no internships matching your profile or your profile needs more details.');
+        toast.info('No recommendations available yet.');
       }
     } catch (error) {
       console.error("Failed to fetch recommendations", error);
-      toast.error('Failed to get recommendations. Please check your internet connection and try again later.');
+      toast.error('Failed to get recommendations.');
     } finally {
       setRecommendationLoading(false);
     }
@@ -168,12 +187,11 @@ export function BrowseInternshipsPage() {
   const handleApplyFilters = (filters: any) => {
       setActiveFilters(filters);
       setIsFilterModalOpen(false);
-      // Reset page to 1 if pagination exists
   };
 
   const getFilterCount = () => {
       let count = 0;
-      Object.values(activeFilters).forEach((val: any) => {
+      Object.entries(activeFilters).forEach(([key, val]: [string, any]) => {
           if (Array.isArray(val)) count += val.length;
           else if (val) count++;
       });
@@ -181,33 +199,47 @@ export function BrowseInternshipsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900">
-      <main className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
-        <div className="mb-10 flex justify-between items-center">
-            <div>
-              <h1 className="text-4xl font-bold text-slate-900 mb-4">Browse Internships</h1>
-              <p className="text-lg text-slate-600">Find the perfect opportunity to kickstart your career.</p>
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 w-full flex flex-col">
+      <main className="w-full px-2 sm:px-4 lg:px-6 py-6 sm:py-10 flex-grow">
+        <div className="mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => navigate(-1)}
+                className="sm:hidden p-2 -ml-2 hover:bg-slate-200 rounded-full transition-colors text-slate-600"
+                aria-label="Go back"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="19" y1="12" x2="5" y2="12"></line>
+                  <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+              </button>
+              <div>
+                <h1 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-2 sm:mb-4">Browse Internships</h1>
+                <p className="text-base sm:text-lg text-slate-600">Find the perfect opportunity to kickstart your career.</p>
+              </div>
             </div>
-            <button
-              onClick={fetchRecommendations}
-              disabled={recommendationLoading}
-              className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {recommendationLoading ? <ButtonSpinner /> : null}
-              Best Recommendations
-            </button>
+            {isAuthenticated && (
+              <button
+                onClick={fetchRecommendations}
+                disabled={recommendationLoading}
+                className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium px-6 py-3 rounded-lg shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {recommendationLoading ? <ButtonSpinner /> : null}
+                Best Recommendations
+              </button>
+            )}
         </div>
 
         {/* Search and Filters */}
         <div className="mb-8 space-y-4">
-            <div className="relative">
-                <span className="absolute left-3 top-3 text-slate-400">
+            <div className="relative group">
+                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-blue-500 transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
                 </span>
                 <input 
                     type="text" 
                     placeholder="Search by role, skill, or company..." 
-                    className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none shadow-sm transition-all"
+                    className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-blue-100 focus:border-blue-500 focus:outline-none shadow-sm transition-all text-lg"
                     value={search}
                     onChange={(e) => setSearch(e.target.value)}
                 />
@@ -216,6 +248,9 @@ export function BrowseInternshipsPage() {
             <FilterBar 
                 onOpenFilters={() => setIsFilterModalOpen(true)}
                 filterCount={getFilterCount()}
+                activeFilters={activeFilters}
+                onUpdateFilters={setActiveFilters}
+                onSort={setSortBy}
             />
         </div>
 

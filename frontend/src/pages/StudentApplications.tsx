@@ -49,7 +49,7 @@ export function StudentApplications() {
         creditRequested: appsRes.filter(app => app.is_credit_requested),
         ongoing: appsRes.filter(app => app.status === 'accepted' && !app.is_credit_requested),
         completed: appsRes.filter(app => app.status === 'completed' && !app.is_credit_requested),
-        pending: appsRes.filter(app => (app.status === 'pending' || app.status === 'shortlisted') && !app.is_credit_requested),
+        pending: appsRes.filter(app => (app.status === 'pending' || app.status === 'shortlisted' || app.status === 'applied') && !app.is_credit_requested),
         rejected: appsRes.filter(app => app.status === 'rejected' && !app.is_credit_requested)
       };
 
@@ -111,7 +111,7 @@ export function StudentApplications() {
     creditRequested: applications.filter(app => app.is_credit_requested),
     ongoing: applications.filter(app => app.status === 'accepted' && !app.is_credit_requested),
     completed: applications.filter(app => app.status === 'completed' && !app.is_credit_requested),
-    pending: applications.filter(app => (app.status === 'pending' || app.status === 'shortlisted') && !app.is_credit_requested),
+    pending: applications.filter(app => (app.status === 'pending' || app.status === 'shortlisted' || app.status === 'applied') && !app.is_credit_requested),
     rejected: applications.filter(app => app.status === 'rejected' && !app.is_credit_requested)
   };
 
@@ -143,7 +143,7 @@ export function StudentApplications() {
             </h3>
             <span
               className={`px-2.5 py-0.5 text-xs font-semibold rounded-full capitalize border
-                ${app.status === 'pending'
+                ${app.status === 'pending' || app.status === 'applied'
                   ? 'bg-amber-50 text-amber-700 border-amber-200'
                   : app.status === 'accepted'
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
@@ -241,18 +241,31 @@ export function StudentApplications() {
   );
 
   return (
-    <div className="space-y-8 max-w-5xl mx-auto pb-12">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900">My Applications</h1>
-          <p className="text-slate-500 mt-1">Manage your applications and internship status</p>
+    <div className="space-y-8 w-full mx-auto pb-12 flex flex-col min-h-full px-2 sm:px-0">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="flex items-center gap-3">
+          {/* Back Arrow - Only visible on Mobile (< 640px) */}
+          <button 
+            onClick={() => navigate(-1)}
+            className="sm:hidden p-2 -ml-2 hover:bg-slate-100 rounded-full transition-colors text-slate-600"
+            aria-label="Go back"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"></line>
+              <polyline points="12 19 5 12 12 5"></polyline>
+            </svg>
+          </button>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">My Applications</h1>
+            <p className="text-sm sm:text-base text-slate-500 mt-1">Manage your applications and internship status</p>
+          </div>
         </div>
       </div>
 
       {applications.length > 0 ? (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden w-full flex-grow flex flex-col">
           {/* Tabs Navigation */}
-          <div className="flex border-b border-slate-200 bg-white overflow-x-auto no-scrollbar">
+          <div className="flex border-b border-slate-200 bg-white overflow-x-auto no-scrollbar w-full shrink-0">
             <TabButton 
               id="ongoing" 
               label="Ongoing" 
@@ -286,7 +299,7 @@ export function StudentApplications() {
           </div>
 
           {/* Tab Content */}
-          <div className="divide-y divide-slate-100 min-h-[400px]">
+          <div className="divide-y divide-slate-100 flex-grow bg-white">
             {activeTab === 'ongoing' && (
               categorizedApps.ongoing.length > 0 ? (
                 categorizedApps.ongoing.map(app => <ApplicationCard key={app.id} app={app} />)

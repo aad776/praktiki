@@ -6,8 +6,13 @@ export function PublicNavbar() {
   const location = useLocation();
 
   const navLinks = [
+<<<<<<< HEAD
     { path: '/browse-internships', label: 'Browse Jobs' },
     { path: import.meta.env.VITE_ABC_PORTAL_URL || 'http://44.197.97.159:3000', label: 'ABC Portal', external: true },
+=======
+    { path: '/posted-internships', label: 'Browse Jobs' },
+    { path: 'http://localhost:5174', label: 'ABC Portal', external: true },
+>>>>>>> 2e1a941d5f4c34beb32eef5147b3ddff3f6cd58e
     { path: '/about', label: 'About' },
     { path: '/contact', label: 'Contact' },
   ];

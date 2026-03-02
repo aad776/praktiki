@@ -15,9 +15,21 @@ class AutocompleteItem(BaseModel):
     id: int
     name: str
 
+from sqlalchemy import case, or_
+
 @router.get("/skills", response_model=List[AutocompleteItem])
 def autocomplete_skills(q: str = Query("", min_length=0), db: Session = Depends(get_db)):
-    skills = db.query(Skill).filter(Skill.name.ilike(f"%{q}%")).limit(10).all()
+    query = db.query(Skill)
+    if q:
+        query = query.filter(Skill.name.ilike(f"%{q}%")).order_by(
+            case((Skill.name.ilike(f"{q}%"), 0), else_=1),
+            Skill.name
+        )
+    else:
+        # Return some popular skills if no query
+        query = query.order_by(Skill.name)
+    
+    skills = query.limit(10).all()
     return [AutocompleteItem(id=s.id, name=s.name) for s in skills]
 
 @router.get("/colleges", response_model=List[AutocompleteItem])
@@ -36,12 +48,24 @@ def autocomplete_colleges(
     elif course_name:
         query = query.join(College.courses).filter(Course.name == course_name)
         
-    colleges = query.limit(10).all()
+    colleges = query.order_by(
+        case((College.name.ilike(f"{q}%"), 0), else_=1),
+        College.name
+    ).limit(15).all()
     return [AutocompleteItem(id=c.id, name=c.name) for c in colleges]
 
 @router.get("/courses", response_model=List[AutocompleteItem])
 def autocomplete_courses(q: str = Query("", min_length=0), db: Session = Depends(get_db)):
-    courses = db.query(Course).filter(Course.name.ilike(f"%{q}%")).limit(10).all()
+    query = db.query(Course)
+    if q:
+        query = query.filter(Course.name.ilike(f"%{q}%")).order_by(
+            case((Course.name.ilike(f"{q}%"), 0), else_=1),
+            Course.name
+        )
+    else:
+        query = query.order_by(Course.name)
+        
+    courses = query.limit(10).all()
     return [AutocompleteItem(id=c.id, name=c.name) for c in courses]
 
 @router.get("/streams", response_model=List[AutocompleteItem])
@@ -60,7 +84,10 @@ def autocomplete_streams(
     elif course_name:
         query = query.join(Stream.course).filter(Course.name == course_name)
         
-    streams = query.distinct().limit(10).all()
+    streams = query.distinct().order_by(
+        case((Stream.name.ilike(f"{q}%"), 0), else_=1),
+        Stream.name
+    ).limit(10).all()
     return [AutocompleteItem(id=s.id, name=s.name) for s in streams]
 
 @router.get("/specializations", response_model=List[AutocompleteItem])
@@ -79,7 +106,10 @@ def autocomplete_specializations(
     elif stream_name:
         query = query.join(Specialization.stream).filter(Stream.name == stream_name)
         
-    specs = query.distinct().limit(10).all()
+    specs = query.distinct().order_by(
+        case((Specialization.name.ilike(f"{q}%"), 0), else_=1),
+        Specialization.name
+    ).limit(10).all()
     return [AutocompleteItem(id=s.id, name=s.name) for s in specs]
 
 @router.get("/areas-of-interest", response_model=List[AutocompleteItem])
@@ -103,5 +133,8 @@ def autocomplete_areas_of_interest(
         if query_filtered.count() > 0:
             query = query_filtered
             
-    areas = query.distinct().limit(10).all()
+    areas = query.distinct().order_by(
+        case((AreaOfInterest.name.ilike(f"{q}%"), 0), else_=1),
+        AreaOfInterest.name
+    ).limit(10).all()
     return [AutocompleteItem(id=a.id, name=a.name) for a in areas]
