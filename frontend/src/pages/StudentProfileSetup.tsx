@@ -1610,12 +1610,8 @@ export function StudentProfileSetup() {
         work_mode: formData.work_mode.join(", ")
       };
 
-      try {
-        await api.post("/students/me", profilePayload);
-      } catch {
-        // Profile might already exist, try PUT
-        await api.put("/students/me", profilePayload);
-      }
+      // Use the new upsert endpoint (POST /students/me)
+      await api.post("/students/me", profilePayload);
 
       // 2. Save Resume
       const resumePayload = {

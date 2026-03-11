@@ -12,6 +12,8 @@ interface Application {
   hours_worked?: number;
   policy_used?: string;
   is_credit_requested?: boolean;
+  credit_request_status?: string;
+  certificate_status?: string;
   internship: {
     id: number;
     title: string;
@@ -28,7 +30,7 @@ export function StudentApplications() {
   const toast = useToast();
   const [applications, setApplications] = useState<Application[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'ongoing' | 'creditRequested' | 'completed' | 'pending' | 'rejected'>('ongoing');
+  const [activeTab, setActiveTab] = useState<'ongoing' | 'completed' | 'pending' | 'rejected'>('ongoing');
   const [showCreditModal, setShowCreditModal] = useState(false);
   const [selectedApp, setSelectedApp] = useState<Application | null>(null);
   const [requestLoading, setRequestLoading] = useState(false);
@@ -44,9 +46,8 @@ export function StudentApplications() {
       
       // Auto-switch to first available section if ongoing is empty
       const categorized = {
-        creditRequested: appsRes.filter(app => app.is_credit_requested),
         ongoing: appsRes.filter(app => app.status === 'accepted' && !app.is_credit_requested),
-        completed: appsRes.filter(app => app.status === 'completed' && !app.is_credit_requested),
+        completed: appsRes.filter(app => app.status === 'completed' || app.is_credit_requested),
         pending: appsRes.filter(app => (app.status === 'pending' || app.status === 'shortlisted') && !app.is_credit_requested),
         rejected: appsRes.filter(app => app.status === 'rejected' && !app.is_credit_requested)
       };
@@ -54,7 +55,6 @@ export function StudentApplications() {
       if (categorized.ongoing.length === 0) {
         if (categorized.pending.length > 0) setActiveTab('pending');
         else if (categorized.completed.length > 0) setActiveTab('completed');
-        else if (categorized.creditRequested.length > 0) setActiveTab('creditRequested');
         else if (categorized.rejected.length > 0) setActiveTab('rejected');
       }
     } catch (err) {
@@ -107,7 +107,7 @@ export function StudentApplications() {
   const categorizedApps = {
     creditRequested: applications.filter(app => app.is_credit_requested),
     ongoing: applications.filter(app => app.status === 'accepted' && !app.is_credit_requested),
-    completed: applications.filter(app => app.status === 'completed' && !app.is_credit_requested),
+    completed: applications.filter(app => app.status === 'completed' || app.is_credit_requested),
     pending: applications.filter(app => (app.status === 'pending' || app.status === 'shortlisted') && !app.is_credit_requested),
     rejected: applications.filter(app => app.status === 'rejected' && !app.is_credit_requested)
   };
@@ -140,8 +140,29 @@ export function StudentApplications() {
               {app.status}
             </span>
             {app.is_credit_requested && (
-              <span className="px-2.5 py-0.5 text-xs font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">
-                Credit Requested
+              <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full border 
+                ${app.credit_request_status === 'approved' 
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                  : app.credit_request_status === 'rejected'
+                  ? 'bg-red-50 text-red-700 border-red-200'
+                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                }`}
+              >
+                {app.credit_request_status === 'approved' ? 'Credits Approved' : 
+                 app.credit_request_status === 'rejected' ? 'Credits Rejected' : 'Credit Requested'}
+              </span>
+            )}
+            {app.certificate_status && (
+              <span className={`px-2.5 py-0.5 text-xs font-semibold rounded-full border 
+                ${app.certificate_status === 'VERIFIED' 
+                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200' 
+                  : app.certificate_status === 'FLAGGED'
+                  ? 'bg-red-50 text-red-700 border-red-200'
+                  : 'bg-amber-50 text-amber-700 border-amber-200'
+                }`}
+              >
+                {app.certificate_status === 'VERIFIED' ? 'Certificate Verified' : 
+                 app.certificate_status === 'FLAGGED' ? 'Certificate Flagged' : 'Certificate Submitted'}
               </span>
             )}
           </div>
@@ -170,6 +191,17 @@ export function StudentApplications() {
               <div className="px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg border border-emerald-100 text-sm font-medium">
                 Ongoing
               </div>
+            )}
+            {app.status === 'completed' && !app.is_credit_requested && (
+              <button 
+                className="px-4 py-2 text-sm font-bold bg-brand-600 text-white hover:bg-brand-700 rounded-lg transition-colors shadow-sm shadow-brand-500/20"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  navigate(`/student/certificate-upload?application_id=${app.id}`);
+                }}
+              >
+                Upload Certificate & Request Credit
+              </button>
             )}
             <button 
               className="px-4 py-2 text-sm font-semibold text-brand-600 hover:bg-brand-50 rounded-lg transition-colors"
@@ -240,12 +272,6 @@ export function StudentApplications() {
               colorClass="text-purple-600"
             />
             <TabButton 
-              id="creditRequested" 
-              label="Credits" 
-              count={categorizedApps.creditRequested.length} 
-              colorClass="text-indigo-600"
-            />
-            <TabButton 
               id="rejected" 
               label="Rejected" 
               count={categorizedApps.rejected.length} 
@@ -281,16 +307,6 @@ export function StudentApplications() {
               ) : (
                 <div className="py-20 text-center">
                   <p className="text-slate-400 font-medium">No completed internships</p>
-                </div>
-              )
-            )}
-
-            {activeTab === 'creditRequested' && (
-              categorizedApps.creditRequested.length > 0 ? (
-                categorizedApps.creditRequested.map(app => <ApplicationCard key={app.id} app={app} />)
-              ) : (
-                <div className="py-20 text-center">
-                  <p className="text-slate-400 font-medium">No credit requests found</p>
                 </div>
               )
             )}

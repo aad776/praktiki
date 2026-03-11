@@ -520,7 +520,6 @@ export const EmployerProfileSetup = () => {
                     >
                       Submit OTP
                     </button>
-                    <span className="text-sm text-gray-500">Use 1234</span>
                   </div>
                 )}
                 {formData.isEmailVerified && (
@@ -579,7 +578,6 @@ export const EmployerProfileSetup = () => {
                     >
                       Submit OTP
                     </button>
-                    <span className="text-sm text-gray-500">Use 1234</span>
                   </div>
                 )}
                 {formData.isMobileVerified && (

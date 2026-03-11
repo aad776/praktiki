@@ -121,6 +121,8 @@ def list_credit_requests(
         (User.email.ilike(f"%@{institute_email_domain}%") if institute_email_domain else False)
     ).all()
 
+    from models.certificate import Certificate
+
     result = []
     for req in requests:
         student = db.query(StudentProfile).options(joinedload(StudentProfile.user)).filter(StudentProfile.id == req.student_id).first()
@@ -130,6 +132,22 @@ def list_credit_requests(
         elif student:
             student_name = f"{student.first_name} {student.last_name}" if student.first_name else f"Student #{req.student_id}"
             
+        # Get certificate info if it exists for this application
+        cert = db.query(Certificate).filter(Certificate.application_id == req.application_id).first()
+        cert_info = None
+        if cert:
+            cert_info = {
+                "id": cert.id,
+                "file_url": cert.file_url,
+                "internship_title": cert.internship_title,
+                "organization_name": cert.organization_name,
+                "duration_in_months": cert.duration_in_months,
+                "total_hours": cert.total_hours,
+                "performance_remark": cert.performance_remark,
+                "authenticity_score": cert.authenticity_score,
+                "verification_status": cert.verification_status
+            }
+
         result.append({
             "id": req.id,
             "student_id": req.student_id,
@@ -140,7 +158,8 @@ def list_credit_requests(
             "policy_type": req.policy_type,
             "status": req.status,
             "created_at": req.created_at.isoformat() if req.created_at else None,
-            "is_pushed_to_abc": req.is_pushed_to_abc
+            "is_pushed_to_abc": req.is_pushed_to_abc,
+            "certificate": cert_info
         })
     return result
 

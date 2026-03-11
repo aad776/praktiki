@@ -18,6 +18,12 @@ class Settings(BaseSettings):
     SMTP_PASSWORD: Optional[str] = None
     SENDER_EMAIL: str = "noreply@praktiki.com"
 
+    # Google OAuth
+    GOOGLE_CLIENT_ID: Optional[str] = None
+    
+    # OpenAI
+    OPENAI_API_KEY: Optional[str] = None
+
     # Optional settings for future use
     REDIS_URL: Optional[str] = None
     AWS_S3_BUCKET: Optional[str] = None

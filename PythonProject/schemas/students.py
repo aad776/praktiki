@@ -30,6 +30,11 @@ class LoginRequest(BaseModel):
     apaar_id: Optional[str] = Field(None, pattern=r"^\d{12}$", description="12 digit APAAR ID")
 
 
+class GoogleLoginRequest(BaseModel):
+    credential: str
+    role: str = "student"
+
+
 
 class StudentProfileUpdate(BaseModel):
     first_name: Optional[str] = None
@@ -93,6 +98,7 @@ class StudentProfileOut(BaseModel):
     
     looking_for: Optional[str]
     work_mode: Optional[str]
+    certificate_url: Optional[str] = None
     
     # We might want to include resume id if it exists
     # resume: Optional[StudentResumeOut] 

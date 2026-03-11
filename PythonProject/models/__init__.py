@@ -9,6 +9,7 @@ from .student_skills import StudentSkill
 from .internship_skills import InternshipSkill
 from .application import Application
 from .credit import CreditRequest, AuditLog
+from .certificate import Certificate
 from .college import College
 from .course import Course
 from .stream import Stream, Specialization
@@ -26,6 +27,7 @@ __all__ = [
     "InternshipSkill",
     "Application",
     "CreditRequest",
+    "Certificate",
     "AuditLog",
     "College",
     "Course",

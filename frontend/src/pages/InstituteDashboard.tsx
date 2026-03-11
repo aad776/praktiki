@@ -45,6 +45,17 @@ interface CreditRequest {
   status: string;
   created_at: string;
   is_pushed_to_abc?: boolean;
+  certificate?: {
+    id: number;
+    file_url: string;
+    internship_title: string;
+    organization_name: string;
+    duration_in_months: number;
+    total_hours: number;
+    performance_remark: string;
+    authenticity_score: number;
+    verification_status: string;
+  };
 }
 
 interface DashboardStats {
@@ -76,7 +87,7 @@ export function InstituteDashboard() {
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [pageLoading, setPageLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'students' | 'completed' | 'pending' | 'credits' | 'audit' | 'status'>('students');
+  const [activeTab, setActiveTab] = useState<'students' | 'completed' | 'pending' | 'credits' | 'external' | 'audit' | 'status'>('students');
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [expandedStudentId, setExpandedStudentId] = useState<number | null>(null);
@@ -371,6 +382,21 @@ export function InstituteDashboard() {
           {pendingInternships.length > 0 && (
             <span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-xs">
               {pendingInternships.length}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => setActiveTab('external')}
+          className={`px-6 py-3 text-sm font-medium border-b-2 transition-colors flex items-center gap-2
+            ${activeTab === 'external'
+              ? 'border-slate-900 text-slate-900'
+              : 'border-transparent text-slate-500 hover:text-slate-700'
+            }`}
+        >
+          External Credits
+          {creditRequests.filter(r => r.certificate && r.status === 'pending').length > 0 && (
+            <span className="bg-brand-100 text-brand-700 px-2 py-0.5 rounded-full text-xs">
+              {creditRequests.filter(r => r.certificate && r.status === 'pending').length}
             </span>
           )}
         </button>
@@ -805,6 +831,125 @@ export function InstituteDashboard() {
               </tbody>
             </table>
           </div>
+        </section>
+      ) : activeTab === 'external' ? (
+        <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="p-6 border-b border-slate-200">
+            <h2 className="text-lg font-semibold text-slate-900">External Certificate Credit Requests</h2>
+          </div>
+
+          {creditRequests.filter(r => r.certificate).length === 0 ? (
+            <div className="p-12 text-center">
+              <p className="text-slate-500">No external certificate credit requests found.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Student</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Internship & Org</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Verification</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Credits</th>
+                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Certificate</th>
+                    <th className="text-right px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {creditRequests.filter(r => r.certificate).map((request) => (
+                    <tr key={request.id} className="hover:bg-slate-50">
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-bold text-slate-900">{request.student_name}</div>
+                        <div className="text-[10px] text-slate-500 uppercase">ID: #{request.student_id}</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-slate-900">{request.certificate?.internship_title}</div>
+                        <div className="text-xs text-slate-500">{request.certificate?.organization_name}</div>
+                        <div className="text-[10px] text-slate-400 mt-1">
+                          {request.certificate?.duration_in_months} Months • {request.certificate?.total_hours} Hours
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs font-bold text-slate-700">Score:</span>
+                            <span className={`text-xs font-bold ${
+                              (request.certificate?.authenticity_score || 0) > 0.8 ? 'text-emerald-600' : 
+                              (request.certificate?.authenticity_score || 0) > 0.5 ? 'text-amber-600' : 'text-red-600'
+                            }`}>
+                              {((request.certificate?.authenticity_score || 0) * 100).toFixed(0)}%
+                            </span>
+                          </div>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold w-fit ${
+                            request.certificate?.verification_status === 'VERIFIED' ? 'bg-emerald-100 text-emerald-700' :
+                            request.certificate?.verification_status === 'FLAGGED' ? 'bg-red-100 text-red-700' :
+                            'bg-amber-100 text-amber-700'
+                          }`}>
+                            {request.certificate?.verification_status}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-bold text-brand-600">{request.credits_calculated} Credits</div>
+                        <div className="text-[10px] text-slate-500">{request.policy_type} Policy</div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <a 
+                          href={`${api.defaults.baseURL}/students/resume/download/${request.certificate?.file_url.split(/[\\/]/).pop()}`}
+                          target="_blank" 
+                          rel="noreferrer"
+                          className="flex items-center gap-1.5 text-xs font-bold text-brand-600 hover:text-brand-700 underline underline-offset-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                          </svg>
+                          VIEW PDF
+                        </a>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {request.status === 'pending' ? (
+                          <div className="flex justify-end gap-2">
+                            <button
+                              onClick={() => handleApprove(request.id)}
+                              disabled={actionLoading === request.id}
+                              className="px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-xs font-bold hover:bg-emerald-700 transition-colors flex items-center gap-1 shadow-sm shadow-emerald-500/20"
+                            >
+                              {actionLoading === request.id ? <ButtonSpinner size="xs" /> : (
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                </svg>
+                              )}
+                              APPROVE
+                            </button>
+                            <button
+                              onClick={() => handleReject(request.id)}
+                              disabled={actionLoading === request.id}
+                              className="px-3 py-1.5 bg-red-50 text-red-600 border border-red-200 rounded-lg text-xs font-bold hover:bg-red-100 transition-colors flex items-center gap-1"
+                            >
+                              {actionLoading === request.id ? <ButtonSpinner size="xs" /> : (
+                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              )}
+                              REJECT
+                            </button>
+                          </div>
+                        ) : (
+                          <span className={`px-2.5 py-1 rounded-lg text-xs font-bold uppercase ${
+                            request.status === 'approved' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' :
+                            request.status === 'rejected' ? 'bg-red-50 text-red-700 border border-red-100' :
+                            'bg-slate-100 text-slate-600'
+                          }`}>
+                            {request.status}
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </section>
       ) : activeTab === 'credits' ? (
         <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">

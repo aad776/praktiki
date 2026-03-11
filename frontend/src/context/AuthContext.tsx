@@ -136,16 +136,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (role) localStorage.setItem(config.auth.roleKey, role);
     setAuthToken(token);
 
-    // Fetch user profile
-    const user = await fetchUserProfile(role);
-
-    setState({
+    // Set role immediately in state so navigation can happen
+    setState(prev => ({
+      ...prev,
       token,
-      user,
       role,
       isAuthenticated: true,
       isLoading: false,
-    });
+    }));
+
+    // Fetch user profile in background
+    const user = await fetchUserProfile(role);
+
+    setState(prev => ({
+      ...prev,
+      user,
+    }));
   }, [fetchUserProfile]);
 
   // Logout function

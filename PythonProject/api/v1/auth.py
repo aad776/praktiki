@@ -14,7 +14,13 @@ import secrets
 from datetime import datetime, timedelta
 from pydantic import BaseModel
 from utils.dependencies import get_current_user
-from sqlalchemy import and_
+from sqlalchemy import and_, func
+from models.notification import Notification
+from utils.email import send_application_accepted_email, send_otp_email, send_password_reset_email
+from google.oauth2 import id_token
+from google.auth.transport import requests
+from utils.settings import settings
+from schemas.students import GoogleLoginRequest
 
 router = APIRouter()
 
@@ -97,8 +103,8 @@ def forgot_password(email: str, db: Session = Depends(get_db)):
     user.verification_token_expires = reset_token_expires
     db.commit()
     
-    # In a real application, you would send an email with the reset link
-    print(f"Password reset link for {user.email}: http://localhost:8000/auth/reset-password?token={reset_token}")
+    # Send actual email
+    send_password_reset_email(user.email, reset_token)
     
     return {"message": "If the email exists, a password reset link has been sent"}
 
@@ -169,6 +175,86 @@ def login(
     }
 
 
+@router.post("/google")
+def google_login(
+    req: GoogleLoginRequest,
+    db: Session = Depends(get_db)
+):
+    try:
+        # Verify the ID token from Google
+        # We need the client ID from Google Cloud Console
+        if not settings.GOOGLE_CLIENT_ID:
+             # For development, if client id is missing, we might want to throw error
+             # but let's assume it will be provided in .env
+             print("WARNING: GOOGLE_CLIENT_ID not set in .env")
+             # raise HTTPException(status_code=500, detail="Google Client ID not configured")
+
+        idinfo = id_token.verify_oauth2_token(
+            req.credential, 
+            requests.Request(), 
+            settings.GOOGLE_CLIENT_ID
+        )
+
+        # ID token is valid. Get user's Google Account ID from the 'sub' field.
+        email = idinfo['email']
+        name = idinfo.get('name', '')
+        
+        # Check if user exists
+        user = db.query(User).filter(User.email == email).first()
+        is_new_user = False
+        
+        if not user:
+            is_new_user = True
+            # Create new user if doesn't exist
+            # For social login, we can generate a random password
+            random_password = secrets.token_urlsafe(16)
+            user = User(
+                email=email,
+                full_name=name,
+                hashed_password=get_password_hash(random_password),
+                role=req.role,
+                is_email_verified=True # Google verified email
+            )
+            db.add(user)
+            db.commit()
+            db.refresh(user)
+            
+            # Create profile
+            if user.role == "student":
+                new_profile = StudentProfile(
+                    user_id=user.id,
+                    full_name=name,
+                    is_apaar_verified=False
+                )
+                db.add(new_profile)
+                db.commit()
+            elif user.role == "employer":
+                new_employer = EmployerProfile(
+                    user_id=user.id,
+                    company_name=f"{name}'s Company",
+                    contact_number=""
+                )
+                db.add(new_employer)
+                db.commit()
+        
+        # Issue JWT
+        access_token = create_access_token(data={"sub": str(user.id), "role": user.role})
+        return {
+            "access_token": access_token,
+            "token_type": "bearer",
+            "role": user.role,
+            "is_email_verified": user.is_email_verified,
+            "is_phone_verified": user.is_phone_verified,
+            "is_new_user": is_new_user
+        }
+        
+    except ValueError as e:
+        # Invalid token
+        raise HTTPException(status_code=401, detail=f"Invalid Google token: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 # Employer Signup logic same rahega
 @router.post("/signup/employer", response_model=UserOut)
 def signup_employer(user_in: EmployerCreate, db: Session = Depends(get_db)):
@@ -214,10 +300,10 @@ def request_otp(
     if req.type not in ("email", "phone"):
         raise HTTPException(status_code=400, detail="Invalid OTP type")
     
-    # We can allow all roles to verify if needed, but the requirement focuses on employers
-    
-    code = "1234" # HARDCODED FOR DEMO/TESTING
-    expires = datetime.utcnow() + timedelta(minutes=15)
+    # Generate random 6-digit OTP
+    import random
+    code = "".join([str(random.randint(0, 9)) for _ in range(6)])
+    expires = datetime.utcnow() + timedelta(minutes=2) # Valid for 2 minutes as requested
     
     if req.type == "phone":
         if not current_user.phone_number:
@@ -232,13 +318,20 @@ def request_otp(
         current_user.phone_otp_expires = expires
         db.commit()
         print(f"DEBUG: Phone OTP for {current_user.phone_number}: {code}")
-        return {"message": "OTP sent to phone", "code": code}
+        return {"message": "OTP sent to phone"}
     else:
         current_user.email_otp_code = code
         current_user.email_otp_expires = expires
         db.commit()
         print(f"DEBUG: Email OTP for {current_user.email}: {code}")
-        return {"message": "OTP sent to email", "code": code}
+        
+        # Send actual email if SMTP is configured
+        sent = send_otp_email(current_user.email, code)
+        if not sent:
+             print(f"ERROR: Failed to send OTP email to {current_user.email}")
+             # In production, we might want to raise an error, but for now we'll allow the UI to see it in logs
+             
+        return {"message": "OTP sent to email"} 
 
 @router.post("/verify-otp")
 def verify_otp(

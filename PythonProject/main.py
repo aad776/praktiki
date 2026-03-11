@@ -16,6 +16,7 @@ from api.v1.institutes import router as institute_router
 from api.v1.autocomplete import router as autocomplete_router
 from api.v1.credits import router as credits_router
 from api.v1.notifications import router as notifications_router
+from api.v1.certificates import router as certificates_router
 
 from fastapi.staticfiles import StaticFiles
 import os
@@ -67,6 +68,7 @@ app.include_router(institute_router, prefix="/institutes", tags=["Institutes"])
 app.include_router(autocomplete_router, prefix="/autocomplete", tags=["Autocomplete"])
 app.include_router(credits_router, prefix="/credits", tags=["Credits"])
 app.include_router(notifications_router, prefix="/notifications", tags=["Notifications"])
+app.include_router(certificates_router, prefix="/certificates", tags=["Certificates"])
 
 @app.on_event("startup")
 def ensure_optional_columns():
@@ -145,9 +147,9 @@ def ensure_optional_columns():
         ("is_phone_verified", "BOOLEAN DEFAULT FALSE"),
         ("phone_number", "VARCHAR(255)"),
         ("email_otp_code", "VARCHAR(255)"),
-        ("email_otp_expires", "TIMESTAMP"),
+        ("email_otp_expires", "TIMESTAMP WITH TIME ZONE"),
         ("phone_otp_code", "VARCHAR(255)"),
-        ("phone_otp_expires", "TIMESTAMP"),
+        ("phone_otp_expires", "TIMESTAMP WITH TIME ZONE"),
         ("apaar_id", "VARCHAR(12)"),
         ("is_apaar_verified", "BOOLEAN DEFAULT FALSE")
     ]
@@ -165,6 +167,23 @@ def ensure_optional_columns():
     for name, sqltype in resume_cols:
         if not has_column("student_resumes", name):
             add_column_safely("student_resumes", name, sqltype)
+
+    # student_profiles
+    student_profile_cols = [
+        ("certificate_url", "VARCHAR(500)"),
+        ("apaar_id", "VARCHAR(12)"),
+        ("is_apaar_verified", "BOOLEAN DEFAULT FALSE"),
+        ("full_name", "VARCHAR(255)"),
+        ("cgpa", "VARCHAR(50)"),
+        ("skills", "TEXT"),
+        ("interests", "TEXT"),
+        ("projects", "TEXT"),
+        ("looking_for", "VARCHAR(255)"),
+        ("work_mode", "VARCHAR(255)")
+    ]
+    for name, sqltype in student_profile_cols:
+        if not has_column("student_profiles", name):
+            add_column_safely("student_profiles", name, sqltype)
 
     # notifications
     if not has_column("notifications", "is_read"):

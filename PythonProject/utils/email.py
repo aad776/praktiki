@@ -9,7 +9,7 @@ SMTP_SERVER = settings.SMTP_SERVER
 SMTP_PORT = settings.SMTP_PORT
 SMTP_USERNAME = settings.SMTP_USERNAME
 SMTP_PASSWORD = settings.SMTP_PASSWORD
-SENDER_EMAIL = settings.SENDER_EMAIL
+SENDER_EMAIL = settings.SMTP_USERNAME or settings.SENDER_EMAIL
 
 def send_email(to_email: str, subject: str, body: str):
     """
@@ -60,3 +60,41 @@ Best regards,
 The Praktiki Team
     """
     return send_email(student_email, subject, body)
+
+def send_otp_email(to_email: str, otp_code: str):
+    subject = "Your Verification OTP for Praktiki"
+    body = f"""
+Hello,
+
+Your verification OTP is: {otp_code}
+
+This OTP is valid for 2 minutes. Please do not share it with anyone.
+
+If you did not request this OTP, please ignore this email.
+
+Best regards,
+The Praktiki Team
+    """
+    return send_email(to_email, subject, body)
+
+def send_password_reset_email(to_email: str, token: str):
+    # Frontend URL for reset password
+    reset_url = f"http://localhost:5173/reset-password?token={token}"
+    
+    subject = "Reset Your Praktiki Password"
+    body = f"""
+Hello,
+
+You requested a password reset for your Praktiki account. 
+
+Please click the link below to reset your password:
+{reset_url}
+
+This link will expire in 1 hour.
+
+If you did not request this, please ignore this email.
+
+Best regards,
+The Praktiki Team
+    """
+    return send_email(to_email, subject, body)

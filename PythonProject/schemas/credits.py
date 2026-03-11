@@ -10,6 +10,7 @@ class CreditRequestCreate(BaseModel):
 class CreditRequestOut(BaseModel):
     id: int
     student_id: int
+    student_name: Optional[str] = None
     application_id: int
     hours: int
     credits_calculated: float
@@ -17,6 +18,7 @@ class CreditRequestOut(BaseModel):
     status: str
     created_at: datetime
     is_pushed_to_abc: Optional[bool] = False
+    certificate: Optional[dict] = None
 
     class Config:
         from_attributes = True

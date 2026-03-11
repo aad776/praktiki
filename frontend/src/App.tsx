@@ -11,6 +11,7 @@ import { UnauthorizedPage } from './pages/UnauthorizedPage';
 import { StudentDashboard } from './pages/StudentDashboard';
 import { StudentApplications } from './pages/StudentApplications';
 import { StudentProfileSetup } from './pages/StudentProfileSetup';
+import { StudentCertificateUpload } from './pages/StudentCertificateUpload';
 import { EmployerDashboard } from './pages/EmployerDashboard';
 import { EmployerInternshipDetails } from './pages/EmployerInternshipDetails';
 import { EmployerProfileSetup } from './pages/EmployerProfileSetup';
@@ -69,6 +70,14 @@ export function App() {
           element={
             <ProtectedRoute allowedRoles={['student']}>
               <StudentProfileSetup />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/student/certificate-upload"
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <StudentCertificateUpload />
             </ProtectedRoute>
           }
         />

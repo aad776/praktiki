@@ -89,62 +89,24 @@ def get_my_profile(
     return profile
 
 @router.post("/me", response_model=StudentProfileOut)
-def create_my_profile(
+def update_or_create_my_profile(
         profile_data: StudentProfileUpdate,
         current_user: User = Depends(get_current_user),
         db: Session = Depends(get_db)
 ):
+    """Upsert profile: Create if not exists, otherwise update."""
     if current_user.role != "student":
-        raise HTTPException(status_code=403, detail="Only students can create profile")
-
-    # Check if profile already exists
-    existing_profile = db.query(StudentProfile).filter(StudentProfile.user_id == current_user.id).first()
-    if existing_profile:
-        raise HTTPException(status_code=400, detail="Profile already exists")
-
-    # Create new profile
-    new_profile = StudentProfile(
-        user_id=current_user.id,
-        **profile_data.dict(exclude_unset=True)
-    )
-
-    # Automatically link to institute if university_name matches a registered institute
-    if new_profile.university_name:
-        from models.institute_profile import InstituteProfile
-        # Use case-insensitive matching with ilike
-        institute = db.query(InstituteProfile).filter(
-            InstituteProfile.institute_name.ilike(f"%{new_profile.university_name}%")
-        ).first()
-        if institute:
-            new_profile.institute_id = institute.id
-
-    db.add(new_profile)
-    db.commit()
-    db.refresh(new_profile)
-    return new_profile
-
-# --- UPDATE PROFILE (Internshala Style + APAAR Check) ---
-@router.put("/me", response_model=StudentProfileOut)
-def update_my_profile(
-        profile_data: StudentProfileUpdate,
-        current_user: User = Depends(get_current_user),
-        db: Session = Depends(get_db)
-):
-    if current_user.role != "student":
-        raise HTTPException(status_code=403, detail="Only students can update profile")
+        raise HTTPException(status_code=403, detail="Only students can manage profile")
 
     profile = db.query(StudentProfile).filter(StudentProfile.user_id == current_user.id).first()
 
-    # --- SECURITY CHECK --- Only check if profile exists, not if verified
     if not profile:
-        raise HTTPException(
-            status_code=404,
-            detail="Student profile not found"
-        )
-
+        # Create new profile
+        profile = StudentProfile(user_id=current_user.id)
+        db.add(profile)
+    
     # Handle APAAR ID update separately - check for duplicates
     if profile_data.apaar_id:
-        # Check if this APAAR ID is already used by another user
         existing_user = db.query(User).filter(
             User.apaar_id == profile_data.apaar_id,
             User.id != current_user.id
@@ -152,20 +114,18 @@ def update_my_profile(
         if existing_user:
             raise HTTPException(status_code=400, detail="This APAAR ID is already registered to another user")
         
-        # Update APAAR ID on User model as well
         current_user.apaar_id = profile_data.apaar_id
-        current_user.is_apaar_verified = True  # Mock verification
-        profile.is_apaar_verified = True       # Sync to profile
+        current_user.is_apaar_verified = True
+        profile.is_apaar_verified = True
         db.add(current_user)
 
-    # Update Internshala fields (university, cgpa, phone etc.)
+    # Update fields
     for var, value in profile_data.dict(exclude_unset=True).items():
         setattr(profile, var, value)
 
-    # Automatically link to institute if university_name matches a registered institute
+    # Automatically link to institute
     if profile.university_name:
         from models.institute_profile import InstituteProfile
-        # Use case-insensitive matching with ilike
         institute = db.query(InstituteProfile).filter(
             InstituteProfile.institute_name.ilike(f"%{profile.university_name}%")
         ).first()
@@ -175,6 +135,15 @@ def update_my_profile(
     db.commit()
     db.refresh(profile)
     return profile
+
+# Keep PUT for backward compatibility but point to the same logic
+@router.put("/me", response_model=StudentProfileOut)
+def update_my_profile_put(
+        profile_data: StudentProfileUpdate,
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    return update_or_create_my_profile(profile_data, current_user, db)
 
 @router.put("/me/resume", response_model=StudentResumeOut)
 def update_my_resume(
@@ -200,6 +169,36 @@ def update_my_resume(
     db.commit()
     db.refresh(resume)
     return resume
+
+@router.post("/me/certificate")
+def upload_certificate(
+        file: UploadFile = File(...),
+        current_user: User = Depends(get_current_user),
+        db: Session = Depends(get_db)
+):
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Only students can upload certificates")
+
+    profile = db.query(StudentProfile).filter(StudentProfile.user_id == current_user.id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Student profile not found")
+
+    # Securely save the file
+    upload_dir = "secure_uploads/certificates"
+    os.makedirs(upload_dir, exist_ok=True)
+    file_extension = os.path.splitext(file.filename)[1]
+    file_name = f"{current_user.id}_{uuid.uuid4().hex}{file_extension}"
+    file_path = os.path.join(upload_dir, file_name)
+
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+
+    # For now, let's just store the path in the student's profile
+    # In a real app, we'd have a separate table for certificates
+    profile.certificate_url = file_path
+    db.commit()
+
+    return {"message": "Certificate uploaded successfully", "file_path": file_path}
 
 @router.get("/me/resume", response_model=StudentResumeOut)
 def get_my_resume(
@@ -477,6 +476,9 @@ def apply_for_internship(
 
     return new_app
 
+from models.credit import CreditRequest
+from models.certificate import Certificate
+
 @router.get("/my-applications")
 def get_my_applications(
         current_user: User = Depends(get_current_user),
@@ -496,11 +498,20 @@ def get_my_applications(
             # Get employer details for company name
             employer = db.query(EmployerProfile).filter(EmployerProfile.id == internship.employer_id).first()
             
+            # Get credit request if exists
+            credit_request = db.query(CreditRequest).filter(CreditRequest.application_id == app.id).first()
+            
+            # Get certificate if exists
+            certificate = db.query(Certificate).filter(Certificate.application_id == app.id).first()
+            
             result.append({
                 "id": app.id,
                 "internship_id": app.internship_id,
                 "status": app.status,
                 "applied_at": app.applied_at,
+                "is_credit_requested": credit_request is not None,
+                "credit_request_status": credit_request.status if credit_request else None,
+                "certificate_status": certificate.verification_status if certificate else None,
                 "internship": {
                     "id": internship.id,
                     "title": internship.title,

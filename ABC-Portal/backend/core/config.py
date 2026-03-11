@@ -13,6 +13,6 @@ class Settings:
     ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "1440"))
     
     # Use the same database as main portal for integration
-    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///../PythonProject/test.db")
+    DATABASE_URL: str = os.getenv("DATABASE_URL", "sqlite:///../../PythonProject/sql_app.db")
 
 settings = Settings()

@@ -40,6 +40,8 @@ class StudentProfile(Base):
     looking_for = Column(String, nullable=True) # Jobs, Internships
     work_mode = Column(String, nullable=True) # In-office, WFH
 
+    certificate_url = Column(String, nullable=True)
+
     # Relationships
     user = relationship("User", back_populates="student_profile")
     institute = relationship("InstituteProfile", back_populates="students")
