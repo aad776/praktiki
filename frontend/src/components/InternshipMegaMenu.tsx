@@ -129,7 +129,7 @@ export function InternshipMegaMenu() {
                                     {getItems().map((item, idx) => (
                                         <Link
                                             key={idx}
-                                            to={activeCategory === 'locations' 
+                                            to={activeCategory === 'locations'
                                                 ? `/student?location=${encodeURIComponent(item)}`
                                                 : `/student?search=${encodeURIComponent(item)}`
                                             }

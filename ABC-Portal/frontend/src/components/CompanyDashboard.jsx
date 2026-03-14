@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { companyService } from '../services/companyService';
 import { authService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
-import { Users, CheckCircle, LogOut, XCircle, ChevronDown, ChevronUp, Calendar, Clock, BookOpen, Bell } from 'lucide-react';
+import { Users, CheckCircle, LogOut, XCircle, ChevronDown, ChevronUp, Calendar, Clock, BookOpen, Bell, ArrowLeft } from 'lucide-react';
 
 const REJECTION_REASONS = [
   "Not suitable for this role",
@@ -160,16 +160,26 @@ const CompanyDashboard = () => {
   const completedInternships = applications.filter(a => a.status === 'completed' || a.status === 'institute_review').length;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 w-full">
       {/* Header with Logout */}
-      <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
-        <h2 className="text-2xl font-bold text-gray-800">Company Portal</h2>
-          <div className="flex items-center space-x-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          {/* Back Arrow - Only visible on Mobile */}
+          <button 
+            onClick={() => window.history.back()}
+            className="sm:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600"
+            aria-label="Go back"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Company Portal</h2>
+        </div>
+          <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
             {/* Notification Dropdown */}
             <div className="relative" ref={notifRef}>
               <button 
                 onClick={() => setNotifOpen(!notifOpen)}
-                className={`p-2 rounded-lg transition-colors relative ${notifOpen ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-100'}`}
+                className={`p-2.5 rounded-lg transition-colors relative ${notifOpen ? 'bg-blue-100 text-blue-700' : 'text-gray-500 hover:bg-gray-100'}`}
               >
                 <Bell size={24} />
                 {unreadCount > 0 && (
@@ -180,7 +190,7 @@ const CompanyDashboard = () => {
               </button>
 
               {notifOpen && (
-                <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
+                <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
                   <div className="p-4 border-b border-gray-50 flex justify-between items-center bg-gray-50/50">
                     <h3 className="font-bold text-gray-800">Notifications</h3>
                     {unreadCount > 0 && (
@@ -223,7 +233,7 @@ const CompanyDashboard = () => {
 
             <button 
               onClick={handleLogout}
-              className="flex items-center space-x-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors font-medium"
+              className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors font-medium text-sm sm:text-base"
             >
               <LogOut size={20} />
               <span>Logout</span>
@@ -231,15 +241,15 @@ const CompanyDashboard = () => {
           </div>
       </div>
 
-      <div className="flex space-x-4 border-b">
+      <div className="flex space-x-2 sm:space-x-4 border-b overflow-x-auto scrollbar-hide">
         <button 
-          className={`pb-2 ${activeTab === 'applications' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'}`}
+          className={`pb-2 px-3 sm:px-4 whitespace-nowrap text-sm sm:text-base ${activeTab === 'applications' ? 'border-b-2 border-blue-500 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
           onClick={() => setActiveTab('applications')}
         >
-          Enrolled / Applied Students
+          Enrolled Students
         </button>
         <button 
-          className={`pb-2 ${activeTab === 'post' ? 'border-b-2 border-blue-500 text-blue-600' : 'text-gray-500'}`}
+          className={`pb-2 px-3 sm:px-4 whitespace-nowrap text-sm sm:text-base ${activeTab === 'post' ? 'border-b-2 border-blue-500 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
           onClick={() => setActiveTab('post')}
         >
           Post Internship
@@ -271,7 +281,7 @@ const CompanyDashboard = () => {
       </div>
 
       {activeTab === 'post' && (
-        <div className="bg-white p-6 rounded-lg shadow max-w-2xl">
+        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 w-full">
           <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
             <BookOpen size={20} /> Post New Internship
           </h3>

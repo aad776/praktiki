@@ -1,5 +1,5 @@
 import { useEffect, useState, FormEvent } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 import { MapContainer, TileLayer, useMapEvents, Marker, Popup } from 'react-leaflet';
@@ -47,6 +47,11 @@ interface Internship {
   location: string;
   mode: string;
   duration_weeks: number;
+  description?: string;
+  stipend_amount?: number;
+  skills?: string;
+  deadline?: string;
+  start_date?: string;
 }
 
 interface Application {
@@ -87,6 +92,7 @@ interface RecommendedStudent {
 }
 
 export function EmployerDashboard() {
+  const navigate = useNavigate();
   const { token, logout, user } = useAuth();
   const [internships, setInternships] = useState<Internship[]>([]);
   const [applicationsByInternship, setApplicationsByInternship] = useState<
@@ -290,6 +296,18 @@ export function EmployerDashboard() {
 
   async function loadApplications(internshipId: number) {
     if (!token) return;
+
+    // If already loaded, scroll to it
+    if (applicationsByInternship[internshipId]) {
+      setTimeout(() => {
+        const element = document.getElementById(`applications-${internshipId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
+      return;
+    }
+
     setLoadingId(internshipId);
     setMessage(null);
     // Don't clear existing error here, as it might be from another operation
@@ -302,6 +320,14 @@ export function EmployerDashboard() {
       }));
       // Clear error if successful
       setError(null);
+
+      // Scroll to the applications section after it renders
+      setTimeout(() => {
+        const element = document.getElementById(`applications-${internshipId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }, 100);
     } catch (err: any) {
       console.error("Failed to load applications:", err);
       const errorMsg = err.message || "Could not load applications. Please try again later.";
@@ -403,24 +429,48 @@ export function EmployerDashboard() {
         <div className="absolute top-[40%] -left-[10%] w-[40%] h-[40%] rounded-full bg-blue-100/40 blur-3xl"></div>
       </div>
 
-      <div className="mx-auto max-w-7xl px-4 py-8 relative z-10 space-y-6">
-        <header className="flex items-center justify-between bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-sm">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900">Hi, {user?.full_name?.split(' ')[0] || 'Employer'}! 👋</h1>
-            <p className="text-sm text-slate-600">
-              Employer Dashboard • Post internships and manage applications
-            </p>
+      <div className="w-full px-2 sm:px-4 lg:px-6 py-4 sm:py-6 relative z-10 space-y-6 flex-grow">
+        <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-white/80 backdrop-blur-md p-4 sm:p-6 rounded-2xl border border-white/20 shadow-sm">
+          <div className="flex items-center gap-3">
+            {/* Back Arrow - Only visible on Mobile */}
+            <button 
+              onClick={() => navigate(-1)}
+              className="sm:hidden p-2 -ml-2 hover:bg-slate-100 rounded-full transition-colors text-slate-600"
+              aria-label="Go back"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="19" y1="12" x2="5" y2="12"></line>
+                <polyline points="12 19 5 12 12 5"></polyline>
+              </svg>
+            </button>
+            <div>
+              <h1 className="text-xl sm:text-2xl font-bold text-slate-900">Hi, {user?.full_name?.split(' ')[0] || 'Employer'}! 👋</h1>
+              <p className="text-xs sm:text-sm text-slate-600">
+                Employer Dashboard • Post internships and manage applications
+              </p>
+            </div>
           </div>
-          <button
-            onClick={() => {
-              logout();
-              window.location.href = "/";
-            }}
-            className="flex items-center gap-2 bg-rose-50 border border-rose-100 text-rose-600 px-4 py-2 rounded-xl font-medium hover:bg-rose-100 transition-all shadow-sm"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-            Logout
-          </button>
+          <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+            <button
+              onClick={() => {
+                setShowPostModal(true);
+              }}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 bg-teal-50 border border-teal-100 text-teal-700 px-4 sm:px-6 py-2 sm:py-3 rounded-xl font-bold text-base sm:text-lg hover:bg-teal-100 transition-all shadow-sm"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Post Job
+            </button>
+            <button
+              onClick={() => {
+                logout();
+                window.location.href = "/";
+              }}
+              className="flex-none flex items-center gap-2 bg-rose-50 border border-rose-100 text-rose-600 px-3 sm:px-4 py-2 rounded-xl font-medium text-sm sm:text-base hover:bg-rose-100 transition-all shadow-sm"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+              Logout
+            </button>
+          </div>
         </header>
 
         {!isVerified && (
@@ -481,120 +531,115 @@ export function EmployerDashboard() {
           </div>
         )}
 
-        <section className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-1">
-            <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-xl sticky top-6">
-              <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                <span className="bg-teal-100 text-teal-700 p-1.5 rounded-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                </span>
-                Post a Job
-              </h2>
-              <div className="text-center p-8 bg-slate-50 rounded-xl border border-slate-100">
-                <p className="text-slate-600 mb-6">Create a new internship listing to find the best talent.</p>
-                <button
-                  onClick={() => {
-                    setShowPostModal(true);
-                  }}
-                  className="inline-flex justify-center items-center rounded-xl px-6 py-3 text-sm font-bold shadow-lg transform transition-all w-full bg-gradient-to-r from-teal-600 to-teal-700 hover:from-teal-700 hover:to-teal-800 text-white shadow-teal-500/30 hover:shadow-teal-500/40 hover:-translate-y-0.5"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                  Post New Internship
-                </button>
+        <section className="space-y-6">
+          <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-sm min-h-[500px]">
+            <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
+              <span className="bg-blue-100 text-blue-700 p-1.5 rounded-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+              </span>
+              My Internships
+            </h2>
+
+            {internships.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+                <div className="bg-slate-100 p-4 rounded-full mb-3">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
+                </div>
+                <p>No internships posted yet.</p>
               </div>
-            </div>
-          </div>
-
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white/80 backdrop-blur-md p-6 rounded-2xl border border-white/20 shadow-sm min-h-[500px]">
-              <h2 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-                <span className="bg-blue-100 text-blue-700 p-1.5 rounded-lg">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-                </span>
-                My Internships
-              </h2>
-
-              <div className="overflow-x-auto">
-                <table className="min-w-full text-left text-xs mb-4">
-                  <thead>
-                    <tr className="text-slate-400 border-b border-slate-100">
-                      <th className="py-3 px-2 font-bold uppercase tracking-wider">Title</th>
-                      <th className="py-3 px-2 font-bold uppercase tracking-wider">Location</th>
-                      <th className="py-3 px-2 font-bold uppercase tracking-wider">Mode</th>
-                      <th className="py-3 px-2 font-bold uppercase tracking-wider">Duration</th>
-                      <th className="py-3 px-2 font-bold uppercase tracking-wider text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {internships.map((job) => (
-                      <tr key={job.id} className="group hover:bg-slate-50/50 transition-colors">
-                        <td className="py-4 px-2 font-bold text-slate-800">{job.title}</td>
-                        <td className="py-4 px-2 text-slate-600">{job.location}</td>
-                        <td className="py-4 px-2">
-                          <span className={`px-2 py-1 rounded text-[10px] font-bold ${job.mode === 'remote' ? 'bg-purple-100 text-purple-700' :
-                            job.mode === 'onsite' ? 'bg-orange-100 text-orange-700' :
+            ) : (
+              <div className="flex flex-col gap-6">
+                {internships.map((job) => (
+                  <div key={job.id} className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm hover:shadow-lg transition-all hover:border-blue-200 group">
+                    <div className="flex flex-col lg:flex-row gap-6">
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center justify-between gap-4 mb-4">
+                          <div className="flex items-center gap-4">
+                            <h3 className="font-bold text-2xl text-slate-900 leading-tight" title={job.title}>{job.title}</h3>
+                            <span className={`px-4 py-1.5 rounded-lg text-sm font-bold uppercase tracking-wider shrink-0 ${
+                              job.mode === 'remote' ? 'bg-purple-100 text-purple-700' :
+                              job.mode === 'onsite' ? 'bg-orange-100 text-orange-700' :
                               'bg-blue-100 text-blue-700'
                             }`}>
-                            {job.mode}
-                          </span>
-                        </td>
-                        <td className="py-4 px-2 text-slate-600">{job.duration_weeks} weeks</td>
-                        <td className="py-4 px-2 flex justify-end gap-2">
-                          <Link
-                            to={`/employer/internship/${job.id}`}
-                            className="inline-flex items-center rounded-lg bg-slate-50 border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-600 hover:bg-slate-100 transition-all shadow-sm"
-                            title="View Details"
-                          >
-                            View
-                          </Link>
-                          <button
-                            type="button"
-                            onClick={() => loadApplications(job.id)}
-                            className="inline-flex items-center rounded-lg bg-white border border-slate-200 px-3 py-1.5 text-xs font-bold text-slate-700 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
-                          >
-                            {loadingId === job.id ? "..." : "Applications"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => loadRecommendations(job.id)}
-                            className="inline-flex items-center rounded-lg bg-teal-50 border border-teal-200 px-3 py-1.5 text-xs font-bold text-teal-700 hover:bg-teal-100 transition-all shadow-sm"
-                          >
-                            {loadingRecsId === job.id ? "..." : "AI Matches ✨"}
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                    {internships.length === 0 && (
-                      <tr>
-                        <td colSpan={5} className="py-12 text-center text-slate-400">
-                          <div className="flex flex-col items-center gap-2">
-                            <div className="bg-slate-100 p-3 rounded-full">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-300"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
-                            </div>
-                            <p>No internships posted yet.</p>
+                              {job.mode}
+                            </span>
                           </div>
-                        </td>
-                      </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                          <div className="flex items-center gap-6 text-slate-600 text-base">
+                            <div className="flex items-center" title="Duration">
+                               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 shrink-0"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                               {job.duration_weeks} weeks
+                            </div>
+                            {job.stipend_amount !== undefined && (
+                              <div className="flex items-center font-medium text-slate-800" title="Stipend">
+                                <span className="mr-1 text-xl">₹</span>
+                                <span className="text-lg">{job.stipend_amount ? job.stipend_amount.toLocaleString() : 'Unpaid'}</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-start text-slate-600 text-base mb-4">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3 mt-1 shrink-0"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                          <span className="leading-relaxed">{job.location}</span>
+                        </div>
 
-            <div className="space-y-6 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
+                        {job.description && (
+                          <p className="text-base text-slate-600 mb-4 line-clamp-2 leading-relaxed">
+                            {job.description}
+                          </p>
+                        )}
+
+                        {job.skills && (
+                          <div className="flex flex-wrap gap-2.5">
+                            {job.skills.split(',').slice(0, 8).map((skill, i) => (
+                              <span key={i} className="px-3 py-1.5 bg-slate-100 text-slate-700 text-sm font-medium rounded-lg border border-slate-200">
+                                {skill.trim()}
+                              </span>
+                            ))}
+                            {job.skills.split(',').length > 8 && (
+                              <span className="px-3 py-1.5 bg-slate-50 text-slate-500 text-sm font-medium rounded-lg border border-slate-100">
+                                +{job.skills.split(',').length - 8}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex lg:flex-col gap-3 justify-center min-w-[200px] border-t lg:border-t-0 lg:border-l border-slate-100 pt-4 lg:pt-0 lg:pl-6">
+                        <Link
+                          to={`/employer/internship/${job.id}`}
+                          className="inline-flex justify-center items-center rounded-xl bg-slate-50 border border-slate-200 px-6 py-3 text-base font-bold text-slate-700 hover:bg-slate-100 hover:text-slate-900 transition-all w-full"
+                        >
+                          View Details
+                        </Link>
+                        <button
+                          onClick={() => loadApplications(job.id)}
+                          className="inline-flex justify-center items-center rounded-xl bg-blue-50 border border-blue-200 px-6 py-3 text-base font-bold text-blue-700 hover:bg-blue-100 transition-all w-full"
+                        >
+                          {loadingId === job.id ? "..." : "Applications"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-6 max-h-[800px] overflow-y-auto pr-2 custom-scrollbar">
               {/* Applications Display */}
               {internships.map((job) => {
-                const apps = applicationsByInternship[job.id] || [];
-                if (apps.length === 0) return null;
+                const apps = applicationsByInternship[job.id];
+                if (apps === undefined) return null; // Only hide if not even attempted to load
                 return (
-                  <div key={`apps-${job.id}`} className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+                  <div key={`apps-${job.id}`} id={`applications-${job.id}`} className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden scroll-mt-20">
                     <div className="bg-slate-50 px-4 py-3 border-b border-slate-200 flex justify-between items-center">
                       <p className="font-bold text-slate-800 text-sm">Applications for {job.title}</p>
                       <span className="bg-slate-200 text-slate-600 px-2 py-0.5 rounded text-xs font-bold">{apps.length}</span>
                     </div>
                     <div className="p-2">
                       {apps.length === 0 ? (
-                        <p className="text-center text-slate-400 py-4 text-xs">No applications yet.</p>
+                        <p className="text-center text-slate-400 py-8 text-sm italic">No applications received yet for this internship.</p>
                       ) : (
                         <>
                           {/* Pending Applications */}
@@ -633,12 +678,12 @@ export function EmployerDashboard() {
                                         <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                                         Applied on {formatDate(app.applied_at)}
                                       </p>
-                                      
+
                                       <div className="flex gap-2 mt-3">
                                         {app.student.resume_file_path && (
-                                            <a
-                                                href={`http://127.0.0.1:8000/students/resume/download/${app.student.resume_file_path.split('/').pop()}`}
-                                                target="_blank" 
+                                          <a
+                                            href={`http://44.205.136.199:8000/students/resume/download/${app.student.resume_file_path.split('/').pop()}`}
+                                            target="_blank"
                                             rel="noopener noreferrer"
                                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 rounded-lg text-[11px] font-bold hover:bg-blue-100 transition-colors border border-blue-100"
                                           >
@@ -647,7 +692,7 @@ export function EmployerDashboard() {
                                           </a>
                                         )}
                                         {app.student.resume_json && (
-                                          <Link 
+                                          <Link
                                             to={`/employer/student-resume/${app.student.id}`}
                                             className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-teal-50 text-teal-700 rounded-lg text-[11px] font-bold hover:bg-teal-100 transition-colors border border-teal-100"
                                           >
@@ -869,291 +914,321 @@ export function EmployerDashboard() {
                 );
               })}
             </div>
-          </div>
         </section>
       </div>
 
-      {/* Post Internship Modal */}
+      {/* Post Internship Modal - Full Screen */}
       {showPostModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all animate-scaleIn">
-            <div className="bg-slate-50 px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-slate-800">Post New Internship</h3>
-              <button
-                onClick={() => setShowPostModal(false)}
-                className="text-slate-400 hover:text-slate-600 transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
+        <div className="fixed inset-0 z-50 flex flex-col bg-white animate-fadeIn">
+          {/* Header */}
+          <div className="bg-white px-6 py-4 border-b border-slate-100 flex justify-between items-center sticky top-0 z-10 shadow-sm">
+            <div>
+              <h3 className="text-xl font-bold text-slate-800">Post New Internship</h3>
+              <p className="text-sm text-slate-500">Fill in the details for your new internship posting</p>
             </div>
+            <button
+              onClick={() => setShowPostModal(false)}
+              className="p-2 bg-slate-100 text-slate-500 hover:text-slate-700 hover:bg-slate-200 rounded-full transition-all"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
 
-            <form onSubmit={handlePostJob} className="p-6 space-y-4 overflow-y-auto max-h-[80vh]">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Job Title</label>
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
-                  placeholder="e.g. Frontend Developer Intern"
-                  required
-                />
-              </div>
+          {/* Form Content */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="max-w-4xl mx-auto p-6">
+              <form onSubmit={handlePostJob} className="space-y-8">
+                {/* Basic Details Section */}
+                <section className="space-y-4">
+                  <h4 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center text-sm">1</span>
+                    Basic Details
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Job Title</label>
+                      <input
+                        type="text"
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all text-lg"
+                        placeholder="e.g. Frontend Developer Intern"
+                        required
+                      />
+                    </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Description</label>
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all min-h-[100px]"
-                  placeholder="Describe the role, responsibilities, and requirements..."
-                />
-              </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Description</label>
+                      <textarea
+                        value={description}
+                        onChange={(e) => setDescription(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all min-h-[150px]"
+                        placeholder="Describe the role, responsibilities, and requirements..."
+                        required
+                      />
+                    </div>
+                  </div>
+                </section>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Location</label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    type="text"
-                    value={location}
-                    onChange={(e) => setLocation(e.target.value)}
-                    className="flex-1 px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
-                    placeholder="e.g. Bangalore"
-                    required
-                  />
+                {/* Location & Logistics Section */}
+                <section className="space-y-4">
+                  <h4 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center text-sm">2</span>
+                    Location & Logistics
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Location</label>
+                      <div className="flex gap-2 mb-3">
+                        <input
+                          type="text"
+                          value={location}
+                          onChange={(e) => setLocation(e.target.value)}
+                          className="flex-1 px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all"
+                          placeholder="e.g. Bangalore"
+                          required
+                        />
+                        <button
+                          type="button"
+                          onClick={handleGetCurrentLocation}
+                          disabled={isLocating}
+                          className="bg-slate-100 text-slate-600 px-6 py-3 rounded-xl border border-slate-200 hover:bg-slate-200 transition-all font-bold flex items-center gap-2"
+                        >
+                          {isLocating ? (
+                            <div className="w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                          ) : (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                          )}
+                          Current
+                        </button>
+                      </div>
+                      <div className="h-64 w-full rounded-2xl overflow-hidden border border-slate-200 shadow-inner">
+                        <MapContainer
+                          center={mapPosition}
+                          zoom={13}
+                          style={{ height: '100%', width: '100%' }}
+                        >
+                          <TileLayer
+                            url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
+                            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+                            subdomains={['a', 'b', 'c', 'd']}
+                          />
+                          <LocationPicker position={mapPosition} setPosition={setMapPosition} setLocation={setLocation} />
+                        </MapContainer>
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Mode</label>
+                      <select
+                        value={mode}
+                        onChange={(e) => setMode(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all bg-white"
+                      >
+                        <option value="remote">Remote</option>
+                        <option value="onsite">On-site</option>
+                        <option value="hybrid">Hybrid</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Duration (Weeks)</label>
+                      <input
+                        type="number"
+                        value={duration}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          if (!isNaN(value) && value >= 1 && value <= 52) {
+                            setDuration(value);
+                          }
+                        }}
+                        min="1"
+                        max="52"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all"
+                        required
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                {/* Requirements & Compensation Section */}
+                <section className="space-y-4">
+                  <h4 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center text-sm">3</span>
+                    Requirements & Compensation
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Stipend (Monthly)</label>
+                      <div className="relative">
+                        <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 font-bold">₹</span>
+                        <input
+                          type="number"
+                          value={stipendAmount}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            if (value === "") {
+                              setStipendAmount("");
+                            } else {
+                              const numValue = Number(value);
+                              if (!isNaN(numValue)) {
+                                setStipendAmount(numValue);
+                              }
+                            }
+                          }}
+                          className="w-full pl-8 pr-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all"
+                          placeholder="e.g. 10000"
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Openings</label>
+                      <input
+                        type="number"
+                        value={openings}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value);
+                          if (!isNaN(value) && value >= 1 && value <= 100) {
+                            setOpenings(value);
+                          }
+                        }}
+                        min="1"
+                        max="100"
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all"
+                        required
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Required Skills</label>
+                      <input
+                        type="text"
+                        value={skills}
+                        onChange={(e) => setSkills(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all"
+                        placeholder="e.g. React, Python, SQL (separate with commas)"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Separate skills with commas</p>
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Qualifications</label>
+                      <textarea
+                        value={qualifications}
+                        onChange={(e) => setQualifications(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all min-h-[100px]"
+                        placeholder="Required education, certifications, etc."
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Benefits</label>
+                      <input
+                        type="text"
+                        value={benefits}
+                        onChange={(e) => setBenefits(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all"
+                        placeholder="e.g. Certificate, Letter of recommendation (separate with commas)"
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                {/* Contact & Dates Section */}
+                <section className="space-y-4">
+                  <h4 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                    <span className="w-8 h-8 rounded-lg bg-teal-100 text-teal-600 flex items-center justify-center text-sm">4</span>
+                    Contact & Dates
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Start Date</label>
+                      <input
+                        type="date"
+                        value={startDate}
+                        onChange={(e) => setStartDate(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Application Deadline</label>
+                      <input
+                        type="date"
+                        value={deadline}
+                        onChange={(e) => setDeadline(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Contact Name</label>
+                      <input
+                        type="text"
+                        value={contactName}
+                        onChange={(e) => setContactName(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all"
+                        placeholder="HR Manager Name"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Contact Phone</label>
+                      <input
+                        type="tel"
+                        value={contactPhone}
+                        onChange={(e) => setContactPhone(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all"
+                        placeholder="+91..."
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Contact Email</label>
+                      <input
+                        type="email"
+                        value={contactEmail}
+                        onChange={(e) => setContactEmail(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all"
+                        placeholder="hr@company.com"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">Application Email</label>
+                      <input
+                        type="email"
+                        value={applicationEmail}
+                        onChange={(e) => setApplicationEmail(e.target.value)}
+                        className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-4 focus:ring-teal-100 outline-none transition-all"
+                        placeholder="apply@company.com"
+                      />
+                    </div>
+                  </div>
+                </section>
+
+                <div className="flex gap-4 pt-6 sticky bottom-0 bg-white pb-6 border-t border-slate-100 mt-10">
                   <button
                     type="button"
-                    onClick={handleGetCurrentLocation}
-                    disabled={isLocating}
-                    className="bg-slate-100 text-slate-600 px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-200 transition-all text-sm font-medium flex items-center gap-1"
+                    onClick={() => setShowPostModal(false)}
+                    className="flex-1 px-6 py-4 rounded-xl border border-slate-200 text-slate-600 font-bold hover:bg-slate-50 transition-all"
                   >
-                    {isLocating ? "..." : (
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="flex-[2] bg-teal-600 text-white font-bold py-4 rounded-xl hover:bg-teal-700 transition-all shadow-xl shadow-teal-200 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
+                  >
+                    {loading ? (
                       <>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
-                        Current
+                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                        Posting Internship...
                       </>
+                    ) : (
+                      'Post Internship Now'
                     )}
                   </button>
                 </div>
-                <div className="h-48 w-full rounded-xl overflow-hidden border border-slate-200 mb-4 z-0">
-                  <MapContainer
-                    center={mapPosition}
-                    zoom={13}
-                    style={{ height: '100%', width: '100%' }}
-                  >
-                    {/* Use CartoDB tile server which is more reliable */}
-                    <TileLayer
-                      url="https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png"
-                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-                      subdomains={['a', 'b', 'c', 'd']}
-                    />
-                    <LocationPicker position={mapPosition} setPosition={setMapPosition} setLocation={setLocation} />
-                  </MapContainer>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Mode</label>
-                  <select
-                    value={mode}
-                    onChange={(e) => setMode(e.target.value)}
-                    className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all bg-white"
-                  >
-                    <option value="remote">Remote</option>
-                    <option value="onsite">On-site</option>
-                    <option value="hybrid">Hybrid</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Duration (Weeks)</label>
-                  <input
-                    type="number"
-                    value={duration}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      // Only set value if it's a valid number and within range
-                      if (!isNaN(value) && value >= 1 && value <= 52) {
-                        setDuration(value);
-                      }
-                    }}
-                    min="1"
-                    max="52"
-                    className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Stipend (Monthly)</label>
-                  <input
-                    type="number"
-                    value={stipendAmount}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "") {
-                        setStipendAmount("");
-                      } else {
-                        const numValue = Number(value);
-                        // Only set value if it's a valid number
-                        if (!isNaN(numValue)) {
-                          setStipendAmount(numValue);
-                        }
-                      }
-                    }}
-                    className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
-                    placeholder="e.g. 5000"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Qualifications</label>
-                <textarea
-                  value={qualifications}
-                  onChange={(e) => setQualifications(e.target.value)}
-                  className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all min-h-[80px]"
-                  placeholder="Required education, certifications, etc."
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Benefits</label>
-                <input
-                  type="text"
-                  value={benefits}
-                  onChange={(e) => setBenefits(e.target.value)}
-                  className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
-                  placeholder="e.g. Certificate, Letter of recommendation, Flexible hours (comma separated)"
-                />
-              </div>
-
-              <div className="border-t border-slate-100 pt-4 mt-4">
-                <h4 className="text-sm font-bold text-slate-800 mb-3">Contact Information</h4>
-                <div className="grid grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">Contact Name</label>
-                    <input
-                      type="text"
-                      value={contactName}
-                      onChange={(e) => setContactName(e.target.value)}
-                      className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all text-sm"
-                      placeholder="HR Manager Name"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">Contact Phone</label>
-                    <input
-                      type="tel"
-                      value={contactPhone}
-                      onChange={(e) => setContactPhone(e.target.value)}
-                      className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all text-sm"
-                      placeholder="+91..."
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">Contact Email</label>
-                    <input
-                      type="email"
-                      value={contactEmail}
-                      onChange={(e) => setContactEmail(e.target.value)}
-                      className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all text-sm"
-                      placeholder="hr@company.com"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-[11px] font-bold text-slate-400 uppercase mb-1">Application Email</label>
-                    <input
-                      type="email"
-                      value={applicationEmail}
-                      onChange={(e) => setApplicationEmail(e.target.value)}
-                      className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all text-sm"
-                      placeholder="apply@company.com"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Start Date</label>
-                  <input
-                    type="date"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                    className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Application Deadline</label>
-                  <input
-                    type="date"
-                    value={deadline}
-                    onChange={(e) => setDeadline(e.target.value)}
-                    className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Required Skills</label>
-                <input
-                  type="text"
-                  value={skills}
-                  onChange={(e) => setSkills(e.target.value)}
-                  className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
-                  placeholder="e.g. React, Python, SQL (comma separated)"
-                />
-                <p className="text-xs text-slate-500 mt-1">Separate skills with commas</p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">Openings</label>
-                  <input
-                    type="number"
-                    value={openings}
-                    onChange={(e) => {
-                      const value = parseInt(e.target.value);
-                      // Only set value if it's a valid number and within range
-                      if (!isNaN(value) && value >= 1 && value <= 100) {
-                        setOpenings(value);
-                      }
-                    }}
-                    min="1"
-                    max="100"
-                    className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">External Link (Optional)</label>
-                  <input
-                    type="url"
-                    value={applicationLink}
-                    onChange={(e) => setApplicationLink(e.target.value)}
-                    className="w-full px-4 py-2 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 outline-none transition-all"
-                    placeholder="https://..."
-                  />
-                </div>
-              </div>
-
-              <div className="pt-4">
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="w-full bg-teal-600 text-white font-bold py-3 rounded-xl hover:bg-teal-700 transition-colors shadow-lg shadow-teal-500/30 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
-                >
-                  {loading ? (
-                    <>
-                      <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      Posting...
-                    </>
-                  ) : (
-                    "Post Internship"
-                  )}
-                </button>
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
         </div>
       )}

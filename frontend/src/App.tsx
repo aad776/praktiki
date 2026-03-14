@@ -23,6 +23,9 @@ import { InternshipDetails } from './pages/InternshipDetails';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
 import { BrowseInternshipsPage } from './pages/BrowseInternship';
+import { AboutPage } from './pages/AboutPage';
+import { ContactPage } from './pages/ContactPage';
+import { ResumeMakerPage } from './pages/ResumeMakerPage';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
 export function App() {
@@ -47,6 +50,11 @@ export function App() {
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/resume-maker" element={<ResumeMakerPage />} />
+        <Route path="/posted-internships" element={<BrowseInternshipsPage />} />
+        <Route path="/internship/:id" element={<InternshipDetails />} />
 
         {/* Student Routes */}
         <Route
@@ -86,14 +94,6 @@ export function App() {
           element={
             <ProtectedRoute allowedRoles={['student']}>
               <InternshipDetails />
-            </ProtectedRoute>
-          }
-        />
-        <Route
-          path="/posted-internships"
-          element={
-            <ProtectedRoute allowedRoles={['student']}>
-              <BrowseInternshipsPage />
             </ProtectedRoute>
           }
         />

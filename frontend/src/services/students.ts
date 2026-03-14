@@ -21,6 +21,21 @@ export interface StudentProfile {
   work_mode?: string;
   is_apaar_verified: boolean;
   apaar_id?: string;
+  resume?: StudentResume;
+  university_name?: string;
+  start_year?: number | string;
+  end_year?: number | string;
+  email?: string;
+}
+
+export interface StudentResume {
+  id: number;
+  career_objective?: string;
+  work_experience?: string; // JSON string
+  projects?: string; // JSON string
+  education_entries?: string; // JSON string
+  skills_categorized?: string; // JSON string
+  resume_file_path?: string;
 }
 
 export interface Skill {
@@ -92,6 +107,55 @@ export const applyForInternship = (internshipId: number): Promise<Application> =
  */
 export const getRecommendations = (): Promise<Recommendation[]> => {
   return get<Recommendation[]>('/students/recommendations');
+};
+
+export interface ResumeSuggestionResponse {
+  suggestions: string[];
+}
+
+/**
+ * Get Resume Suggestions
+ */
+export const getResumeSuggestions = (section: string, currentContent?: string, context?: any): Promise<ResumeSuggestionResponse> => {
+  return post<ResumeSuggestionResponse>('/students/me/resume/suggestions', { section, current_content: currentContent, context });
+};
+
+export interface ResumeParseResponse {
+  career_objective: string;
+  skills: string[];
+  education: Array<{
+    degree: string;
+    university: string;
+    start_year: string;
+    end_year: string;
+  }>;
+  experience: Array<{
+    role: string;
+    company: string;
+    duration: string;
+    description: string;
+  }>;
+  projects: Array<{
+    title: string;
+    link: string;
+    description: string;
+  }>;
+}
+
+/**
+ * Parse uploaded resume
+ */
+export const parseResume = (file: File): Promise<ResumeParseResponse> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  return post<ResumeParseResponse>('/students/me/resume/parse', formData);
+};
+
+/**
+ * Update student resume
+ */
+export const updateResume = (data: Partial<StudentResume>): Promise<StudentResume> => {
+  return put<StudentResume>('/students/me/resume', data);
 };
 
 /**

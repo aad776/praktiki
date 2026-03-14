@@ -35,7 +35,7 @@ const roleNavConfig: Record<string, RoleConfig> = {
     navItems: [
       { path: '/student', label: 'Dashboard', icon: 'home' },
       { path: '/student/applications', label: 'My Applications', icon: 'fileText' },
-      { path: 'http://localhost:5174', label: 'ABC Status', icon: 'star', external: true },
+      { path: import.meta.env.VITE_ABC_PORTAL_URL || 'http://44.197.97.159:3000', label: 'ABC Status', icon: 'star', external: true },
       { path: '/student/setup', label: 'Profile', icon: 'user' },
     ],
   },
@@ -56,7 +56,7 @@ const roleNavConfig: Record<string, RoleConfig> = {
     navItems: [
       { path: '/institute', label: 'Dashboard', icon: 'home' },
       { path: '/institute/students', label: 'Students', icon: 'users' },
-      { path: 'http://localhost:5174', label: 'ABC Status', icon: 'star', external: true },
+      { path: import.meta.env.VITE_ABC_PORTAL_URL || 'http://44.197.97.159:3000', label: 'ABC Status', icon: 'star', external: true },
     ],
   },
 };
@@ -134,7 +134,7 @@ export function Layout({ children }: LayoutProps) {
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem('praktiki_token');
-      const res = await axios.get('http://localhost:8000/notifications/', {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://44.205.136.199:8000'}/notifications/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(res.data);
@@ -146,7 +146,7 @@ export function Layout({ children }: LayoutProps) {
   const markAllAsRead = async () => {
     try {
       const token = localStorage.getItem('praktiki_token');
-      await axios.post('http://localhost:8000/notifications/mark-all-read', {}, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://44.205.136.199:8000'}/notifications/mark-all-read`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(notifications.map(n => ({ ...n, is_read: 1 })));
@@ -169,16 +169,17 @@ export function Layout({ children }: LayoutProps) {
   // Get auth token for SSO
   const getSSOUrl = (basePath: string) => {
     console.log('Generating SSO URL for:', basePath);
-    if (!basePath.includes('localhost:5174') && !basePath.includes('127.0.0.1:5174')) {
+    const abcPortalUrl = import.meta.env.VITE_ABC_PORTAL_URL || 'http://44.197.97.159:3000';
+    if (!basePath.includes(abcPortalUrl) && !basePath.includes('localhost:5174')) {
       console.log('Not an ABC Portal URL, returning as is');
       return basePath;
     }
-    
+
     const token = localStorage.getItem('praktiki_token');
     console.log('Praktiki token found:', !!token);
-    
+
     if (!token) return basePath;
-    
+
     try {
       const url = new URL(basePath);
       url.searchParams.set('sso_token', token);
@@ -199,21 +200,33 @@ export function Layout({ children }: LayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen flex flex-col bg-slate-50 overflow-x-hidden">
       {/* Authenticated Navbar */}
       {isAuthenticated && (
-        <nav className="bg-white border-b border-slate-200 sticky top-0 z-40">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <nav className="bg-white border-b border-slate-200 sticky top-0 z-40 w-full">
+          <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between h-16">
               {/* Logo and Nav Items */}
               <div className="flex items-center">
-                <Link to={`/${role}`} className="flex items-center gap-2.5 group">
+                <Link to="/" className="flex items-center gap-2.5 group">
                   <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105">
                     <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                   </div>
                   <span className="font-bold text-slate-900 text-lg hidden sm:block">Praktiki</span>
+                </Link>
+
+                {/* Home Icon - Only visible on Mobile (< 640px) */}
+                <Link 
+                  to="/"
+                  className="sm:hidden ml-2 p-2 text-slate-500 hover:bg-slate-100 rounded-xl transition-colors"
+                  aria-label="Home"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+                  </svg>
                 </Link>
 
                 {/* Desktop Navigation Links */}
@@ -230,8 +243,8 @@ export function Layout({ children }: LayoutProps) {
                         rel="noopener noreferrer"
                         className={`
                           flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all
-                          ${item.label === 'ABC Status' 
-                            ? 'bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100' 
+                          ${item.label === 'ABC Status'
+                            ? 'bg-blue-50 text-blue-700 border border-blue-100 hover:bg-blue-100'
                             : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'}
                         `}
                       >
@@ -268,7 +281,7 @@ export function Layout({ children }: LayoutProps) {
               <div className="flex items-center gap-3">
                 {/* Notifications */}
                 <div className="relative" ref={notifRef}>
-                  <button 
+                  <button
                     onClick={() => setNotifOpen(!notifOpen)}
                     className={`relative p-2 rounded-xl transition-colors ${notifOpen ? 'bg-slate-100 text-slate-900' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-100'}`}
                   >
@@ -284,11 +297,11 @@ export function Layout({ children }: LayoutProps) {
 
                   {/* Notifications Dropdown */}
                   {notifOpen && (
-                    <div className="absolute right-0 mt-2 w-80 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-50 animate-fade-in-up">
+                    <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] sm:w-80 bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden z-50 animate-fade-in-up">
                       <div className="p-4 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
                         <h3 className="font-bold text-slate-900">Notifications</h3>
                         {unreadCount > 0 && (
-                          <button 
+                          <button
                             onClick={markAllAsRead}
                             className="text-xs font-semibold text-brand-600 hover:text-brand-700 transition-colors"
                           >
@@ -300,8 +313,8 @@ export function Layout({ children }: LayoutProps) {
                         {notifications.length > 0 ? (
                           <div className="divide-y divide-slate-50">
                             {notifications.map((notif) => (
-                              <div 
-                                key={notif.id} 
+                              <div
+                                key={notif.id}
                                 className={`p-4 transition-colors ${notif.is_read === 0 ? 'bg-brand-50/30' : 'hover:bg-slate-50'}`}
                               >
                                 <p className={`text-sm ${notif.is_read === 0 ? 'text-slate-900 font-medium' : 'text-slate-600'}`}>
@@ -336,17 +349,15 @@ export function Layout({ children }: LayoutProps) {
                 </div>
 
                 {/* Logout Button */}
-                {role !== 'student' && role !== 'employer' && (
-                  <button
-                    onClick={handleLogout}
-                    className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Logout
-                  </button>
-                )}
+                <button
+                  onClick={handleLogout}
+                  className="hidden sm:flex items-center gap-2 px-3 py-2 text-sm font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Logout
+                </button>
 
                 {/* User Info */}
                 <div className="hidden sm:flex items-center gap-3 pl-3 border-l border-slate-200">
@@ -415,7 +426,6 @@ export function Layout({ children }: LayoutProps) {
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
-                    Internships
                   </Link>
                 )}
 
@@ -429,8 +439,8 @@ export function Layout({ children }: LayoutProps) {
                       onClick={() => setMobileNavOpen(false)}
                       className={`
                         flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors
-                        ${item.label === 'ABC Status' 
-                          ? 'bg-blue-50 text-blue-700 border border-blue-100' 
+                        ${item.label === 'ABC Status'
+                          ? 'bg-blue-50 text-blue-700 border border-blue-100'
                           : 'text-slate-600 hover:bg-slate-50'}
                       `}
                     >
@@ -464,18 +474,16 @@ export function Layout({ children }: LayoutProps) {
                   )
                 ))}
 
-                {/* Mobile Logout (Hidden for students and employers) */}
-                {role !== 'student' && role !== 'employer' && (
-                  <button
-                    onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium text-red-600 hover:bg-red-50 transition-colors"
-                  >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                    </svg>
-                    Logout
-                  </button>
-                )}
+                {/* Mobile Logout */}
+                <button
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium text-red-600 hover:bg-red-50 transition-colors"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Logout
+                </button>
               </div>
             </div>
           )}
@@ -483,8 +491,10 @@ export function Layout({ children }: LayoutProps) {
       )}
 
       {/* Main Content */}
-      <main className={isAuthenticated ? 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8' : ''}>
-        {children}
+      <main className={`flex-grow w-full flex flex-col ${isAuthenticated ? 'px-2 sm:px-4 lg:px-6 py-4 sm:py-6' : ''}`}>
+        <div className={isAuthenticated ? 'w-full flex-grow mx-auto' : 'w-full h-full'}>
+          {children}
+        </div>
       </main>
     </div>
   );

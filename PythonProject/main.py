@@ -33,6 +33,7 @@ app = FastAPI(
 # Ensure uploads directory exists
 os.makedirs("uploads/profile_pictures", exist_ok=True)
 os.makedirs("secure_uploads/resumes", exist_ok=True)
+os.makedirs("secure_uploads/certificates", exist_ok=True)
 # Only mount public uploads (like profile pictures), NOT secure_uploads
 app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 
@@ -215,25 +216,13 @@ def ensure_optional_columns():
 
 @app.get("/", tags=["Health"])
 def root():
-    """Health check endpoint"""
     return {
-        "status": "healthy",
         "message": "Welcome to Praktiki API",
-        "version": "1.0.0"
+        "status": "active",
+        "docs_url": "/docs",
+        "redoc_url": "/redoc"
     }
 
-
-
-
-
-
-
-
 if __name__ == "__main__":
-    # Create all database tables
-    from db.session import engine, Base
-    from models import *  # Import all models to ensure they're registered
-    Base.metadata.create_all(bind=engine)
-    
     import uvicorn
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="127.0.0.1", port=8000, reload=True)

@@ -1,0 +1,7305 @@
+{
+  "metrics": {
+    "total_resumes": 120,
+    "successful_parses": 120,
+    "failed_parses": 0,
+    "name_extracted_pct": 0.08333333333333333,
+    "email_extracted_pct": 0.008333333333333333,
+    "phone_extracted_pct": 0.125,
+    "skills_extracted_pct": 1.0,
+    "experience_extracted_pct": 0.14166666666666666,
+    "name_valid_pct": 0.7,
+    "email_valid_pct": 1.0,
+    "phone_valid_pct": 0.8666666666666667,
+    "avg_skills_count": 6.408333333333333,
+    "avg_experience_count": 0.225,
+    "avg_processing_time_ms": 2035.2425456047058,
+    "avg_quality_score": 0.29916666666666664,
+    "overall_extraction_rate": 0.27166666666666667,
+    "overall_quality_rate": 0.29916666666666664
+  },
+  "results": [
+    {
+      "filename": "10089434.pdf",
+      "success": true,
+      "processing_time_ms": 2188.4849071502686,
+      "text_extracted": true,
+      "text_length": 8272,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Android",
+        "Artificial Intelligence",
+        "Azure",
+        "Bash",
+        "CSS",
+        "HTML",
+        "Java",
+        "JavaScript",
+        "Linux",
+        "Machine Learning",
+        "Ruby",
+        "TypeScript",
+        "iOS"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "13 skills: Android, Artificial Intelligence, Azure, Bash, CSS, HTML, Java, JavaScript, Linux, Machine Learning...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "10247517.pdf",
+      "success": true,
+      "processing_time_ms": 1773.4622955322266,
+      "text_extracted": true,
+      "text_length": 7060,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "SAP",
+        "TypeScript",
+        "iOS"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Artificial Intelligence, Excel, SAP, TypeScript, iOS",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "10265057.pdf",
+      "success": true,
+      "processing_time_ms": 1935.1892471313477,
+      "text_extracted": true,
+      "text_length": 5141,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "C#",
+        "C++",
+        "Data Analysis",
+        "Excel",
+        "Java",
+        "MATLAB",
+        "Python",
+        "Statistics",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "10 skills: Artificial Intelligence, C#, C++, Data Analysis, Excel, Java, MATLAB, Python, Statistics, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "10553553.pdf",
+      "success": true,
+      "processing_time_ms": 1512.0770931243896,
+      "text_extracted": true,
+      "text_length": 4983,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "Scrum",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 skills: Artificial Intelligence, Excel, Scrum, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "10641230.pdf",
+      "success": true,
+      "processing_time_ms": 2160.900592803955,
+      "text_extracted": true,
+      "text_length": 5219,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Android",
+        "Artificial Intelligence",
+        "CSS",
+        "HTML",
+        "Java",
+        "JavaScript",
+        "Linux",
+        "Machine Learning",
+        "PHP",
+        "Python",
+        "TypeScript",
+        "iOS"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "12 skills: Android, Artificial Intelligence, CSS, HTML, Java, JavaScript, Linux, Machine Learning, PHP, Python...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "10839851.pdf",
+      "success": true,
+      "processing_time_ms": 1327.5136947631836,
+      "text_extracted": true,
+      "text_length": 4279,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Ruby",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Ruby, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "10840430.pdf",
+      "success": true,
+      "processing_time_ms": 1991.6973114013672,
+      "text_extracted": true,
+      "text_length": 7384,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": false,
+          "value": "2 skills: Artificial Intelligence, TypeScript",
+          "issue": "Very few skills (2)"
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.125,
+      "error": null
+    },
+    {
+      "filename": "11580408.pdf",
+      "success": true,
+      "processing_time_ms": 1967.604160308838,
+      "text_extracted": true,
+      "text_length": 5711,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Android",
+        "Artificial Intelligence",
+        "Microsoft SQL Server",
+        "R",
+        "TypeScript",
+        "Unix",
+        "iOS"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "7 skills: Android, Artificial Intelligence, Microsoft SQL Server, R, TypeScript, Unix, iOS",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "11584809.pdf",
+      "success": true,
+      "processing_time_ms": 1846.5056419372559,
+      "text_extracted": true,
+      "text_length": 5071,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Linux",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Linux, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "11957080.pdf",
+      "success": true,
+      "processing_time_ms": 2358.8013648986816,
+      "text_extracted": true,
+      "text_length": 9158,
+      "name": null,
+      "email": null,
+      "phone": "2000-2016",
+      "skills": [
+        "ASP.NET",
+        "Artificial Intelligence",
+        "Data Analysis",
+        "Excel",
+        "HTML",
+        "Linux",
+        "Machine Learning",
+        "R",
+        "SAP",
+        "TypeScript",
+        "Unix",
+        "Vue"
+      ],
+      "experience_count": 1,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "2000-2016"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": true,
+          "valid_format": true,
+          "value": "2000-2016",
+          "issue": null
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "12 skills: ASP.NET, Artificial Intelligence, Data Analysis, Excel, HTML, Linux, Machine Learning, R, SAP, TypeScript...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "1 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.6000000000000001,
+      "error": null
+    },
+    {
+      "filename": "12045067.pdf",
+      "success": true,
+      "processing_time_ms": 2092.458486557007,
+      "text_extracted": true,
+      "text_length": 8861,
+      "name": null,
+      "email": null,
+      "phone": "(520) 459-3174",
+      "skills": [
+        "Artificial Intelligence",
+        "JavaScript",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": true,
+          "valid_format": true,
+          "value": "(520) 459-3174",
+          "issue": null
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, JavaScript, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.4,
+      "error": null
+    },
+    {
+      "filename": "12334140.pdf",
+      "success": true,
+      "processing_time_ms": 2521.489143371582,
+      "text_extracted": true,
+      "text_length": 13059,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Express.js",
+        "Python",
+        "Statistics",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Artificial Intelligence, Express.js, Python, Statistics, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "12635195.pdf",
+      "success": true,
+      "processing_time_ms": 1393.4621810913086,
+      "text_extracted": true,
+      "text_length": 2802,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Data Analysis",
+        "Java",
+        "JavaScript",
+        "Python",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "6 skills: Artificial Intelligence, Data Analysis, Java, JavaScript, Python, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "12763627.pdf",
+      "success": true,
+      "processing_time_ms": 1765.3088569641113,
+      "text_extracted": true,
+      "text_length": 6093,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "ASP.NET",
+        "Artificial Intelligence",
+        "Bootstrap",
+        "CSS",
+        "Git",
+        "GitHub",
+        "HTML",
+        "JavaScript",
+        "Jira",
+        "Machine Learning",
+        "Microsoft SQL Server",
+        "MySQL",
+        "Oracle",
+        "Rust",
+        "SAP",
+        "TypeScript",
+        "jQuery"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "17 skills: ASP.NET, Artificial Intelligence, Bootstrap, CSS, Git, GitHub, HTML, JavaScript, Jira, Machine Learning...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "13385306.pdf",
+      "success": true,
+      "processing_time_ms": 1643.8562870025635,
+      "text_extracted": true,
+      "text_length": 4947,
+      "name": "SUMMAR Y",
+      "email": null,
+      "phone": null,
+      "skills": [
+        "ASP.NET",
+        "Agile",
+        "Artificial Intelligence",
+        "Machine Learning",
+        "Microsoft SQL Server",
+        "Oracle",
+        "Tableau",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": true,
+          "valid_format": true,
+          "value": "SUMMAR Y",
+          "issue": null
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "8 skills: ASP.NET, Agile, Artificial Intelligence, Machine Learning, Microsoft SQL Server, Oracle, Tableau, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "13405733.pdf",
+      "success": true,
+      "processing_time_ms": 1623.2454776763916,
+      "text_extracted": true,
+      "text_length": 6226,
+      "name": null,
+      "email": null,
+      "phone": "2743884",
+      "skills": [
+        "Agile",
+        "Artificial Intelligence",
+        "Excel",
+        "Machine Learning",
+        "Oracle",
+        "Perl",
+        "Python",
+        "Salesforce",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": true,
+          "valid_format": true,
+          "value": "2743884",
+          "issue": null
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "9 skills: Agile, Artificial Intelligence, Excel, Machine Learning, Oracle, Perl, Python, Salesforce, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.4,
+      "error": null
+    },
+    {
+      "filename": "13477922.pdf",
+      "success": true,
+      "processing_time_ms": 1792.640209197998,
+      "text_extracted": true,
+      "text_length": 5174,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Android",
+        "Artificial Intelligence",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Android, Artificial Intelligence, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "13836471.pdf",
+      "success": true,
+      "processing_time_ms": 1515.0322914123535,
+      "text_extracted": true,
+      "text_length": 4740,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Microsoft SQL Server",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Microsoft SQL Server, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "14789139.pdf",
+      "success": true,
+      "processing_time_ms": 2037.8968715667725,
+      "text_extracted": true,
+      "text_length": 8574,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Python",
+        "SAP",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 skills: Artificial Intelligence, Python, SAP, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "15118506.pdf",
+      "success": true,
+      "processing_time_ms": 1899.1785049438477,
+      "text_extracted": true,
+      "text_length": 5248,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Microsoft SQL Server",
+        "R",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 skills: Artificial Intelligence, Microsoft SQL Server, R, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "15297298.pdf",
+      "success": true,
+      "processing_time_ms": 1855.9565544128418,
+      "text_extracted": true,
+      "text_length": 5954,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Excel, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "15651486.pdf",
+      "success": true,
+      "processing_time_ms": 1831.3982486724854,
+      "text_extracted": true,
+      "text_length": 6621,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Express.js",
+        "Linux",
+        "Microsoft SQL Server",
+        "TypeScript",
+        "Unix",
+        "iOS"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "7 skills: Artificial Intelligence, Express.js, Linux, Microsoft SQL Server, TypeScript, Unix, iOS",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "15791766.pdf",
+      "success": true,
+      "processing_time_ms": 1460.3612422943115,
+      "text_extracted": true,
+      "text_length": 4763,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Agile",
+        "Artificial Intelligence",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Agile, Artificial Intelligence, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "15802627.pdf",
+      "success": true,
+      "processing_time_ms": 2148.2579708099365,
+      "text_extracted": true,
+      "text_length": 8106,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Machine Learning",
+        "Python",
+        "Scala",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Artificial Intelligence, Machine Learning, Python, Scala, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "16186411.pdf",
+      "success": true,
+      "processing_time_ms": 2234.3955039978027,
+      "text_extracted": true,
+      "text_length": 8999,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "ASP.NET",
+        "Agile",
+        "Artificial Intelligence",
+        "Bootstrap",
+        "CSS",
+        "Excel",
+        "GitHub",
+        "Go",
+        "HTML",
+        "Java",
+        "JavaScript",
+        "Machine Learning",
+        "MySQL",
+        "Python",
+        "Scrum",
+        "TypeScript",
+        "jQuery"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "17 skills: ASP.NET, Agile, Artificial Intelligence, Bootstrap, CSS, Excel, GitHub, Go, HTML, Java...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "16533554.pdf",
+      "success": true,
+      "processing_time_ms": 1693.528175354004,
+      "text_extracted": true,
+      "text_length": 5236,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Machine Learning",
+        "Photoshop",
+        "Python",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Artificial Intelligence, Machine Learning, Photoshop, Python, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "16899268.pdf",
+      "success": true,
+      "processing_time_ms": 1357.5692176818848,
+      "text_extracted": true,
+      "text_length": 3951,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Data Analysis",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Data Analysis, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "17111768.pdf",
+      "success": true,
+      "processing_time_ms": 2836.074113845825,
+      "text_extracted": true,
+      "text_length": 10616,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "Go",
+        "Linux",
+        "Oracle",
+        "SAP",
+        "TypeScript",
+        "Unix"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "8 skills: Artificial Intelligence, Excel, Go, Linux, Oracle, SAP, TypeScript, Unix",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "17641670.pdf",
+      "success": true,
+      "processing_time_ms": 2646.7833518981934,
+      "text_extracted": true,
+      "text_length": 14007,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "HTML",
+        "Machine Learning",
+        "Ruby",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "6 skills: Artificial Intelligence, Excel, HTML, Machine Learning, Ruby, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "17681064.pdf",
+      "success": true,
+      "processing_time_ms": 1689.058780670166,
+      "text_extracted": true,
+      "text_length": 5161,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Machine Learning",
+        "Oracle",
+        "Salesforce",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Artificial Intelligence, Machine Learning, Oracle, Salesforce, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "17688766.pdf",
+      "success": true,
+      "processing_time_ms": 1489.0151023864746,
+      "text_extracted": true,
+      "text_length": 4324,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Android",
+        "Artificial Intelligence",
+        "TypeScript",
+        "Unix",
+        "iOS"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Android, Artificial Intelligence, TypeScript, Unix, iOS",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "17987433.pdf",
+      "success": true,
+      "processing_time_ms": 1731.865644454956,
+      "text_extracted": true,
+      "text_length": 5837,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Go",
+        "JavaScript",
+        "Rust",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Artificial Intelligence, Go, JavaScript, Rust, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "18067556.pdf",
+      "success": true,
+      "processing_time_ms": 3141.6938304901123,
+      "text_extracted": true,
+      "text_length": 20037,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "AWS",
+        "Android",
+        "Artificial Intelligence",
+        "Azure",
+        "CSS",
+        "Data Analysis",
+        "Excel",
+        "HTML",
+        "Linux",
+        "Machine Learning",
+        "Oracle",
+        "Power BI",
+        "Python",
+        "R",
+        "Tableau",
+        "TypeScript",
+        "VBA",
+        "iOS"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "18 skills: AWS, Android, Artificial Intelligence, Azure, CSS, Data Analysis, Excel, HTML, Linux, Machine Learning...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "18159866.pdf",
+      "success": true,
+      "processing_time_ms": 2342.4699306488037,
+      "text_extracted": true,
+      "text_length": 10341,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "AWS",
+        "Artificial Intelligence",
+        "Machine Learning",
+        "Oracle",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: AWS, Artificial Intelligence, Machine Learning, Oracle, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "18176523.pdf",
+      "success": true,
+      "processing_time_ms": 1947.8001594543457,
+      "text_extracted": true,
+      "text_length": 4704,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": false,
+          "value": "2 skills: Artificial Intelligence, TypeScript",
+          "issue": "Very few skills (2)"
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.125,
+      "error": null
+    },
+    {
+      "filename": "18187364.pdf",
+      "success": true,
+      "processing_time_ms": 2644.927740097046,
+      "text_extracted": true,
+      "text_length": 9235,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Linux",
+        "Oracle",
+        "Statistics",
+        "TypeScript",
+        "Unix"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "6 skills: Artificial Intelligence, Linux, Oracle, Statistics, TypeScript, Unix",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "18301617.pdf",
+      "success": true,
+      "processing_time_ms": 1412.6174449920654,
+      "text_extracted": true,
+      "text_length": 5549,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Linux",
+        "Microsoft SQL Server",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 skills: Artificial Intelligence, Linux, Microsoft SQL Server, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "18752129.pdf",
+      "success": true,
+      "processing_time_ms": 2317.9235458374023,
+      "text_extracted": true,
+      "text_length": 8619,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Express.js",
+        "Ruby",
+        "Rust",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Artificial Intelligence, Express.js, Ruby, Rust, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "19201175.pdf",
+      "success": true,
+      "processing_time_ms": 1505.936861038208,
+      "text_extracted": true,
+      "text_length": 5498,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": false,
+          "value": "2 skills: Artificial Intelligence, TypeScript",
+          "issue": "Very few skills (2)"
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.125,
+      "error": null
+    },
+    {
+      "filename": "19796840.pdf",
+      "success": true,
+      "processing_time_ms": 2803.039312362671,
+      "text_extracted": true,
+      "text_length": 15649,
+      "name": null,
+      "email": null,
+      "phone": "1085531",
+      "skills": [
+        "AWS",
+        "Artificial Intelligence",
+        "Machine Learning",
+        "Oracle",
+        "TypeScript",
+        "jQuery"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": true,
+          "valid_format": true,
+          "value": "1085531",
+          "issue": null
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "6 skills: AWS, Artificial Intelligence, Machine Learning, Oracle, TypeScript, jQuery",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.4,
+      "error": null
+    },
+    {
+      "filename": "19850482.pdf",
+      "success": true,
+      "processing_time_ms": 1860.762596130371,
+      "text_extracted": true,
+      "text_length": 7107,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": false,
+          "value": "2 skills: Artificial Intelligence, TypeScript",
+          "issue": "Very few skills (2)"
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.125,
+      "error": null
+    },
+    {
+      "filename": "20001721.pdf",
+      "success": true,
+      "processing_time_ms": 1233.9067459106445,
+      "text_extracted": true,
+      "text_length": 3686,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Apache",
+        "Artificial Intelligence",
+        "Excel",
+        "Linux",
+        "Microsoft SQL Server",
+        "Object-Oriented Programming",
+        "Python",
+        "Rust",
+        "TypeScript",
+        "Unix",
+        "VBA",
+        "jQuery"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "12 skills: Apache, Artificial Intelligence, Excel, Linux, Microsoft SQL Server, Object-Oriented Programming, Python, Rust, TypeScript, Unix...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "20024870.pdf",
+      "success": true,
+      "processing_time_ms": 1205.3613662719727,
+      "text_extracted": true,
+      "text_length": 2738,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "CSS",
+        "Data Analysis",
+        "Excel",
+        "HTML",
+        "Java",
+        "Machine Learning",
+        "PHP",
+        "Photoshop",
+        "Statistics",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "11 skills: Artificial Intelligence, CSS, Data Analysis, Excel, HTML, Java, Machine Learning, PHP, Photoshop, Statistics...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "20237244.pdf",
+      "success": true,
+      "processing_time_ms": 1161.7681980133057,
+      "text_extracted": true,
+      "text_length": 3056,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Bash",
+        "Linux",
+        "Shell Scripting",
+        "TypeScript",
+        "Unix"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "6 skills: Artificial Intelligence, Bash, Linux, Shell Scripting, TypeScript, Unix",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "20408458.pdf",
+      "success": true,
+      "processing_time_ms": 2340.8288955688477,
+      "text_extracted": true,
+      "text_length": 8380,
+      "name": null,
+      "email": null,
+      "phone": "1989-1998",
+      "skills": [
+        "Artificial Intelligence",
+        "Python",
+        "TypeScript"
+      ],
+      "experience_count": 1,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "1989-1998"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": true,
+          "valid_format": true,
+          "value": "1989-1998",
+          "issue": null
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Python, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "1 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.6000000000000001,
+      "error": null
+    },
+    {
+      "filename": "20674668.pdf",
+      "success": true,
+      "processing_time_ms": 1860.0969314575195,
+      "text_extracted": true,
+      "text_length": 5784,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Apache",
+        "Artificial Intelligence",
+        "CSS",
+        "HTML",
+        "Java",
+        "JavaScript",
+        "Machine Learning",
+        "Oracle",
+        "PHP",
+        "Python",
+        "Rust",
+        "Statistics",
+        "TypeScript",
+        "Unix",
+        "iOS",
+        "jQuery"
+      ],
+      "experience_count": 1,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "2015 - Current"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "16 skills: Apache, Artificial Intelligence, CSS, HTML, Java, JavaScript, Machine Learning, Oracle, PHP, Python...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "1 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "20824105.pdf",
+      "success": true,
+      "processing_time_ms": 1806.692123413086,
+      "text_extracted": true,
+      "text_length": 6956,
+      "name": null,
+      "email": null,
+      "phone": "200-125",
+      "skills": [
+        "AWS",
+        "Apache",
+        "Bash",
+        "Express.js",
+        "Linux",
+        "Machine Learning",
+        "Oracle",
+        "Python",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": true,
+          "valid_format": false,
+          "value": "200-125",
+          "issue": "Too few digits (6)"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "9 skills: AWS, Apache, Bash, Express.js, Linux, Machine Learning, Oracle, Python, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.325,
+      "error": null
+    },
+    {
+      "filename": "20879311.pdf",
+      "success": true,
+      "processing_time_ms": 2130.0606727600098,
+      "text_extracted": true,
+      "text_length": 8165,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Jira",
+        "Machine Learning",
+        "Node.js",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Artificial Intelligence, Jira, Machine Learning, Node.js, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "21283365.pdf",
+      "success": true,
+      "processing_time_ms": 2019.3524360656738,
+      "text_extracted": true,
+      "text_length": 5959,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "R",
+        "Rust",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 skills: Artificial Intelligence, R, Rust, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "21780877.pdf",
+      "success": true,
+      "processing_time_ms": 1719.1188335418701,
+      "text_extracted": true,
+      "text_length": 6239,
+      "name": "Kevin L. Trostle",
+      "email": null,
+      "phone": "266-4800",
+      "skills": [
+        "Artificial Intelligence",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": true,
+          "valid_format": true,
+          "value": "Kevin L. Trostle",
+          "issue": null
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": true,
+          "valid_format": true,
+          "value": "266-4800",
+          "issue": null
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": false,
+          "value": "2 skills: Artificial Intelligence, TypeScript",
+          "issue": "Very few skills (2)"
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.475,
+      "error": null
+    },
+    {
+      "filename": "22450718.pdf",
+      "success": true,
+      "processing_time_ms": 2138.6380195617676,
+      "text_extracted": true,
+      "text_length": 7742,
+      "name": null,
+      "email": null,
+      "phone": "2005-2007",
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "Linux",
+        "Oracle",
+        "Ruby",
+        "TypeScript",
+        "Unix"
+      ],
+      "experience_count": 3,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "2005-2007"
+        },
+        {
+          "company": null,
+          "position": null,
+          "duration": "2006-2007"
+        },
+        {
+          "company": null,
+          "position": null,
+          "duration": "2007-2008"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": true,
+          "valid_format": true,
+          "value": "2005-2007",
+          "issue": null
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "7 skills: Artificial Intelligence, Excel, Linux, Oracle, Ruby, TypeScript, Unix",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.6000000000000001,
+      "error": null
+    },
+    {
+      "filename": "22776912.pdf",
+      "success": true,
+      "processing_time_ms": 2505.385637283325,
+      "text_extracted": true,
+      "text_length": 9296,
+      "name": null,
+      "email": null,
+      "phone": "200-500",
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "Machine Learning",
+        "R",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": true,
+          "valid_format": false,
+          "value": "200-500",
+          "issue": "Too few digits (6)"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Artificial Intelligence, Excel, Machine Learning, R, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.325,
+      "error": null
+    },
+    {
+      "filename": "23527321.pdf",
+      "success": true,
+      "processing_time_ms": 1964.601993560791,
+      "text_extracted": true,
+      "text_length": 5681,
+      "name": "Su",
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "R",
+        "SAP",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": true,
+          "valid_format": false,
+          "value": "Su",
+          "issue": "Too short; Single word (expected first + last)"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 skills: Artificial Intelligence, R, SAP, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.35,
+      "error": null
+    },
+    {
+      "filename": "23666211.pdf",
+      "success": true,
+      "processing_time_ms": 2117.283821105957,
+      "text_extracted": true,
+      "text_length": 5921,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": false,
+          "value": "2 skills: Artificial Intelligence, TypeScript",
+          "issue": "Very few skills (2)"
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.125,
+      "error": null
+    },
+    {
+      "filename": "23864648.pdf",
+      "success": true,
+      "processing_time_ms": 2037.3666286468506,
+      "text_extracted": true,
+      "text_length": 5922,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Linux",
+        "Oracle",
+        "Shell Scripting",
+        "TypeScript",
+        "Unix"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "6 skills: Artificial Intelligence, Linux, Oracle, Shell Scripting, TypeScript, Unix",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "24020470.pdf",
+      "success": true,
+      "processing_time_ms": 2546.935796737671,
+      "text_extracted": true,
+      "text_length": 7887,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Machine Learning",
+        "Photoshop",
+        "Python",
+        "Salesforce",
+        "TypeScript",
+        "WordPress"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "7 skills: Artificial Intelligence, Machine Learning, Photoshop, Python, Salesforce, TypeScript, WordPress",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "24038620.pdf",
+      "success": true,
+      "processing_time_ms": 2306.107521057129,
+      "text_extracted": true,
+      "text_length": 6209,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Express.js",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Express.js, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "24083609.pdf",
+      "success": true,
+      "processing_time_ms": 971.2538719177246,
+      "text_extracted": true,
+      "text_length": 1859,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": false,
+          "value": "2 skills: Artificial Intelligence, TypeScript",
+          "issue": "Very few skills (2)"
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.125,
+      "error": null
+    },
+    {
+      "filename": "24230851.pdf",
+      "success": true,
+      "processing_time_ms": 1715.2175903320312,
+      "text_extracted": true,
+      "text_length": 4811,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Excel, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "24889109.pdf",
+      "success": true,
+      "processing_time_ms": 2016.8707370758057,
+      "text_extracted": true,
+      "text_length": 4711,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Ruby",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Ruby, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "24913648.pdf",
+      "success": true,
+      "processing_time_ms": 2124.5412826538086,
+      "text_extracted": true,
+      "text_length": 7001,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": false,
+          "value": "2 skills: Artificial Intelligence, TypeScript",
+          "issue": "Very few skills (2)"
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.125,
+      "error": null
+    },
+    {
+      "filename": "25207620.pdf",
+      "success": true,
+      "processing_time_ms": 2335.0255489349365,
+      "text_extracted": true,
+      "text_length": 6308,
+      "name": "Roz Arasmo",
+      "email": null,
+      "phone": "2006-2010",
+      "skills": [
+        "Artificial Intelligence",
+        "Express.js",
+        "SAP",
+        "TypeScript"
+      ],
+      "experience_count": 1,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "2006-2010"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": true,
+          "valid_format": true,
+          "value": "Roz Arasmo",
+          "issue": null
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": true,
+          "valid_format": true,
+          "value": "2006-2010",
+          "issue": null
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 skills: Artificial Intelligence, Express.js, SAP, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "1 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.8,
+      "error": null
+    },
+    {
+      "filename": "25857360.pdf",
+      "success": true,
+      "processing_time_ms": 1873.2109069824219,
+      "text_extracted": true,
+      "text_length": 6395,
+      "name": "Richard Biever",
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": true,
+          "valid_format": true,
+          "value": "Richard Biever",
+          "issue": null
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Excel, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "25905275.pdf",
+      "success": true,
+      "processing_time_ms": 2105.311632156372,
+      "text_extracted": true,
+      "text_length": 7333,
+      "name": "Trai",
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": true,
+          "valid_format": false,
+          "value": "Trai",
+          "issue": "Single word (expected first + last)"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Excel, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.35,
+      "error": null
+    },
+    {
+      "filename": "25959103.pdf",
+      "success": true,
+      "processing_time_ms": 1812.6211166381836,
+      "text_extracted": true,
+      "text_length": 5346,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Swift",
+        "TypeScript"
+      ],
+      "experience_count": 2,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "2007- Present"
+        },
+        {
+          "company": null,
+          "position": null,
+          "duration": "2000 -2004"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Swift, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "2 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "25990239.pdf",
+      "success": true,
+      "processing_time_ms": 2634.953022003174,
+      "text_extracted": true,
+      "text_length": 5841,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Data Analysis",
+        "Excel",
+        "HTML",
+        "Machine Learning",
+        "PHP",
+        "Photoshop",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "8 skills: Artificial Intelligence, Data Analysis, Excel, HTML, Machine Learning, PHP, Photoshop, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "26480367.pdf",
+      "success": true,
+      "processing_time_ms": 1566.396951675415,
+      "text_extracted": true,
+      "text_length": 5009,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "HTML",
+        "Machine Learning",
+        "Python",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Artificial Intelligence, HTML, Machine Learning, Python, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "26746496.pdf",
+      "success": true,
+      "processing_time_ms": 2587.773561477661,
+      "text_extracted": true,
+      "text_length": 8255,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "ASP.NET",
+        "Agile",
+        "Artificial Intelligence",
+        "Bootstrap",
+        "CSS",
+        "Excel",
+        "GitHub",
+        "Go",
+        "HTML",
+        "Java",
+        "JavaScript",
+        "Machine Learning",
+        "MySQL",
+        "Python",
+        "Scrum",
+        "TypeScript",
+        "jQuery"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "17 skills: ASP.NET, Agile, Artificial Intelligence, Bootstrap, CSS, Excel, GitHub, Go, HTML, Java...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "26768723.pdf",
+      "success": true,
+      "processing_time_ms": 1968.4524536132812,
+      "text_extracted": true,
+      "text_length": 5001,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "CSS",
+        "Linux",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 skills: Artificial Intelligence, CSS, Linux, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "26801767.pdf",
+      "success": true,
+      "processing_time_ms": 2073.3866691589355,
+      "text_extracted": true,
+      "text_length": 9445,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Data Analysis",
+        "Excel",
+        "TypeScript",
+        "Unix"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Artificial Intelligence, Data Analysis, Excel, TypeScript, Unix",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "27058381.pdf",
+      "success": true,
+      "processing_time_ms": 3793.7490940093994,
+      "text_extracted": true,
+      "text_length": 11452,
+      "name": null,
+      "email": null,
+      "phone": "304-264-5413",
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "Go",
+        "R",
+        "Ruby",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": true,
+          "valid_format": true,
+          "value": "304-264-5413",
+          "issue": null
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "6 skills: Artificial Intelligence, Excel, Go, R, Ruby, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.4,
+      "error": null
+    },
+    {
+      "filename": "27295996.pdf",
+      "success": true,
+      "processing_time_ms": 1949.2840766906738,
+      "text_extracted": true,
+      "text_length": 7110,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Azure",
+        "Data Analysis",
+        "Linux",
+        "Salesforce",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "6 skills: Artificial Intelligence, Azure, Data Analysis, Linux, Salesforce, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "27372171.pdf",
+      "success": true,
+      "processing_time_ms": 2463.127613067627,
+      "text_extracted": true,
+      "text_length": 11881,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "Node.js",
+        "Ruby",
+        "Statistics",
+        "TypeScript",
+        "Unix",
+        "jQuery"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "8 skills: Artificial Intelligence, Excel, Node.js, Ruby, Statistics, TypeScript, Unix, jQuery",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "27485716.pdf",
+      "success": true,
+      "processing_time_ms": 2313.061475753784,
+      "text_extracted": true,
+      "text_length": 5959,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": false,
+          "value": "2 skills: Artificial Intelligence, TypeScript",
+          "issue": "Very few skills (2)"
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.125,
+      "error": null
+    },
+    {
+      "filename": "27536013.pdf",
+      "success": true,
+      "processing_time_ms": 1984.8339557647705,
+      "text_extracted": true,
+      "text_length": 5849,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Data Analysis",
+        "Machine Learning",
+        "Microsoft SQL Server",
+        "Oracle",
+        "Python",
+        "SAP",
+        "TypeScript"
+      ],
+      "experience_count": 3,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "2011 - Present"
+        },
+        {
+          "company": null,
+          "position": null,
+          "duration": "2015 - Present"
+        },
+        {
+          "company": null,
+          "position": null,
+          "duration": "2009 - 2012"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "8 skills: Artificial Intelligence, Data Analysis, Machine Learning, Microsoft SQL Server, Oracle, Python, SAP, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "27770859.pdf",
+      "success": true,
+      "processing_time_ms": 1956.2082290649414,
+      "text_extracted": true,
+      "text_length": 5415,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Android",
+        "Apache",
+        "Artificial Intelligence",
+        "Express.js",
+        "HTML",
+        "Linux",
+        "Machine Learning",
+        "MySQL",
+        "PHP",
+        "TypeScript",
+        "WordPress",
+        "iOS"
+      ],
+      "experience_count": 1,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "2000-Present"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "12 skills: Android, Apache, Artificial Intelligence, Express.js, HTML, Linux, Machine Learning, MySQL, PHP, TypeScript...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "1 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "28035460.pdf",
+      "success": true,
+      "processing_time_ms": 2372.5991249084473,
+      "text_extracted": true,
+      "text_length": 6264,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Data Analysis",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Data Analysis, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "28126340.pdf",
+      "success": true,
+      "processing_time_ms": 2266.9081687927246,
+      "text_extracted": true,
+      "text_length": 8684,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "ASP.NET",
+        "Artificial Intelligence",
+        "CSS",
+        "HTML",
+        "JavaScript",
+        "Linux",
+        "Machine Learning",
+        "Microsoft SQL Server",
+        "MySQL",
+        "Oracle",
+        "PHP",
+        "Photoshop",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "13 skills: ASP.NET, Artificial Intelligence, CSS, HTML, JavaScript, Linux, Machine Learning, Microsoft SQL Server, MySQL, Oracle...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "28672970.pdf",
+      "success": true,
+      "processing_time_ms": 1994.8713779449463,
+      "text_extracted": true,
+      "text_length": 6577,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": false,
+          "value": "2 skills: Artificial Intelligence, TypeScript",
+          "issue": "Very few skills (2)"
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.125,
+      "error": null
+    },
+    {
+      "filename": "28697203.pdf",
+      "success": true,
+      "processing_time_ms": 1869.5247173309326,
+      "text_extracted": true,
+      "text_length": 5269,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Agile",
+        "Artificial Intelligence",
+        "Confluence",
+        "Jira",
+        "Machine Learning",
+        "Rust",
+        "Scrum",
+        "TypeScript"
+      ],
+      "experience_count": 1,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "2019 - Current"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "8 skills: Agile, Artificial Intelligence, Confluence, Jira, Machine Learning, Rust, Scrum, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "1 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "28897981.pdf",
+      "success": true,
+      "processing_time_ms": 2381.5953731536865,
+      "text_extracted": true,
+      "text_length": 6449,
+      "name": null,
+      "email": null,
+      "phone": "2016-0031",
+      "skills": [
+        "Apache",
+        "Artificial Intelligence",
+        "CSS",
+        "HTML",
+        "Linux",
+        "Machine Learning",
+        "MySQL",
+        "PHP",
+        "Python",
+        "R",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": true,
+          "valid_format": true,
+          "value": "2016-0031",
+          "issue": null
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "11 skills: Apache, Artificial Intelligence, CSS, HTML, Linux, Machine Learning, MySQL, PHP, Python, R...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.4,
+      "error": null
+    },
+    {
+      "filename": "29051656.pdf",
+      "success": true,
+      "processing_time_ms": 1846.8389511108398,
+      "text_extracted": true,
+      "text_length": 6908,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "AWS",
+        "Artificial Intelligence",
+        "Bash",
+        "Linux",
+        "MySQL",
+        "Oracle",
+        "Shell Scripting",
+        "TypeScript",
+        "Unix"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "9 skills: AWS, Artificial Intelligence, Bash, Linux, MySQL, Oracle, Shell Scripting, TypeScript, Unix",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "29075857.pdf",
+      "success": true,
+      "processing_time_ms": 2344.7418212890625,
+      "text_extracted": true,
+      "text_length": 9286,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Data Analysis",
+        "Excel",
+        "Machine Learning",
+        "Oracle",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "6 skills: Artificial Intelligence, Data Analysis, Excel, Machine Learning, Oracle, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "29975124.pdf",
+      "success": true,
+      "processing_time_ms": 1747.7178573608398,
+      "text_extracted": true,
+      "text_length": 6023,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "C++",
+        "HTML",
+        "Machine Learning",
+        "Oracle",
+        "PHP",
+        "Ruby",
+        "Shell Scripting",
+        "TypeScript",
+        "Unix"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "10 skills: Artificial Intelligence, C++, HTML, Machine Learning, Oracle, PHP, Ruby, Shell Scripting, TypeScript, Unix",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "30223363.pdf",
+      "success": true,
+      "processing_time_ms": 2656.8994522094727,
+      "text_extracted": true,
+      "text_length": 10845,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Data Analysis",
+        "HTML",
+        "Java",
+        "Linux",
+        "Machine Learning",
+        "Microsoft SQL Server",
+        "MySQL",
+        "Oracle",
+        "PHP",
+        "Perl",
+        "SAP",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "13 skills: Artificial Intelligence, Data Analysis, HTML, Java, Linux, Machine Learning, Microsoft SQL Server, MySQL, Oracle, PHP...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "31111279.pdf",
+      "success": true,
+      "processing_time_ms": 2272.268056869507,
+      "text_extracted": true,
+      "text_length": 8018,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "AWS",
+        "Artificial Intelligence",
+        "Go",
+        "TypeScript",
+        "Unix",
+        "VBA"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "6 skills: AWS, Artificial Intelligence, Go, TypeScript, Unix, VBA",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "31243710.pdf",
+      "success": true,
+      "processing_time_ms": 1677.9611110687256,
+      "text_extracted": true,
+      "text_length": 7740,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Apache",
+        "Artificial Intelligence",
+        "Excel",
+        "Linux",
+        "MySQL",
+        "Python",
+        "TypeScript",
+        "iOS"
+      ],
+      "experience_count": 1,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "2012 - Current"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "8 skills: Apache, Artificial Intelligence, Excel, Linux, MySQL, Python, TypeScript, iOS",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "1 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "32959732.pdf",
+      "success": true,
+      "processing_time_ms": 2564.091920852661,
+      "text_extracted": true,
+      "text_length": 11627,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "AWS",
+        "Artificial Intelligence",
+        "Azure",
+        "Linux",
+        "Microsoft SQL Server",
+        "SAP",
+        "Scrum",
+        "Tableau",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "9 skills: AWS, Artificial Intelligence, Azure, Linux, Microsoft SQL Server, SAP, Scrum, Tableau, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "33241454.pdf",
+      "success": true,
+      "processing_time_ms": 1564.7904872894287,
+      "text_extracted": true,
+      "text_length": 4045,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Excel, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "33381211.pdf",
+      "success": true,
+      "processing_time_ms": 2582.385301589966,
+      "text_extracted": true,
+      "text_length": 10834,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "AWS",
+        "Agile",
+        "Artificial Intelligence",
+        "C#",
+        "Machine Learning",
+        "Microservices",
+        "Oracle",
+        "Salesforce",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "9 skills: AWS, Agile, Artificial Intelligence, C#, Machine Learning, Microservices, Oracle, Salesforce, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "35325329.pdf",
+      "success": true,
+      "processing_time_ms": 1733.4222793579102,
+      "text_extracted": true,
+      "text_length": 6598,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Agile",
+        "Artificial Intelligence",
+        "Machine Learning",
+        "Scrum",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Agile, Artificial Intelligence, Machine Learning, Scrum, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "36434348.pdf",
+      "success": true,
+      "processing_time_ms": 2424.7851371765137,
+      "text_extracted": true,
+      "text_length": 5574,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "ASP.NET",
+        "Artificial Intelligence",
+        "HTML",
+        "Machine Learning",
+        "Microsoft SQL Server",
+        "Oracle",
+        "Photoshop",
+        "SAP",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "9 skills: ASP.NET, Artificial Intelligence, HTML, Machine Learning, Microsoft SQL Server, Oracle, Photoshop, SAP, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "36856210.pdf",
+      "success": true,
+      "processing_time_ms": 1936.0980987548828,
+      "text_extracted": true,
+      "text_length": 4629,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "HTML",
+        "Linux",
+        "Machine Learning",
+        "Photoshop",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "7 skills: Artificial Intelligence, Excel, HTML, Linux, Machine Learning, Photoshop, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "37242217.pdf",
+      "success": true,
+      "processing_time_ms": 1955.1429748535156,
+      "text_extracted": true,
+      "text_length": 7235,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Apache",
+        "Artificial Intelligence",
+        "CSS",
+        "Express.js",
+        "HTML",
+        "Java",
+        "JavaScript",
+        "Linux",
+        "Machine Learning",
+        "Microsoft SQL Server",
+        "MySQL",
+        "Oracle",
+        "PHP",
+        "Photoshop",
+        "TypeScript",
+        "Unix",
+        "WordPress",
+        "iOS"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "18 skills: Apache, Artificial Intelligence, CSS, Express.js, HTML, Java, JavaScript, Linux, Machine Learning, Microsoft SQL Server...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "37764298.pdf",
+      "success": true,
+      "processing_time_ms": 2257.3726177215576,
+      "text_extracted": true,
+      "text_length": 6660,
+      "name": "Edward S.Clay",
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "Go",
+        "Ruby",
+        "Rust",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": true,
+          "valid_format": true,
+          "value": "Edward S.Clay",
+          "issue": null
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "6 skills: Artificial Intelligence, Excel, Go, Ruby, Rust, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "38753827.pdf",
+      "success": true,
+      "processing_time_ms": 2265.1283740997314,
+      "text_extracted": true,
+      "text_length": 9748,
+      "name": null,
+      "email": null,
+      "phone": "2003-2006",
+      "skills": [
+        "Artificial Intelligence",
+        "Salesforce",
+        "TypeScript"
+      ],
+      "experience_count": 1,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "2003-2006"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": true,
+          "valid_format": true,
+          "value": "2003-2006",
+          "issue": null
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Salesforce, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "1 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.6000000000000001,
+      "error": null
+    },
+    {
+      "filename": "39413067.pdf",
+      "success": true,
+      "processing_time_ms": 1942.8131580352783,
+      "text_extracted": true,
+      "text_length": 5381,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Android",
+        "Artificial Intelligence",
+        "HTML",
+        "Java",
+        "Machine Learning",
+        "Microsoft SQL Server",
+        "PHP",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "8 skills: Android, Artificial Intelligence, HTML, Java, Machine Learning, Microsoft SQL Server, PHP, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "39718499.pdf",
+      "success": true,
+      "processing_time_ms": 1200.834035873413,
+      "text_extracted": true,
+      "text_length": 2328,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": false,
+          "value": "2 skills: Artificial Intelligence, TypeScript",
+          "issue": "Very few skills (2)"
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.125,
+      "error": null
+    },
+    {
+      "filename": "40018190.pdf",
+      "success": true,
+      "processing_time_ms": 1388.7550830841064,
+      "text_extracted": true,
+      "text_length": 2970,
+      "name": "William Woods",
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Express.js",
+        "SAP",
+        "TypeScript",
+        "WordPress",
+        "iOS"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": true,
+          "valid_format": true,
+          "value": "William Woods",
+          "issue": null
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "6 skills: Artificial Intelligence, Express.js, SAP, TypeScript, WordPress, iOS",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "41344156.pdf",
+      "success": true,
+      "processing_time_ms": 1994.1737651824951,
+      "text_extracted": true,
+      "text_length": 6496,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "ASP.NET",
+        "Artificial Intelligence",
+        "Data Analysis",
+        "Machine Learning",
+        "Microsoft SQL Server",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "6 skills: ASP.NET, Artificial Intelligence, Data Analysis, Machine Learning, Microsoft SQL Server, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "46260230.pdf",
+      "success": true,
+      "processing_time_ms": 2591.6929244995117,
+      "text_extracted": true,
+      "text_length": 10198,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Linux",
+        "TypeScript",
+        "iOS"
+      ],
+      "experience_count": 2,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "2011 - Current"
+        },
+        {
+          "company": null,
+          "position": null,
+          "duration": "2019 - Current"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 skills: Artificial Intelligence, Linux, TypeScript, iOS",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "2 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "48037995.pdf",
+      "success": true,
+      "processing_time_ms": 2059.0202808380127,
+      "text_extracted": true,
+      "text_length": 5733,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Data Analysis",
+        "Excel",
+        "Python",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Artificial Intelligence, Data Analysis, Excel, Python, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "51363762.pdf",
+      "success": true,
+      "processing_time_ms": 2058.269500732422,
+      "text_extracted": true,
+      "text_length": 8168,
+      "name": null,
+      "email": null,
+      "phone": "(2003-2011",
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "Go",
+        "TypeScript"
+      ],
+      "experience_count": 4,
+      "experience_details": [
+        {
+          "company": null,
+          "position": "ir schedules. Information Technology Specialist Sep 1992 to Sep 2011 Company Name ï¼​ City , State",
+          "duration": "2003-2011"
+        },
+        {
+          "company": null,
+          "position": null,
+          "duration": "2013-2015"
+        },
+        {
+          "company": null,
+          "position": null,
+          "duration": "2011-2015"
+        },
+        {
+          "company": null,
+          "position": null,
+          "duration": "2011- 2015"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": true,
+          "valid_format": true,
+          "value": "(2003-2011",
+          "issue": null
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 skills: Artificial Intelligence, Excel, Go, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.6000000000000001,
+      "error": null
+    },
+    {
+      "filename": "51639418.pdf",
+      "success": true,
+      "processing_time_ms": 1645.8353996276855,
+      "text_extracted": true,
+      "text_length": 4966,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Linux",
+        "Oracle",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 skills: Artificial Intelligence, Linux, Oracle, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "52246737.pdf",
+      "success": true,
+      "processing_time_ms": 2143.975257873535,
+      "text_extracted": true,
+      "text_length": 7676,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Linux",
+        "Machine Learning",
+        "Statistics",
+        "TypeScript"
+      ],
+      "experience_count": 1,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "2013 - PRESENT"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Artificial Intelligence, Linux, Machine Learning, Statistics, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "1 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "52618188.pdf",
+      "success": true,
+      "processing_time_ms": 2815.4494762420654,
+      "text_extracted": true,
+      "text_length": 7565,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "Oracle",
+        "SAP",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Artificial Intelligence, Excel, Oracle, SAP, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "57002858.pdf",
+      "success": true,
+      "processing_time_ms": 2208.247184753418,
+      "text_extracted": true,
+      "text_length": 5134,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Excel, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "64017585.pdf",
+      "success": true,
+      "processing_time_ms": 1314.6452903747559,
+      "text_extracted": true,
+      "text_length": 3099,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Linux",
+        "Machine Learning",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 skills: Artificial Intelligence, Linux, Machine Learning, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "66832845.pdf",
+      "success": true,
+      "processing_time_ms": 1779.5500755310059,
+      "text_extracted": true,
+      "text_length": 5072,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Azure",
+        "Linux",
+        "Node.js",
+        "Ruby",
+        "TypeScript",
+        "Unix"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "7 skills: Artificial Intelligence, Azure, Linux, Node.js, Ruby, TypeScript, Unix",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "68460556.pdf",
+      "success": true,
+      "processing_time_ms": 1674.497127532959,
+      "text_extracted": true,
+      "text_length": 2407,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "Express.js",
+        "TypeScript"
+      ],
+      "experience_count": 1,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "2015 - 2016"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 skills: Artificial Intelligence, Excel, Express.js, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "1 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "70089206.pdf",
+      "success": true,
+      "processing_time_ms": 2331.914186477661,
+      "text_extracted": true,
+      "text_length": 6665,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Java",
+        "JavaScript",
+        "Linux",
+        "Object-Oriented Programming",
+        "Oracle",
+        "Perl",
+        "Ruby",
+        "Shell Scripting",
+        "Statistics",
+        "TypeScript",
+        "Unix"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "12 skills: Artificial Intelligence, Java, JavaScript, Linux, Object-Oriented Programming, Oracle, Perl, Ruby, Shell Scripting, Statistics...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "79541391.pdf",
+      "success": true,
+      "processing_time_ms": 2965.113878250122,
+      "text_extracted": true,
+      "text_length": 12864,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "ASP.NET",
+        "Artificial Intelligence",
+        "CSS",
+        "Excel",
+        "Machine Learning",
+        "Ruby",
+        "SAP",
+        "Statistics",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "9 skills: ASP.NET, Artificial Intelligence, CSS, Excel, Machine Learning, Ruby, SAP, Statistics, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "81761658.pdf",
+      "success": true,
+      "processing_time_ms": 2674.52335357666,
+      "text_extracted": true,
+      "text_length": 6577,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Linux",
+        "Machine Learning",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 skills: Artificial Intelligence, Linux, Machine Learning, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "83816738.pdf",
+      "success": true,
+      "processing_time_ms": 2212.5539779663086,
+      "text_extracted": true,
+      "text_length": 9157,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "AWS",
+        "Agile",
+        "Android",
+        "Angular",
+        "Artificial Intelligence",
+        "Bootstrap",
+        "CSS",
+        "Git",
+        "GitHub",
+        "HTML",
+        "Java",
+        "JavaScript",
+        "Jenkins",
+        "Jira",
+        "Linux",
+        "Machine Learning",
+        "Microservices",
+        "MongoDB",
+        "MySQL",
+        "Node.js",
+        "Object-Oriented Programming",
+        "Oracle",
+        "PHP",
+        "PostgreSQL",
+        "React",
+        "React Native",
+        "SASS",
+        "Scrum",
+        "Spring Boot",
+        "TypeScript",
+        "iOS",
+        "jQuery"
+      ],
+      "experience_count": 2,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "2013 - 2013"
+        },
+        {
+          "company": null,
+          "position": null,
+          "duration": "2016 - 2017"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "32 skills: AWS, Agile, Android, Angular, Artificial Intelligence, Bootstrap, CSS, Git, GitHub, HTML...",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "2 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "89413122.pdf",
+      "success": true,
+      "processing_time_ms": 1911.957025527954,
+      "text_extracted": true,
+      "text_length": 4724,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Data Analysis",
+        "Object-Oriented Programming",
+        "Ruby",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "5 skills: Artificial Intelligence, Data Analysis, Object-Oriented Programming, Ruby, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "90867631.pdf",
+      "success": true,
+      "processing_time_ms": 3130.5294036865234,
+      "text_extracted": true,
+      "text_length": 12537,
+      "name": "William 407th",
+      "email": "william.cook2@conus.army.mil",
+      "phone": "254-287-7798",
+      "skills": [
+        "Artificial Intelligence",
+        "HTML",
+        "Machine Learning",
+        "Oracle",
+        "Python",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": true,
+          "valid_format": false,
+          "value": "William 407th",
+          "issue": "Contains digits"
+        },
+        {
+          "field": "email",
+          "extracted": true,
+          "valid_format": true,
+          "value": "william.cook2@conus.army.mil",
+          "issue": null
+        },
+        {
+          "field": "phone",
+          "extracted": true,
+          "valid_format": true,
+          "value": "254-287-7798",
+          "issue": null
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "6 skills: Artificial Intelligence, HTML, Machine Learning, Oracle, Python, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.7000000000000001,
+      "error": null
+    },
+    {
+      "filename": "91121135.pdf",
+      "success": true,
+      "processing_time_ms": 2165.4841899871826,
+      "text_extracted": true,
+      "text_length": 6607,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Excel",
+        "Python",
+        "SAP",
+        "Statistics",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "6 skills: Artificial Intelligence, Excel, Python, SAP, Statistics, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.25,
+      "error": null
+    },
+    {
+      "filename": "91635250.pdf",
+      "success": true,
+      "processing_time_ms": 2356.6324710845947,
+      "text_extracted": true,
+      "text_length": 7371,
+      "name": "Christopher Townes",
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "Machine Learning",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": true,
+          "valid_format": true,
+          "value": "Christopher Townes",
+          "issue": null
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "3 skills: Artificial Intelligence, Machine Learning, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "91697974.pdf",
+      "success": true,
+      "processing_time_ms": 1666.1677360534668,
+      "text_extracted": true,
+      "text_length": 5769,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "AWS",
+        "Artificial Intelligence",
+        "Excel",
+        "TypeScript"
+      ],
+      "experience_count": 1,
+      "experience_details": [
+        {
+          "company": null,
+          "position": null,
+          "duration": "2014 - Current"
+        }
+      ],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": true,
+          "value": "4 skills: AWS, Artificial Intelligence, Excel, TypeScript",
+          "issue": null
+        },
+        {
+          "field": "experience",
+          "extracted": true,
+          "valid_format": true,
+          "value": "1 entries",
+          "issue": null
+        }
+      ],
+      "quality_score": 0.45,
+      "error": null
+    },
+    {
+      "filename": "92069209.pdf",
+      "success": true,
+      "processing_time_ms": 1644.3021297454834,
+      "text_extracted": true,
+      "text_length": 5494,
+      "name": null,
+      "email": null,
+      "phone": null,
+      "skills": [
+        "Artificial Intelligence",
+        "TypeScript"
+      ],
+      "experience_count": 0,
+      "experience_details": [],
+      "quality_checks": [
+        {
+          "field": "name",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "email",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "phone",
+          "extracted": false,
+          "valid_format": false,
+          "value": null,
+          "issue": "Not extracted"
+        },
+        {
+          "field": "skills",
+          "extracted": true,
+          "valid_format": false,
+          "value": "2 skills: Artificial Intelligence, TypeScript",
+          "issue": "Very few skills (2)"
+        },
+        {
+          "field": "experience",
+          "extracted": false,
+          "valid_format": false,
+          "value": "0 entries",
+          "issue": "No experience extracted"
+        }
+      ],
+      "quality_score": 0.125,
+      "error": null
+    }
+  ],
+  "timestamp": "2026-03-02 17:21:37"
+}

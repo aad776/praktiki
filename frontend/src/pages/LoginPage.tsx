@@ -1,5 +1,5 @@
 import { FormEvent, useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { GoogleLogin } from '@react-oauth/google';
@@ -41,22 +41,38 @@ const roleConfig = {
 export function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [apaarId, setApaarId] = useState('');
   const [role, setRole] = useState<Role>('student');
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   
   const navigate = useNavigate();
+  const location = useLocation();
   const { login, isAuthenticated, role: currentRole } = useAuth();
   const toast = useToast();
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated && currentRole) {
-      console.log(`User is authenticated as ${currentRole}, redirecting...`);
-      navigate(`/${currentRole}`, { replace: true });
+      console.log('LoginPage: Already authenticated', { role: currentRole, locationState: location.state });
+      
+      let storedRedirect = sessionStorage.getItem('auth_redirect');
+      console.log('LoginPage: storedRedirect from sessionStorage:', storedRedirect);
+      
+      const fromState = (location.state as any)?.from;
+      let from = (typeof fromState === 'string' ? fromState : fromState?.pathname);
+      console.log('LoginPage: from from location.state:', from);
+
+      if (storedRedirect) {
+        console.log('LoginPage: Prioritizing storedRedirect:', storedRedirect);
+        from = storedRedirect;
+        sessionStorage.removeItem('auth_redirect'); // Consume the redirect
+      }
+
+      const finalRedirect = from || `/${currentRole}`;
+      console.log('LoginPage: Final redirect path:', finalRedirect);
+      navigate(finalRedirect, { replace: true });
     }
-  }, [isAuthenticated, currentRole, navigate]);
+  }, [isAuthenticated, currentRole, navigate, location]);
 
   // Don't render the login form if authenticated
   if (isAuthenticated && currentRole) {
@@ -113,26 +129,22 @@ export function LoginPage() {
       return;
     }
 
-    if (role === 'student' && apaarId && !/^\d{12}$/.test(apaarId)) {
-      toast.error('APAAR ID must be exactly 12 digits.');
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const response = await api.post<LoginResponse>('/auth/login', {
-        email: email.trim(),
-        password,
-        ...(role === 'student' && apaarId ? { apaar_id: apaarId } : {}),
-      });
+      const payload: any = {
+      email: email.trim(),
+      password,
+      role, // Send the selected role for verification
+    };
+
+      const response = await api.post<LoginResponse>('/auth/login', payload);
 
       await login(response.access_token, response.role);
       
       toast.success('Welcome back! 🎉');
       
-      const redirectPath = `/${response.role}`;
-      navigate(redirectPath);
+      // Navigation is handled by the useEffect hook which watches isAuthenticated
       
     } catch (err) {
       const error = err as ApiError;
@@ -156,14 +168,14 @@ export function LoginPage() {
         {/* Content */}
         <div className="relative z-10 flex flex-col justify-between p-12 text-white w-full">
           {/* Logo */}
-          <div className="flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
             <div className="w-12 h-12 bg-white/20 backdrop-blur rounded-xl flex items-center justify-center">
               <svg className="w-7 h-7 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
             <span className="text-2xl font-bold">Praktiki</span>
-          </div>
+          </Link>
 
           {/* Main Content */}
           <div className="max-w-lg">
@@ -217,11 +229,11 @@ export function LoginPage() {
         <div className="w-full max-w-md animate-fade-in">
           {/* Mobile Logo */}
           <div className="lg:hidden text-center mb-8">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-brand-600 rounded-2xl mb-4">
+            <Link to="/" className="inline-flex items-center justify-center w-16 h-16 bg-brand-600 rounded-2xl mb-4 hover:scale-105 transition-transform">
               <svg className="w-9 h-9 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
-            </div>
+            </Link>
             <h1 className="text-2xl font-bold text-slate-900">Praktiki</h1>
           </div>
 
@@ -327,31 +339,6 @@ export function LoginPage() {
               </div>
             </div>
 
-            {/* APAAR ID (Student Only) - Hidden as per requirements, moved to ABC Status Dashboard */}
-            {/* {role === 'student' && (
-              <div className="input-group animate-slide-down">
-                <label htmlFor="apaarId" className="label">APAAR ID (Optional)</label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                    <svg className="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 012-2h2a2 2 0 012 2v1m-6 0h6" />
-                    </svg>
-                  </div>
-                  <input
-                    id="apaarId"
-                    type="text"
-                    value={apaarId}
-                    onChange={(e) => setApaarId(e.target.value.replace(/\D/g, '').slice(0, 12))}
-                    placeholder="12-digit APAAR ID"
-                    className="input pl-12"
-                  />
-                </div>
-                <p className="mt-1.5 text-xs text-slate-500">
-                  Provide your 12-digit APAAR ID to sync your academic credits.
-                </p>
-              </div>
-            )} */}
-
             {/* Submit Button */}
             <button
               type="submit"
@@ -411,7 +398,11 @@ export function LoginPage() {
             {/* Signup Link */}
             <p className="text-center text-slate-600 mt-8">
               Don't have an account?{' '}
-              <Link to="/signup" className="font-semibold text-brand-600 hover:text-brand-700">
+              <Link 
+                to="/signup" 
+                state={{ from: (location.state as any)?.from }}
+                className="font-semibold text-brand-600 hover:text-brand-700"
+              >
                 Create account
               </Link>
             </p>

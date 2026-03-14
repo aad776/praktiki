@@ -1,0 +1,84 @@
+# =============================================================================
+# Deploy AI — AI Matching (port 8001) + Resume Parser (port 8002)
+# Target EC2: AI Instance
+# =============================================================================
+
+name: Deploy AI Services
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "ai_matching/**"
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  deploy:
+    name: Deploy to AI EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.AI_HOST }} >> ~/.ssh/known_hosts
+
+      # -----------------------------------------------------------------------
+      # Sync AI Matching + Resume Parser
+      # -----------------------------------------------------------------------
+      - name: Sync AI Matching
+        run: |
+          rsync -avz --delete \
+            --exclude 'venv/' \
+            --exclude '__pycache__/' \
+            --exclude '*.pyc' \
+            --exclude '.env' \
+            --exclude 'model_cache/' \
+            --exclude '.cache/' \
+            --exclude '*.pt' \
+            --exclude '*.bin' \
+            --exclude 'resume_parser/venv/' \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            ./ai_matching/ ubuntu@${{ secrets.AI_HOST }}:/home/ubuntu/ai_matching/
+
+      # -----------------------------------------------------------------------
+      # Install dependencies & restart services
+      # -----------------------------------------------------------------------
+      - name: Install deps & restart AI Matching
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.AI_HOST }} << 'EOF'
+            cd /home/ubuntu/ai_matching
+            source venv/bin/activate
+            pip install -r requirements.txt --quiet
+            deactivate
+            sudo systemctl restart praktiki-ai-matching
+          EOF
+
+      - name: Install deps & restart Resume Parser
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.AI_HOST }} << 'EOF'
+            cd /home/ubuntu/ai_matching/resume_parser
+            source venv/bin/activate
+            pip install -r requirements.txt --quiet
+            deactivate
+            sudo systemctl restart praktiki-resume-parser
+          EOF
+
+      # -----------------------------------------------------------------------
+      # Health checks (extra wait for ML model loading)
+      # -----------------------------------------------------------------------
+      - name: Health check — AI Matching (port 8001)
+        run: |
+          sleep 15
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.AI_HOST }} \
+            "curl -sf --max-time 15 http://localhost:8001/ || echo 'WARNING: AI Matching not responding yet (ML models may still be loading)'"
+
+      - name: Health check — Resume Parser (port 8002)
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.AI_HOST }} \
+            "curl -sf --max-time 15 http://localhost:8002/ || echo 'WARNING: Resume Parser not responding yet (may still be starting)'"

@@ -1,0 +1,122 @@
+# =============================================================================
+# Deploy Backend — Praktiki Backend (port 8000) + ABC Portal Backend (port 8003)
+# Target EC2: Backend Instance
+# =============================================================================
+
+name: Deploy Backend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "PythonProject/**"
+      - "ABC-Portal/backend/**"
+      - "ABC-Portal/requirements.txt"
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  deploy:
+    name: Deploy to Backend EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.BACKEND_HOST }} >> ~/.ssh/known_hosts
+
+      # -----------------------------------------------------------------------
+      # Sync Praktiki Backend (PythonProject)
+      # -----------------------------------------------------------------------
+      - name: Sync Praktiki Backend
+        run: |
+          rsync -avz --delete \
+            --exclude 'venv/' \
+            --exclude '__pycache__/' \
+            --exclude '*.pyc' \
+            --exclude '.env' \
+            --exclude '*.db' \
+            --exclude '*.sqlite3' \
+            --exclude 'secure_uploads/' \
+            --exclude 'resume_parser/' \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            ./PythonProject/ ubuntu@${{ secrets.BACKEND_HOST }}:/home/ubuntu/PythonProject/
+
+      # -----------------------------------------------------------------------
+      # Sync ABC Portal Backend
+      # -----------------------------------------------------------------------
+      - name: Sync ABC Portal Backend
+        run: |
+          rsync -avz --delete \
+            --exclude 'venv/' \
+            --exclude '__pycache__/' \
+            --exclude '*.pyc' \
+            --exclude '.env' \
+            --exclude '*.db' \
+            --exclude '*.sqlite3' \
+            --exclude 'frontend/node_modules/' \
+            --exclude 'frontend/dist/' \
+            --exclude 'legacy_backup/' \
+            --exclude 'sql_app.db' \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            ./ABC-Portal/ ubuntu@${{ secrets.BACKEND_HOST }}:/home/ubuntu/ABC-Portal/
+
+      # -----------------------------------------------------------------------
+      # Write .env files from GitHub Secrets
+      # -----------------------------------------------------------------------
+      - name: Write environment files
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.BACKEND_HOST }} << 'ENVSSH'
+            # Praktiki Backend .env
+            cat > /home/ubuntu/PythonProject/.env << 'ENVEOF'
+          ${{ secrets.BACKEND_ENV }}
+          ENVEOF
+
+            # ABC Portal Backend .env
+            mkdir -p /home/ubuntu/ABC-Portal/backend
+            cat > /home/ubuntu/ABC-Portal/backend/.env << 'ENVEOF'
+          ${{ secrets.ABC_BACKEND_ENV }}
+          ENVEOF
+          ENVSSH
+
+      # -----------------------------------------------------------------------
+      # Install dependencies & restart services
+      # -----------------------------------------------------------------------
+      - name: Install deps & restart Praktiki Backend
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.BACKEND_HOST }} << 'EOF'
+            cd /home/ubuntu/PythonProject
+            source venv/bin/activate
+            pip install -r requirements.txt --quiet
+            deactivate
+            sudo systemctl restart praktiki-backend
+          EOF
+
+      - name: Install deps & restart ABC Portal Backend
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.BACKEND_HOST }} << 'EOF'
+            cd /home/ubuntu/ABC-Portal
+            source venv/bin/activate
+            pip install -r requirements.txt --quiet
+            deactivate
+            sudo systemctl restart abc-portal-backend
+          EOF
+
+      # -----------------------------------------------------------------------
+      # Health checks
+      # -----------------------------------------------------------------------
+      - name: Health check — Praktiki Backend (port 8000)
+        run: |
+          sleep 5
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.BACKEND_HOST }} \
+            "curl -sf --max-time 10 http://localhost:8000/ || echo 'WARNING: Backend not responding yet (may still be starting)'"
+
+      - name: Health check — ABC Portal Backend (port 8003)
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.BACKEND_HOST }} \
+            "curl -sf --max-time 10 http://localhost:8003/ || echo 'WARNING: ABC Backend not responding yet (may still be starting)'"

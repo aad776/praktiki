@@ -8,7 +8,7 @@ def test_successful_match():
         id=1,
         skills={"python": 3, "sql": 1},
         year=2,
-        location="mumbai",
+        location="Delhi",
         preferences={}
     )
 

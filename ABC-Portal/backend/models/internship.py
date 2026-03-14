@@ -44,6 +44,14 @@ class Internship(Base):
 
     employer = relationship("backend.models.user.EmployerProfile", back_populates="internships")
 
+    @property
+    def company_name(self):
+        return self.employer.company_name if self.employer else None
+
+    @property
+    def company(self):
+        return self.employer.user if self.employer and self.employer.user else None
+
 class Application(Base):
     __tablename__ = "applications"
 

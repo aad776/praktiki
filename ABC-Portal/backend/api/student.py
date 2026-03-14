@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session, joinedload
 from typing import List
 from backend.database import get_db
 from backend.models.notification import Notification
-from backend.models.user import User, EmployerProfile
+from backend.models.user import User, EmployerProfile, StudentProfile
 from backend.models.internship import Internship, Application, ApplicationStatus
 from backend.models.credit import CreditRequest
 from backend.schemas.internship import InternshipResponse, ApplicationResponse
@@ -19,22 +19,57 @@ def student_dashboard(db: Session = Depends(get_db), current_user: User = Depend
     if current_user.role != "student":
         raise HTTPException(status_code=403, detail="Not authorized")
     
+    # Get StudentProfile
+    student_profile = current_user.student_profile
+    if not student_profile:
+        return {
+            "applications": [],
+            "credits": [],
+            "total_credits": 0
+        }
+
     # Eager load relationships for applications
     applications = db.query(Application).\
-        options(joinedload(Application.internship)).\
-        filter(Application.student_id == current_user.id).all()
+        options(
+            joinedload(Application.internship).joinedload(Internship.employer).joinedload(EmployerProfile.user)
+        ).\
+        filter(Application.student_id == student_profile.id).all()
     
-    # Get all credits (approved and pushed to ABC)
-    credits = db.query(CreditRequest).filter(
-        CreditRequest.student_id == current_user.id,
-        CreditRequest.is_pushed_to_abc == True
-    ).all()
-    total_credits = sum(c.credits_calculated for c in credits if c.status == "approved")
+    # Get all credit requests for summary calculation
+    # Also eager load application and internship details for the list response
+    all_credits = db.query(CreditRequest).filter(
+            CreditRequest.student_id == student_profile.id
+        ).all()
     
+    # Calculate summary stats similar to Main Portal
+    summary_total_credits = sum(c.credits_calculated for c in all_credits)
+    summary_approved_credits = sum(c.credits_calculated for c in all_credits if c.status == "approved")
+    summary_pending_credits = sum(c.credits_calculated for c in all_credits if c.status == "pending")
+    summary_total_hours = sum(c.hours for c in all_credits if c.status == "approved")
+
+    # Return ALL credits to the frontend, not just pushed ones, so the student can see full history
+    # The frontend can filter or show status if needed
+    
+    # Eager load relationships for the credit list in dashboard
+    all_credits_with_details = db.query(CreditRequest).\
+        options(
+            joinedload(CreditRequest.application).joinedload(Application.internship).joinedload(Internship.employer).joinedload(EmployerProfile.user),
+            joinedload(CreditRequest.student).joinedload(StudentProfile.user)
+        ).\
+        filter(
+            CreditRequest.student_id == student_profile.id
+        ).all()
+
     return {
-        "applications": applications,
-        "credits": credits,
-        "total_credits": total_credits
+        "applications": [ApplicationResponse.model_validate(app) for app in applications],
+        "credits": [CreditRequestResponse.model_validate(c) for c in all_credits_with_details],
+        "total_credits": summary_total_credits, 
+        "credit_summary": {
+            "total_credits": summary_total_credits,
+            "approved_credits": summary_approved_credits,
+            "pending_credits": summary_pending_credits,
+            "total_hours": summary_total_hours
+        }
     }
 
 @router.get("/internships", response_model=List[InternshipResponse])
@@ -50,10 +85,14 @@ def apply_for_internship(internship_id: int, db: Session = Depends(get_db), curr
     if current_user.role != "student":
         raise HTTPException(status_code=403, detail="Not authorized")
     
+    student_profile = current_user.student_profile
+    if not student_profile:
+        raise HTTPException(status_code=400, detail="Student profile not found. Please complete your profile.")
+
     # Check if already applied
     existing = db.query(Application).filter(
         Application.internship_id == internship_id,
-        Application.student_id == current_user.id
+        Application.student_id == student_profile.id
     ).first()
     
     if existing:
@@ -61,7 +100,7 @@ def apply_for_internship(internship_id: int, db: Session = Depends(get_db), curr
     
     new_app = Application(
         internship_id=internship_id,
-        student_id=current_user.id,
+        student_id=student_profile.id,
         status="applied"
     )
     db.add(new_app)
@@ -88,8 +127,12 @@ def get_my_credits(db: Session = Depends(get_db), current_user: User = Depends(g
     if current_user.role != "student":
         raise HTTPException(status_code=403, detail="Not authorized")
     
+    student_profile = current_user.student_profile
+    if not student_profile:
+        return []
+
     return db.query(CreditRequest).filter(
-        CreditRequest.student_id == current_user.id,
+        CreditRequest.student_id == student_profile.id,
         CreditRequest.is_pushed_to_abc == True
     ).all()
 

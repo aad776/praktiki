@@ -28,6 +28,24 @@ class CreditRequest(Base):
     student = relationship("backend.models.user.StudentProfile", backref="credit_requests")
     application = relationship("backend.models.internship.Application", backref="credit_request")
 
+    @property
+    def internship_title(self):
+        if self.application and self.application.internship:
+            return self.application.internship.title
+        return None
+
+    @property
+    def company_name(self):
+        if self.application and self.application.internship and self.application.internship.employer:
+            return self.application.internship.employer.company_name
+        return None
+
+    @property
+    def student_name(self):
+        if self.student and self.student.user:
+            return self.student.user.full_name
+        return None
+
 class AuditLog(Base):
     __tablename__ = "audit_logs"
 

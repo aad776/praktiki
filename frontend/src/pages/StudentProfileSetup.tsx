@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import api, { ApiError } from "../services/api";
@@ -46,11 +46,13 @@ const Autocomplete = ({
   useEffect(() => {
     const fetchSuggestions = async () => {
       if (!endpoint) return;
-      
+
       setLoading(true);
       try {
-        const params = { q: inputValue, ...queryParams };
-        const response: any = await api.get(endpoint, params);
+        const response: any = await api.get(endpoint, { 
+          params: { q: inputValue || '', ...queryParams } 
+        });
+        // Correct response handling
         const names = Array.isArray(response) ? response.map((item: any) => item.name) : [];
         setFiltered(names);
       } catch (error) {
@@ -62,7 +64,9 @@ const Autocomplete = ({
 
     if (endpoint) {
       const timeoutId = setTimeout(() => {
-        if (show || Object.keys(queryParams).length > 0) fetchSuggestions();
+        // Fetch if show is true OR if queryParams exist (dependent fields)
+        // OR if inputValue changes (real-time search)
+        fetchSuggestions();
       }, 300);
       return () => clearTimeout(timeoutId);
     } else {
@@ -121,7 +125,7 @@ const Autocomplete = ({
           onFocus={() => setShow(true)}
           onKeyDown={handleKeyDown}
           placeholder={placeholder}
-          className={minimal 
+          className={minimal
             ? "bg-transparent border-none p-0 focus:ring-0 font-medium w-full"
             : "w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
           }
@@ -149,9 +153,9 @@ const Autocomplete = ({
                 </li>
               ))}
             </ul>
-          ) : !loading && value.length > 0 && (
+          ) : !loading && inputValue.length > 0 && (
             <div className="px-4 py-3 text-sm text-gray-500 text-center italic">
-              No results found
+              No results found. Feel free to type yours.
             </div>
           )}
         </div>
@@ -164,21 +168,23 @@ const YearPicker = ({
   label,
   value,
   onChange,
-  required = false
+  required = false,
+  maxYear
 }: {
   label: string,
   value: string,
   onChange: (val: string) => void,
-  required?: boolean
+  required?: boolean,
+  maxYear?: number
 }) => {
   // A simple dropdown is actually cleaner than a full calendar for just "Year"
   // But user asked for "proper calendar like date choose", so let's make a grid UI
   const [show, setShow] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const currentYear = new Date().getFullYear();
-  const startYear = 1980;
-  const endYear = currentYear + 6; // Future years for graduation
-  const years = Array.from({ length: endYear - startYear + 1 }, (_, i) => endYear - i); // Descending
+  const startYearLimit = 1980;
+  const endYearLimit = maxYear || (currentYear + 6); // Future years for graduation
+  const years = Array.from({ length: endYearLimit - startYearLimit + 1 }, (_, i) => endYearLimit - i); // Descending
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -303,9 +309,8 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
       />
     </div>
 
-    {/* APAAR ID input hidden as per requirements - moved to ABC Status Dashboard */}
-    {/* <div>
-      <label className="block text-sm font-medium text-gray-700 mb-1">APAAR ID <span className="text-red-500">*</span></label>
+    <div>
+      <label className="block text-sm font-medium text-gray-700 mb-1">APAAR ID (ABC ID)</label>
       <p className="text-xs text-gray-500 mb-2">
         12-digit APAAR ID is required to apply for internships.
         <a href="https://apaar.education.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline ml-1">
@@ -321,7 +326,7 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
         <input
           type="text"
           name="apaar_id"
-          value={formData.apaar_id}
+          value={formData.apaar_id || ""}
           onChange={(e) => handleChange({ target: { name: 'apaar_id', value: e.target.value.replace(/\D/g, '').slice(0, 12) } } as any)}
           placeholder="123456789012"
           maxLength={12}
@@ -334,7 +339,7 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
       {formData.apaar_id && formData.apaar_id.length === 12 && (
         <p className="text-xs text-green-600 mt-1">✓ Valid APAAR ID format</p>
       )}
-    </div> */}
+    </div>
 
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">Gender <span className="text-red-500">*</span></label>
@@ -409,6 +414,8 @@ const Step2 = ({ formData, handleChange, setFormData }: any) => (
       value={formData.course}
       onChange={(val) => {
         handleChange({ target: { name: "course", value: val } } as any);
+        // Clear dependent fields when course changes
+        setFormData((prev: any) => ({ ...prev, stream: "", specialization: "" }));
       }}
       required
     />
@@ -426,9 +433,12 @@ const Step2 = ({ formData, handleChange, setFormData }: any) => (
       label="Stream"
       placeholder="Eg. Engineering"
       endpoint="/autocomplete/streams"
+      queryParams={{ course_name: formData.course }}
       value={formData.stream}
       onChange={(val) => {
         handleChange({ target: { name: "stream", value: val } } as any);
+        // Clear dependent fields when stream changes
+        setFormData((prev: any) => ({ ...prev, specialization: "" }));
       }}
       required
     />
@@ -437,6 +447,7 @@ const Step2 = ({ formData, handleChange, setFormData }: any) => (
       label="Specialization"
       placeholder="Eg. Computer Science"
       endpoint="/autocomplete/specializations"
+      queryParams={{ stream_name: formData.stream }}
       value={formData.specialization}
       onChange={(val) => {
         handleChange({ target: { name: "specialization", value: val } } as any);
@@ -450,12 +461,14 @@ const Step2 = ({ formData, handleChange, setFormData }: any) => (
         value={formData.start_year}
         onChange={(val) => handleChange({ target: { name: "start_year", value: val } } as any)}
         required
+        maxYear={new Date().getFullYear()}
       />
       <YearPicker
         label="End year"
         value={formData.end_year}
         onChange={(val) => handleChange({ target: { name: "end_year", value: val } } as any)}
         required
+        maxYear={new Date().getFullYear() + 6}
       />
     </div>
   </div>
@@ -471,7 +484,7 @@ const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggeste
 
     <div>
       <label className="block text-sm font-medium text-gray-700 mb-2">Area(s) of interest <span className="text-red-500">*</span></label>
-      
+
       <div className="mb-4">
         <Autocomplete
           placeholder="Search for interests (e.g. Web Development)"
@@ -665,11 +678,11 @@ const Step4 = ({ formData, setFormData, handleResumeUpload, handleSubmit, loadin
                 }}
               />
             </h1>
-            
+
             <div className="no-print flex items-center gap-3">
               {formData.resume.resume_file_path && (
                 <a
-                  href={`http://127.0.0.1:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
+                  href={`http://44.205.136.199:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-4 py-1.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-lg text-xs font-bold hover:bg-blue-100 transition-all flex items-center gap-2"
@@ -1065,7 +1078,7 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
   };
 
   return (
-    <div className="max-w-4xl mx-auto py-8 px-4 animate-fadeIn">
+    <div className="max-w-[1200px] mx-auto py-4 sm:py-8 px-2 sm:px-4 animate-fadeIn">
       {/* Upload Resume Hidden Input */}
       <input
         type="file"
@@ -1109,7 +1122,7 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
 
               {formData.resume.resume_file_path && (
                 <a
-                  href={`http://127.0.0.1:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
+                  href={`http://44.205.136.199:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-6 py-2 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl text-sm font-semibold hover:bg-blue-100 transition-all flex items-center gap-2"
@@ -1130,6 +1143,16 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
                 </svg>
                 Edit
               </button>
+
+              <Link
+                to="/resume-maker"
+                className="px-6 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 hover:scale-105 transition-all flex items-center gap-2"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Enhance Resume
+              </Link>
               <button
                 onClick={onLogout}
                 className="px-6 py-2 bg-red-50 text-red-600 border border-red-100 rounded-xl text-sm font-semibold hover:bg-red-100 transition-all flex items-center gap-2"
@@ -1279,6 +1302,7 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
 export function StudentProfileSetup() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const toast = useToast();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -1420,7 +1444,7 @@ export function StudentProfileSetup() {
   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      
+
       // 1. Client-side validation: File size (5MB)
       const MAX_SIZE = 5 * 1024 * 1024;
       if (file.size > MAX_SIZE) {
@@ -1442,7 +1466,7 @@ export function StudentProfileSetup() {
         setLoading(true);
         const response = await api.post("/students/me/resume/upload", formDataUpload);
         toast.success("Resume uploaded successfully!");
-        
+
         // Refresh profile data if in view mode
         if (isViewMode) {
           fetchData();
@@ -1466,6 +1490,10 @@ export function StudentProfileSetup() {
     } else if (currentStep === 2) {
       if (!formData.profile_type || !formData.course || !formData.college_name || !formData.specialization || !formData.start_year || !formData.end_year) {
         setError("Please fill all mandatory fields to proceed.");
+        return false;
+      }
+      if (parseInt(formData.start_year) >= parseInt(formData.end_year)) {
+        setError("Start year must be before the end year.");
         return false;
       }
     } else if (currentStep === 3) {
@@ -1515,10 +1543,12 @@ export function StudentProfileSetup() {
       // Fetch Profile
       let profileData: any = null;
       try {
+        console.log("Fetching student profile...");
         const profileRes = await api.get<Record<string, any>>("/students/me");
+        console.log("Profile response received:", profileRes);
         profileData = profileRes;
       } catch (err) {
-        console.log("No profile found");
+        console.log("No profile found or error fetching profile:", err);
       }
 
       // Fetch Resume
@@ -1531,8 +1561,18 @@ export function StudentProfileSetup() {
       }
 
       if (profileData) {
+        console.log("Profile data exists. Processing...");
         setHasProfile(true);
-        setIsViewMode(true);
+        // Check if edit mode is requested via URL params
+        const isEditMode = searchParams.get("mode") === "edit";
+        console.log("Edit mode requested:", isEditMode);
+
+        // Simplified Logic: If profile data exists (fetched from API), show View Mode by default
+        // Only show form if explicitly requested via ?mode=edit
+        const shouldView = !isEditMode;
+        console.log("Setting View Mode to:", shouldView);
+        setIsViewMode(shouldView);
+
         setFormData(prev => ({
           ...prev,
           first_name: profileData.first_name || "",
@@ -1656,7 +1696,7 @@ export function StudentProfileSetup() {
 
   if (isViewMode) {
     return (
-      <div className="min-h-screen bg-slate-50">
+      <div className="min-h-screen bg-slate-50" key="view-mode">
         <ProfileView
           formData={formData}
           onEdit={handleEdit}
@@ -1668,8 +1708,8 @@ export function StudentProfileSetup() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className={`${step === 4 ? 'max-w-[10in]' : 'max-w-2xl'} mx-auto bg-white rounded-xl shadow-lg p-8 transition-all duration-500`}>
+    <div className="min-h-screen bg-gray-50 py-4 sm:py-12 px-2 sm:px-6 lg:px-8" key="form-mode">
+      <div className={`${step === 4 ? 'max-w-[1100px]' : 'max-w-4xl'} w-full mx-auto bg-white rounded-xl shadow-lg p-4 sm:p-8 transition-all duration-500`}>
         {/* Progress Bar */}
         <div className="w-full bg-gray-200 h-1.5 rounded-full mb-8 overflow-hidden">
           <div

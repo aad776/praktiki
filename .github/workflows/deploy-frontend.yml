@@ -1,0 +1,112 @@
+# =============================================================================
+# Deploy Frontend — Praktiki Frontend (port 80) + ABC Portal Frontend (port 3000)
+# Target EC2: Frontend Instance
+# =============================================================================
+
+name: Deploy Frontend
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "frontend/**"
+      - "ABC-Portal/frontend/**"
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  deploy:
+    name: Deploy to Frontend EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H ${{ secrets.FRONTEND_HOST }} >> ~/.ssh/known_hosts
+
+      # -----------------------------------------------------------------------
+      # Sync Praktiki Frontend
+      # -----------------------------------------------------------------------
+      - name: Sync Praktiki Frontend
+        run: |
+          rsync -avz --delete \
+            --exclude 'node_modules/' \
+            --exclude 'dist/' \
+            --exclude '.env' \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            ./frontend/ ubuntu@${{ secrets.FRONTEND_HOST }}:/home/ubuntu/frontend/
+
+      # -----------------------------------------------------------------------
+      # Sync ABC Portal Frontend
+      # -----------------------------------------------------------------------
+      - name: Sync ABC Portal Frontend
+        run: |
+          rsync -avz --delete \
+            --exclude 'node_modules/' \
+            --exclude 'dist/' \
+            --exclude '.env' \
+            -e "ssh -i ~/.ssh/deploy_key" \
+            ./ABC-Portal/frontend/ ubuntu@${{ secrets.FRONTEND_HOST }}:/home/ubuntu/abc-frontend/
+
+      # -----------------------------------------------------------------------
+      # Write .env files from GitHub Secrets
+      # -----------------------------------------------------------------------
+      - name: Write environment files
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.FRONTEND_HOST }} << 'ENVSSH'
+            # Praktiki Frontend .env
+            cat > /home/ubuntu/frontend/.env << 'ENVEOF'
+          ${{ secrets.FRONTEND_ENV }}
+          ENVEOF
+
+            # ABC Portal Frontend .env
+            cat > /home/ubuntu/abc-frontend/.env << 'ENVEOF'
+          ${{ secrets.ABC_FRONTEND_ENV }}
+          ENVEOF
+          ENVSSH
+
+      # -----------------------------------------------------------------------
+      # Build Praktiki Frontend
+      # -----------------------------------------------------------------------
+      - name: Build Praktiki Frontend
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.FRONTEND_HOST }} << 'EOF'
+            cd /home/ubuntu/frontend
+            npm ci
+            npm run build
+          EOF
+
+      # -----------------------------------------------------------------------
+      # Build ABC Portal Frontend
+      # -----------------------------------------------------------------------
+      - name: Build ABC Portal Frontend
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.FRONTEND_HOST }} << 'EOF'
+            cd /home/ubuntu/abc-frontend
+            npm ci
+            npm run build
+          EOF
+
+      # -----------------------------------------------------------------------
+      # Restart Nginx & health checks
+      # -----------------------------------------------------------------------
+      - name: Restart Nginx
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.FRONTEND_HOST }} \
+            "sudo systemctl restart nginx"
+
+      - name: Health check — Praktiki Frontend (port 80)
+        run: |
+          sleep 3
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.FRONTEND_HOST }} \
+            "curl -sf --max-time 10 http://localhost/ || echo 'WARNING: Praktiki Frontend not responding'"
+
+      - name: Health check — ABC Portal Frontend (port 3000)
+        run: |
+          ssh -i ~/.ssh/deploy_key ubuntu@${{ secrets.FRONTEND_HOST }} \
+            "curl -sf --max-time 10 http://localhost:3000/ || echo 'WARNING: ABC Portal Frontend not responding'"

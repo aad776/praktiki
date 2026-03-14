@@ -21,3 +21,4 @@ pdfplumber
 pdf2image
 python-docx
 numpy
+PyPDF2

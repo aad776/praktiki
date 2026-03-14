@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from typing import Optional
 from datetime import datetime
-from backend.schemas.user import UserResponse
+from backend.schemas.user import UserResponse, StudentProfileResponse
 from backend.schemas.internship import ApplicationResponse
 
 class CreditRequestResponse(BaseModel):
@@ -12,8 +12,10 @@ class CreditRequestResponse(BaseModel):
     credits_calculated: float
     policy_type: str
     status: str
-    student: Optional[UserResponse] = None
-    # application: Optional[ApplicationResponse] = None # Avoid circular ref if possible, or use forward ref
+    created_at: datetime
+    is_pushed_to_abc: bool = False
+    student: Optional[StudentProfileResponse] = None
+    application: Optional[ApplicationResponse] = None
 
     class Config:
         from_attributes = True

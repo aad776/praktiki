@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { adminService } from '../services/adminService';
 import { authService } from '../services/api';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Users, Building, School, ClipboardList, AlertTriangle, FileText, Activity, Download, Eye } from 'lucide-react';
+import { LogOut, Users, Building, School, ClipboardList, AlertTriangle, FileText, Activity, Download, Eye, ArrowLeft } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Legend, PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
 
 const AdminDashboard = () => {
@@ -100,52 +100,61 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="space-y-8">
-      <div className="flex justify-between items-center bg-white p-4 rounded-lg shadow-sm">
-        <div className="flex items-center gap-3">
-            <h2 className="text-2xl font-bold text-gray-800">Admin Portal</h2>
+    <div className="space-y-6 w-full pb-10">
+      {/* Header with Logout */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+            {/* Back Arrow - Only visible on Mobile */}
+            <button 
+              onClick={() => window.history.back()}
+              className="sm:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600"
+              aria-label="Go back"
+            >
+              <ArrowLeft size={24} />
+            </button>
+            <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Admin Portal</h2>
             <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full font-bold uppercase tracking-wide">Read-Only Mode</span>
         </div>
         <button 
-             onClick={handleLogout} 
-             className="flex items-center gap-2 text-red-600 hover:text-red-800 transition-colors px-3 py-1 rounded-md hover:bg-red-50"
+          onClick={handleLogout}
+          className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors font-medium text-sm sm:text-base w-full sm:w-auto justify-center"
         >
-             <LogOut size={18} /> Logout
+          <LogOut size={20} />
+          <span>Logout</span>
         </button>
       </div>
 
       {message && <div className="p-4 bg-blue-100 text-blue-700 rounded">{message}</div>}
 
       {/* Tabs */}
-      <div className="flex space-x-2 border-b border-gray-200 pb-2 overflow-x-auto">
+      <div className="flex space-x-2 sm:space-x-4 border-b overflow-x-auto scrollbar-hide">
         {[
-            { id: 'overview', label: 'Overview', icon: Activity },
-            { id: 'internships', label: 'Internships', icon: FileText },
-            { id: 'students', label: 'Students', icon: Users },
-            { id: 'companies', label: 'Companies', icon: Building },
-            { id: 'institutes', label: 'Institutes', icon: School },
-            { id: 'analytics', label: 'Analytics', icon: Activity }, // Reusing icon for simplicity
-            { id: 'exports', label: 'Exports', icon: Download }
+            { id: 'overview', label: 'Overview' },
+            { id: 'students', label: 'Students' },
+            { id: 'companies', label: 'Companies' },
+            { id: 'institutes', label: 'Institutes' },
+            { id: 'internships', label: 'Internships' },
+            { id: 'analytics', label: 'Analytics' },
+            { id: 'exports', label: 'Exports' }
         ].map(tab => (
             <button 
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex items-center gap-2 px-4 py-2 font-medium rounded-lg whitespace-nowrap transition-colors ${
+                className={`pb-2 px-3 sm:px-4 whitespace-nowrap text-sm sm:text-base transition-colors ${
                     activeTab === tab.id 
-                    ? 'bg-blue-100 text-blue-700' 
-                    : 'text-gray-500 hover:bg-gray-100'
+                    ? 'border-b-2 border-blue-500 text-blue-600 font-medium' 
+                    : 'text-gray-500 hover:text-gray-700'
                 }`}
             >
-                <tab.icon size={16} />
                 {tab.label}
             </button>
         ))}
       </div>
 
       {activeTab === 'overview' && (
-      <>
+      <div className="space-y-6 animate-fadeIn w-full">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
         <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center">
             <div className="p-3 bg-blue-100 rounded-full text-blue-600 mr-4">
                 <Users size={24} />
@@ -274,7 +283,7 @@ const AdminDashboard = () => {
             </table>
         )}
       </div>
-      </>
+      </div>
       )}
 
       {activeTab === 'internships' && (

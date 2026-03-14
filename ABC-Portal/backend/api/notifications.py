@@ -13,11 +13,11 @@ router = APIRouter(prefix="/notifications", tags=["Notifications"])
 class NotificationOut(BaseModel):
     id: int
     message: str
+    is_read: bool
     created_at: datetime
-    is_read: int
 
     class Config:
-        orm_mode = True
+        from_attributes = True
 
 @router.get("/", response_model=List[NotificationOut])
 def get_my_notifications(
