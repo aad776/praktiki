@@ -35,6 +35,8 @@ export interface StudentResume {
   projects?: string; // JSON string
   education_entries?: string; // JSON string
   skills_categorized?: string; // JSON string
+  certifications?: string; // JSON string
+  extra_curricular?: string; // JSON string
   resume_file_path?: string;
 }
 

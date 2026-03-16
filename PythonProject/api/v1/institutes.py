@@ -38,12 +38,16 @@ def list_institute_students(
     if not institute:
         raise HTTPException(status_code=404, detail="Institute profile not found")
 
-    # Filter students by institute_id OR university_name domain match
-    # Get the domain from institute email for stricter matching if needed
+    # Filter students by institute_id OR university_name match
+    from models.college import College
+    college = db.query(College).filter(College.aishe_code == institute.aishe_code).first()
+    verified_name = college.name if college else institute.institute_name
+    
     institute_email_domain = current_user.email.split('@')[-1] if current_user.email else None
     
     students_query = db.query(StudentProfile).join(StudentProfile.user).filter(
         (StudentProfile.institute_id == institute.id) | 
+        (StudentProfile.university_name.ilike(f"%{verified_name}%")) |
         (StudentProfile.university_name.ilike(f"%{institute.institute_name}%")) |
         (User.email.ilike(f"%@{institute_email_domain}%") if institute_email_domain else False)
     ).options(contains_eager(StudentProfile.user))
@@ -111,10 +115,15 @@ def list_credit_requests(
         raise HTTPException(status_code=404, detail="Institute profile not found")
         
     # Get all credit requests for students belonging to this institute or matching the email domain
+    from models.college import College
+    college = db.query(College).filter(College.aishe_code == institute.aishe_code).first()
+    verified_name = college.name if college else institute.institute_name
+    
     institute_email_domain = current_user.email.split('@')[-1] if current_user.email else None
     
     requests = db.query(CreditRequest).join(StudentProfile).join(User, StudentProfile.user_id == User.id).filter(
         (StudentProfile.institute_id == institute.id) | 
+        (StudentProfile.university_name.ilike(f"%{verified_name}%")) |
         (StudentProfile.university_name.ilike(f"%{institute.institute_name}%")) |
         (User.email.ilike(f"%@{institute_email_domain}%") if institute_email_domain else False)
     ).all()
@@ -379,9 +388,14 @@ def get_dashboard_stats(
         }
         
     # Fetch students
+    from models.college import College
+    college = db.query(College).filter(College.aishe_code == institute.aishe_code).first()
+    verified_name = college.name if college else institute.institute_name
+    
     institute_email_domain = current_user.email.split('@')[-1] if current_user.email else None
     students_query = db.query(StudentProfile).join(StudentProfile.user).filter(
         (StudentProfile.institute_id == institute.id) | 
+        (StudentProfile.university_name.ilike(f"%{verified_name}%")) |
         (StudentProfile.university_name.ilike(f"%{institute.institute_name}%")) |
         (User.email.ilike(f"%@{institute_email_domain}%") if institute_email_domain else False)
     )

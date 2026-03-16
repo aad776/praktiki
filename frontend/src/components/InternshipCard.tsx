@@ -52,7 +52,7 @@ export const InternshipCard: React.FC<InternshipCardProps> = ({ internship }) =>
 
   return (
     <div
-      className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-lg transition-all duration-300 relative group cursor-pointer"
+      className="bg-white rounded-xl border border-slate-200 p-4 hover:shadow-lg transition-all duration-300 relative group cursor-pointer"
       onClick={() => navigate(`/internship/${internship.id}`)}
       role="button"
       tabIndex={0}
@@ -63,10 +63,10 @@ export const InternshipCard: React.FC<InternshipCardProps> = ({ internship }) =>
         }
       }}
     >
-      <div className="flex justify-between items-start mb-4">
+      <div className="flex justify-between items-start mb-3">
         <div>
           <h3 
-            className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors cursor-pointer mb-1"
+            className="text-base font-bold text-slate-900 group-hover:text-blue-600 transition-colors cursor-pointer mb-0.5"
             onClick={(e) => {
               e.stopPropagation();
               navigate(`/internship/${internship.id}`);
@@ -74,9 +74,9 @@ export const InternshipCard: React.FC<InternshipCardProps> = ({ internship }) =>
           >
             {internship.title}
           </h3>
-          <p className="text-slate-600 font-medium">{internship.company_name || 'Unknown Company'}</p>
+          <p className="text-sm text-slate-600 font-medium">{internship.company_name || 'Unknown Company'}</p>
         </div>
-        <div className="w-12 h-12 rounded-lg bg-white border border-slate-100 flex items-center justify-center overflow-hidden shadow-sm">
+        <div className="w-10 h-10 rounded-lg bg-white border border-slate-100 flex items-center justify-center overflow-hidden shadow-sm">
             {internship.logo_url && !imgError ? (
                 <img 
                   src={internship.logo_url} 
@@ -85,14 +85,14 @@ export const InternshipCard: React.FC<InternshipCardProps> = ({ internship }) =>
                   onError={() => setImgError(true)}
                 />
             ) : (
-                <span className="text-xl font-bold text-slate-300">
+                <span className="text-lg font-bold text-slate-300">
                     {internship.company_name?.charAt(0) || 'C'}
                 </span>
             )}
         </div>
       </div>
 
-      <div className="flex flex-wrap gap-4 text-xs text-slate-500 mb-4 items-center">
+      <div className="flex flex-wrap gap-3 text-xs text-slate-500 mb-3 items-center">
         <div className="flex items-center gap-1.5">
           <svg className="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -116,7 +116,7 @@ export const InternshipCard: React.FC<InternshipCardProps> = ({ internship }) =>
 
       {/* Skills Row */}
       {skillsList.length > 0 && (
-        <div className="flex flex-wrap items-center gap-2 mb-4 text-sm text-slate-600">
+        <div className="flex flex-wrap items-center gap-2 mb-3 text-sm text-slate-600">
             {skillsList.slice(0, 3).map((skill, idx) => (
                 <span key={idx} className="hover:text-blue-600 cursor-default">{skill}</span>
             ))}
@@ -127,7 +127,7 @@ export const InternshipCard: React.FC<InternshipCardProps> = ({ internship }) =>
       )}
 
       {/* Tags/Badges Row - Mocked for visual similarity if no category data */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      <div className="flex flex-wrap gap-2 mb-3">
         {['Software Development', 'Frontend Development', 'Backend Development'].slice(0, 2).map((tag, idx) => (
             <span key={idx} className="px-3 py-1 bg-slate-100 text-slate-600 rounded-full text-xs font-medium hover:bg-slate-200 transition-colors cursor-pointer">
                 {tag}

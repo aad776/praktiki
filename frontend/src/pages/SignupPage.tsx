@@ -52,6 +52,31 @@ export function SignupPage() {
   const [instituteName, setInstituteName] = useState('');
   const [aisheCode, setAisheCode] = useState('');
   const [instituteContact, setInstituteContact] = useState('');
+  const [isAisheLoading, setIsAisheLoading] = useState(false);
+
+  const handleAisheLookup = async (code: string) => {
+    const trimmedCode = code.trim().toUpperCase();
+    if (trimmedCode.length < 4) {
+      setInstituteName('');
+      return;
+    }
+    setIsAisheLoading(true);
+    try {
+      const response = await api.get<{ name: string }>(`/autocomplete/aishe-lookup/${trimmedCode}`);
+      if (response && response.name) {
+        setInstituteName(response.name);
+        toast.success(`Institute verified: ${response.name}`);
+      } else {
+        setInstituteName('');
+      }
+    } catch (err: any) {
+      console.error('AISHE Lookup Error:', err);
+      setInstituteName('');
+      // Silent fail for 404 to avoid annoying toasts during typing
+    } finally {
+      setIsAisheLoading(false);
+    }
+  };
 
   // Student specific
   const [apaarId, setApaarId] = useState('');
@@ -104,12 +129,16 @@ export function SignupPage() {
     }
 
     if (role === 'institute') {
-      if (!instituteName.trim()) {
-        toast.error('Please enter your institute name.');
+      if (isAisheLoading) {
+        toast.error('Please wait for AISHE code verification...');
         return false;
       }
       if (!aisheCode.trim()) {
         toast.error('Please enter your AISHE code.');
+        return false;
+      }
+      if (!instituteName.trim()) {
+        toast.error('Invalid or unverified AISHE code. Please enter a valid code.');
         return false;
       }
       if (!instituteContact.trim() || instituteContact.length !== 10) {
@@ -487,30 +516,65 @@ export function SignupPage() {
                 {/* Institute Specific Fields */}
                 {role === 'institute' && (
                   <>
-                    <div className="input-group">
-                      <label htmlFor="instituteName" className="label">Institute Name</label>
-                      <input
-                        id="instituteName"
-                        type="text"
-                        value={instituteName}
-                        onChange={(e) => setInstituteName(e.target.value)}
-                        placeholder="ABC University"
-                        className="input"
-                        required
-                      />
+                    <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="input-group">
+                        <label htmlFor="aisheCode" className="label">AISHE Code</label>
+                        <div className="relative">
+                          <input
+                            id="aisheCode"
+                            type="text"
+                            value={aisheCode}
+                            onChange={(e) => {
+                              const val = e.target.value.trim().toUpperCase();
+                              setAisheCode(val);
+                              // Trigger lookup immediately if it looks like a full code
+                              if (val.length >= 6) {
+                                handleAisheLookup(val);
+                              }
+                            }}
+                            onBlur={() => {
+                              const val = aisheCode.trim();
+                              if (val.length >= 4) {
+                                handleAisheLookup(val);
+                              }
+                            }}
+                            placeholder="e.g. U-0564"
+                            className={`input ${isAisheLoading ? 'pr-10' : ''}`}
+                            required
+                          />
+                          {isAisheLoading && (
+                            <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                              <ButtonSpinner />
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-[10px] text-slate-500 mt-1 italic">Move left to auto-fill name</p>
+                      </div>
+
+                      <div className="input-group">
+                        <label className="label">Verified Institute Name</label>
+                        <div className={`min-h-[46px] flex items-center px-4 rounded-xl border transition-all ${
+                          instituteName 
+                            ? 'bg-emerald-50 border-emerald-200 text-emerald-900 font-bold' 
+                            : 'bg-slate-50 border-slate-200 text-slate-400 italic'
+                        }`}>
+                          {instituteName ? (
+                            <div className="flex items-center gap-2 w-full">
+                              <span className="truncate flex-1">{instituteName}</span>
+                              <svg className="w-5 h-5 text-emerald-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          ) : (
+                            'Enter AISHE code to verify'
+                          )}
+                        </div>
+                        {aisheCode.length >= 4 && !instituteName && !isAisheLoading && (
+                          <p className="text-[10px] text-red-500 mt-1">Code not found in verified database</p>
+                        )}
+                      </div>
                     </div>
-                    <div className="input-group">
-                      <label htmlFor="aisheCode" className="label">AISHE Code</label>
-                      <input
-                        id="aisheCode"
-                        type="text"
-                        value={aisheCode}
-                        onChange={(e) => setAisheCode(e.target.value.toUpperCase())}
-                        placeholder="C-12345"
-                        className="input"
-                        required
-                      />
-                    </div>
+
                     <div className="input-group md:col-span-2">
                       <label htmlFor="instituteContact" className="label">Contact Number</label>
                       <div className="flex">

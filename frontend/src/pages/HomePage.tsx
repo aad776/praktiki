@@ -60,13 +60,13 @@ export function HomePage() {
       <PublicNavbar />
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-16 pb-20 lg:pt-24 lg:pb-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+      <section className="relative overflow-hidden pt-8 pb-12 lg:pt-12 lg:pb-16">
+        <div className="mx-auto max-w-7xl px-4 sm:px-5 lg:px-6 relative z-10">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
             
             {/* Left Content */}
             <div className="max-w-2xl animate-fadeIn">
-              <div className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-4 py-1.5 text-sm font-medium text-brand-700 mb-6 border border-brand-100">
+              <div className="inline-flex items-center gap-2 rounded-full bg-brand-50 px-4 py-1 text-sm font-medium text-brand-700 mb-4 border border-brand-100">
                 <span className="relative flex h-2 w-2">
                   <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-400 opacity-75"></span>
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-brand-500"></span>
@@ -74,20 +74,20 @@ export function HomePage() {
                 Now Live for 2025 Internships
               </div>
               
-              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-6 leading-tight">
+              <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold tracking-tight text-slate-900 mb-4 leading-tight">
                 Find Your Dream <br />
                 <span className="gradient-text">Internship Today</span>
               </h1>
               
-              <p className="text-lg text-slate-600 mb-8 leading-relaxed max-w-lg">
+              <p className="text-base text-slate-600 mb-6 leading-relaxed max-w-lg">
                 The unified platform connecting ambitious students with top companies and verified by leading colleges. 
                 Streamline your hiring journey with AI-powered matching.
               </p>
               
-              <div className="flex flex-wrap items-center gap-4 mb-10">
+              <div className="flex flex-wrap items-center gap-3 mb-6">
                 <button 
                   onClick={() => navigate("/signup")}
-                  className="btn-primary px-8 py-3.5"
+                  className="btn-primary px-6 py-3"
                 >
                   Get Started
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -96,21 +96,20 @@ export function HomePage() {
                 </button>
                 <button 
                   onClick={() => navigate("/posted-internships")}
-                  className="btn-secondary px-8 py-3.5"
+                  className="btn-secondary px-6 py-3"
                 >
                   Browse Jobs
                 </button>
               </div>
 
-              <div className="flex flex-wrap items-center gap-4 mb-10">
+              <div className="flex flex-wrap items-center gap-3 mb-6">
                 <button 
                   onClick={() => {
-            sessionStorage.setItem('auth_redirect', '/resume-maker');
             navigate("/login");
           }}
-                  className="flex items-center gap-2 px-6 py-3 bg-brand-50 text-brand-700 font-bold rounded-xl border border-brand-100 hover:bg-brand-100 transition-all group"
+                  className="flex items-center gap-2 px-5 py-2.5 bg-brand-50 text-brand-700 font-bold rounded-xl border border-brand-100 hover:bg-brand-100 transition-all group text-sm"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-12 transition-transform"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="group-hover:rotate-12 transition-transform"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
                   Build Free AI Resume
                 </button>
               </div>
@@ -184,19 +183,19 @@ export function HomePage() {
       </section>
 
       {/* Latest Opportunities Section */}
-      <section className="py-24 bg-gradient-to-b from-slate-50 to-white overflow-hidden">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+      <section className="py-12 bg-gradient-to-b from-slate-50 to-white overflow-hidden">
+        <div className="mx-auto max-w-7xl px-4 sm:px-5 lg:px-6">
+          <div className="flex flex-col md:flex-row justify-between items-end mb-8 gap-4">
             <div className="max-w-2xl">
-               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold uppercase tracking-wider mb-6 border border-indigo-100 shadow-sm">
+               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-indigo-50 text-indigo-600 text-xs font-bold uppercase tracking-wider mb-3 border border-indigo-100 shadow-sm">
                   <span className="relative flex h-2 w-2">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-indigo-600"></span>
                   </span>
                   Fresh Opportunities
                </div>
-               <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 mb-6 tracking-tight">Latest Internships</h2>
-               <p className="text-slate-600 text-lg leading-relaxed">Handpicked opportunities from top companies, updated daily to help you find the right match.</p>
+               <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 mb-3 tracking-tight">Latest Internships</h2>
+               <p className="text-slate-600 text-base leading-relaxed">Handpicked opportunities from top companies, updated daily.</p>
             </div>
             
             <div className="flex items-center gap-4">
@@ -286,77 +285,54 @@ export function HomePage() {
       </section>
 
       {/* Features Section */}
-      <section className="py-20 bg-slate-50">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-16">
-             <h2 className="text-3xl font-bold text-slate-900 mb-4">One Platform, Three Roles</h2>
-             <p className="text-slate-600">Designed to streamline the entire hiring ecosystem, connecting every stakeholder seamlessly.</p>
+      <section className="py-12 bg-slate-50">
+        <div className="mx-auto max-w-7xl px-4 sm:px-5 lg:px-6">
+          <div className="text-center max-w-3xl mx-auto mb-10">
+             <h2 className="text-3xl font-bold text-slate-900 mb-2">One Platform, Three Roles</h2>
+             <p className="text-slate-600 text-sm">Designed to streamline the entire hiring ecosystem seamlessly.</p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
              {/* Student Card */}
-             <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"></path><path d="M6 12v5c3 3 9 3 12 0v-5"></path></svg>
+             <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-600 mb-4">
+                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
+                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">For Students</h3>
-                <p className="text-slate-600 mb-6">Create a verified profile, get AI-matched internships, and launch your career.</p>
-                <ul className="space-y-3 mb-8">
-                    {['APAAR ID Verification', 'AI Resume Builder', 'Direct Applications'].map(item => (
-                        <li key={item} className="flex items-center gap-2 text-sm text-slate-700">
-                            <svg className="text-green-500 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                            {item}
-                        </li>
-                    ))}
-                </ul>
-                <div className="flex flex-col gap-3">
-                    <Link to="/login?role=student" className="block w-full py-2.5 text-center rounded-lg border border-blue-600 text-blue-600 font-medium hover:bg-blue-50 transition-colors">
-                        Login as Student
-                    </Link>
-                    <Link to="/resume-maker" className="block w-full py-2.5 text-center rounded-lg bg-brand-50 text-brand-700 font-bold hover:bg-brand-100 transition-colors">
-                        Try Resume Maker
-                    </Link>
-                </div>
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Students</h3>
+                <p className="text-slate-600 text-sm mb-4">Verify your identity with APAAR, build your resume, and apply to top internships with one click.</p>
+                <Link to="/signup" className="text-brand-600 font-bold text-sm hover:text-brand-700 inline-flex items-center gap-1">
+                   Get Started <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+                </Link>
              </div>
 
              {/* Employer Card */}
-             <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 hover:shadow-md transition-shadow relative overflow-hidden">
-                <div className="absolute top-0 right-0 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-bl-lg">Hiring</div>
-                <div className="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+             <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                <div className="w-10 h-10 bg-purple-100 rounded-xl flex items-center justify-center text-purple-600 mb-4">
+                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">For Employers</h3>
-                <p className="text-slate-600 mb-6">Post internships, manage applications, and find top talent efficiently.</p>
-                <ul className="space-y-3 mb-8">
-                    {['Post Free Internships', 'Applicant Tracking System', 'Verified Candidates'].map(item => (
-                        <li key={item} className="flex items-center gap-2 text-sm text-slate-700">
-                            <svg className="text-green-500 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                            {item}
-                        </li>
-                    ))}
-                </ul>
-                <Link to="/login?role=employer" className="block w-full py-2.5 text-center rounded-lg border border-purple-600 text-purple-600 font-medium hover:bg-purple-50 transition-colors">
-                    Login as Employer
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Employers</h3>
+                <p className="text-slate-600 text-sm mb-4">Post internships, manage applications, and find pre-verified candidates that match your requirements.</p>
+                <Link to="/signup" className="text-purple-600 font-bold text-sm hover:text-purple-700 inline-flex items-center gap-1">
+                   Post a Job <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </Link>
              </div>
 
              {/* Institute Card */}
-             <div className="bg-white rounded-2xl p-8 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
-                <div className="w-12 h-12 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 mb-6">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 21h18M5 21V7l8-4 8 4v14M8 21v-4h8v4"></path></svg>
+             <div className="bg-white rounded-2xl p-6 shadow-sm border border-slate-100 hover:shadow-md transition-shadow">
+                <div className="w-10 h-10 bg-orange-100 rounded-xl flex items-center justify-center text-orange-600 mb-4">
+                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
+                   </svg>
                 </div>
-                <h3 className="text-xl font-bold text-slate-900 mb-3">For Institutes</h3>
-                <p className="text-slate-600 mb-6">Track student progress, verify profiles, and manage placement records.</p>
-                <ul className="space-y-3 mb-8">
-                    {['Student Verification', 'Placement Analytics', 'Digital Records'].map(item => (
-                        <li key={item} className="flex items-center gap-2 text-sm text-slate-700">
-                            <svg className="text-green-500 w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" /></svg>
-                            {item}
-                        </li>
-                    ))}
-                </ul>
-                <Link to="/login?role=institute" className="block w-full py-2.5 text-center rounded-lg border border-orange-600 text-orange-600 font-medium hover:bg-orange-50 transition-colors">
-                    Login as Institute
+                <h3 className="text-xl font-bold text-slate-900 mb-2">Institutes</h3>
+                <p className="text-slate-600 text-sm mb-4">Monitor student progress, verify credits, and streamline internship approvals for your entire college.</p>
+                <Link to="/signup" className="text-orange-600 font-bold text-sm hover:text-orange-700 inline-flex items-center gap-1">
+                   Partner with Us <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
                 </Link>
              </div>
           </div>

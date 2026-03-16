@@ -6,7 +6,7 @@ import spacy
 import logging
 from typing import Optional, Tuple
 import re
-from config import EMAIL_PATTERN, PHONE_PATTERN, MIN_NAME_WORDS, MAX_NAME_WORDS
+from resume_parser.config import EMAIL_PATTERN, PHONE_PATTERN, MIN_NAME_WORDS, MAX_NAME_WORDS
 
 logger = logging.getLogger(__name__)
 

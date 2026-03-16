@@ -400,7 +400,8 @@ def signup_institute(user_in: InstituteCreate, db: Session = Depends(get_db)):
     if user_exists:
         raise HTTPException(status_code=400, detail="Email already registered")
 
-    aishe_exists = db.query(InstituteProfile).filter(InstituteProfile.aishe_code == user_in.aishe_code).first()
+    aishe_normalized = user_in.aishe_code.strip().upper()
+    aishe_exists = db.query(InstituteProfile).filter(InstituteProfile.aishe_code == aishe_normalized).first()
     if aishe_exists:
         raise HTTPException(status_code=400, detail="AISHE code already registered")
 
@@ -417,11 +418,41 @@ def signup_institute(user_in: InstituteCreate, db: Session = Depends(get_db)):
 
     new_institute = InstituteProfile(
         user_id=new_user.id,
-        institute_name=user_in.institute_name,
-        aishe_code=user_in.aishe_code,
+        institute_name=user_in.institute_name.strip(),
+        aishe_code=aishe_normalized,
         contact_number=user_in.contact_number
     )
     db.add(new_institute)
     db.commit()
+    db.refresh(new_institute)
+
+    # Link existing students who match this institute
+    try:
+        from models.student_profile import StudentProfile
+        from models.college import College
+        
+        # Find students who have this university name or matches our AISHE
+        # Get verified names for this AISHE
+        verified_colleges = db.query(College).filter(College.aishe_code == aishe_normalized).all()
+        verified_names = [c.name for c in verified_colleges]
+        
+        student_query = db.query(StudentProfile).filter(
+            (StudentProfile.institute_id.is_(None)) & (
+                (StudentProfile.university_name.in_(verified_names)) |
+                (StudentProfile.university_name.ilike(f"%{new_institute.institute_name}%"))
+            )
+        )
+        
+        linked_count = 0
+        for student in student_query.all():
+            student.institute_id = new_institute.id
+            linked_count += 1
+        
+        if linked_count > 0:
+            db.commit()
+            print(f"DEBUG: Automatically linked {linked_count} existing students to new institute {new_institute.id}")
+            
+    except Exception as e:
+        print(f"Error linking students during institute signup: {e}")
 
     return new_user

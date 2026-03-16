@@ -20,8 +20,10 @@ import {
   FiAward,
   FiTarget,
   FiUser,
-  FiFileText
+  FiFileText,
+  FiX
 } from "react-icons/fi";
+import { ResumePreview } from "../components/ResumePreview";
 
 interface StudentShort {
   id: number;
@@ -96,6 +98,8 @@ export function EmployerInternshipDetails() {
   const [loading, setLoading] = useState(true);
   const [appsLoading, setAppsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [selectedResume, setSelectedResume] = useState<any>(null);
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -385,14 +389,23 @@ export function EmployerInternshipDetails() {
                               {app.resume_json && (
                                 <button 
                                   onClick={() => {
-                                    // In a real app, this would open a modal or new page with the generated resume
                                     try {
                                       const resumeData = JSON.parse(app.resume_json || '{}');
-                                      alert("System-generated resume details:\n" + 
-                                        (resumeData.career_objective || "No career objective")
-                                      );
+                                      setSelectedResume({
+                                        objective: resumeData.career_objective || '',
+                                        skills: typeof resumeData.skills_categorized === 'string' 
+                                          ? JSON.parse(resumeData.skills_categorized).technical || []
+                                          : (resumeData.skills_categorized?.technical || []),
+                                        educations: typeof resumeData.education_entries === 'string' ? JSON.parse(resumeData.education_entries) : [],
+                                        experiences: typeof resumeData.work_experience === 'string' ? JSON.parse(resumeData.work_experience) : [],
+                                        projects: typeof resumeData.projects === 'string' ? JSON.parse(resumeData.projects) : [],
+                                        certifications: typeof resumeData.certifications === 'string' ? JSON.parse(resumeData.certifications) : [],
+                                        extraCurricular: typeof resumeData.extra_curricular === 'string' ? JSON.parse(resumeData.extra_curricular) : [],
+                                      });
+                                      setSelectedStudent(app.student);
                                     } catch (e) {
-                                      alert("Error parsing resume data");
+                                      console.error("Error parsing resume data", e);
+                                      alert("Error loading resume details");
                                     }
                                   }}
                                   className="flex items-center text-[10px] font-bold text-blue-600 hover:text-blue-700 bg-blue-50 px-2 py-1 rounded border border-blue-100"
@@ -517,6 +530,91 @@ export function EmployerInternshipDetails() {
           </div>
         </div>
       </div>
+
+      {/* Resume Preview Modal */}
+      {selectedResume && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-slate-50 rounded-3xl shadow-2xl w-full max-w-5xl h-[90vh] overflow-hidden flex flex-col relative">
+            <div className="p-6 bg-white border-b border-slate-100 flex items-center justify-between sticky top-0 z-10">
+              <div className="flex items-center gap-4">
+                <div className="w-10 h-10 bg-teal-100 text-teal-600 rounded-full flex items-center justify-center">
+                  <FiUser size={20} />
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900">
+                    {selectedStudent?.first_name} {selectedStudent?.last_name}'s Resume
+                  </h3>
+                  <p className="text-xs text-slate-500 uppercase tracking-widest font-bold">System Generated Profile</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => window.print()}
+                  className="px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-colors flex items-center gap-2"
+                >
+                  <FiFileText size={14} /> Download PDF
+                </button>
+                <button 
+                  onClick={() => {
+                    setSelectedResume(null);
+                    setSelectedStudent(null);
+                  }} 
+                  className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400"
+                >
+                  <FiX size={24} />
+                </button>
+              </div>
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-slate-100/50">
+               <div className="max-w-[210mm] mx-auto scale-[0.9] origin-top">
+                  <ResumePreview 
+                    data={{
+                      full_name: `${selectedStudent?.first_name} ${selectedStudent?.last_name}`,
+                      email: selectedStudent?.email || "N/A",
+                      phone: selectedStudent?.phone || "N/A",
+                      current_city: selectedStudent?.current_city || "N/A",
+                      ...selectedResume
+                    }}
+                    scale={1}
+                  />
+               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Print only style for resume in modal */}
+      <div className="hidden print:block">
+        {selectedResume && (
+           <ResumePreview 
+             isPrintMode={true}
+             data={{
+               full_name: `${selectedStudent?.first_name} ${selectedStudent?.last_name}`,
+               email: selectedStudent?.email || "N/A",
+               phone: selectedStudent?.phone || "N/A",
+               current_city: selectedStudent?.current_city || "N/A",
+               ...selectedResume
+             }}
+           />
+        )}
+      </div>
+
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #e2e8f0;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #cbd5e1;
+        }
+      `}</style>
     </div>
   );
 }

@@ -127,7 +127,8 @@ const AdminDashboard = () => {
       {message && <div className="p-4 bg-blue-100 text-blue-700 rounded">{message}</div>}
 
       {/* Tabs */}
-      <div className="flex space-x-2 sm:space-x-4 border-b overflow-x-auto scrollbar-hide">
+      {/* Tabs */}
+      <div className="flex space-x-2 border-b border-gray-200 pb-3 overflow-x-auto scrollbar-hide">
         {[
             { id: 'overview', label: 'Overview' },
             { id: 'students', label: 'Students' },
@@ -140,10 +141,10 @@ const AdminDashboard = () => {
             <button 
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`pb-2 px-3 sm:px-4 whitespace-nowrap text-sm sm:text-base transition-colors ${
+                className={`px-4 py-2 rounded-xl whitespace-nowrap text-sm sm:text-base transition-all ${
                     activeTab === tab.id 
-                    ? 'border-b-2 border-blue-500 text-blue-600 font-medium' 
-                    : 'text-gray-500 hover:text-gray-700'
+                    ? 'bg-slate-900 text-white shadow-lg scale-[1.02] font-bold' 
+                    : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 font-medium'
                 }`}
             >
                 {tab.label}
@@ -152,183 +153,191 @@ const AdminDashboard = () => {
       </div>
 
       {activeTab === 'overview' && (
-      <div className="space-y-6 animate-fadeIn w-full">
+      <div className="space-y-4 animate-fadeIn w-full">
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center">
-            <div className="p-3 bg-blue-100 rounded-full text-blue-600 mr-4">
-                <Users size={24} />
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center transition-all hover:shadow-md">
+            <div className="p-2 bg-blue-100 rounded-full text-blue-600 mr-3">
+                <Users size={20} />
             </div>
             <div>
-                <p className="text-sm text-gray-500 font-medium">Total Students</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.total_students}</p>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Students</p>
+                <p className="text-xl font-black text-gray-800">{stats.total_students}</p>
             </div>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center">
-            <div className="p-3 bg-indigo-100 rounded-full text-indigo-600 mr-4">
-                <Building size={24} />
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center transition-all hover:shadow-md">
+            <div className="p-2 bg-indigo-100 rounded-full text-indigo-600 mr-3">
+                <Building size={20} />
             </div>
             <div>
-                <p className="text-sm text-gray-500 font-medium">Companies</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.total_companies}</p>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Companies</p>
+                <p className="text-xl font-black text-gray-800">{stats.total_companies}</p>
             </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center">
-            <div className="p-3 bg-purple-100 rounded-full text-purple-600 mr-4">
-                <School size={24} />
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center transition-all hover:shadow-md">
+            <div className="p-2 bg-purple-100 rounded-full text-purple-600 mr-3">
+                <School size={20} />
             </div>
             <div>
-                <p className="text-sm text-gray-500 font-medium">Institutes</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.total_institutes}</p>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Institutes</p>
+                <p className="text-xl font-black text-gray-800">{stats.total_institutes}</p>
             </div>
         </div>
 
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center">
-            <div className="p-3 bg-green-100 rounded-full text-green-600 mr-4">
-                <FileText size={24} />
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center transition-all hover:shadow-md">
+            <div className="p-2 bg-green-100 rounded-full text-green-600 mr-3">
+                <FileText size={20} />
             </div>
             <div>
-                <p className="text-sm text-gray-500 font-medium">Internships Posted</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.total_internships}</p>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Internships</p>
+                <p className="text-xl font-black text-gray-800">{stats.total_internships}</p>
             </div>
         </div>
         
-        <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-100 flex items-center">
-            <div className="p-3 bg-yellow-100 rounded-full text-yellow-600 mr-4">
-                <Activity size={24} />
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex items-center transition-all hover:shadow-md">
+            <div className="p-2 bg-yellow-100 rounded-full text-yellow-600 mr-3">
+                <Activity size={20} />
             </div>
             <div>
-                <p className="text-sm text-gray-500 font-medium">Credits Issued</p>
-                <p className="text-2xl font-bold text-gray-800">{stats.total_credits_issued}</p>
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Credits</p>
+                <p className="text-xl font-black text-gray-800">{stats.total_credits_issued}</p>
             </div>
         </div>
       </div>
 
       {/* Exceptions & Flags Section */}
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
-        <div className="flex items-center gap-2 mb-4">
-            <AlertTriangle className="text-red-600" />
-            <h3 className="text-lg font-bold text-red-800">Exceptions & Flags (Observation Only)</h3>
+      <div className="bg-red-50/50 border border-red-100 rounded-xl p-4">
+        <div className="flex items-center gap-2 mb-3">
+            <AlertTriangle size={18} className="text-red-600" />
+            <h3 className="text-sm font-black text-red-800 uppercase tracking-widest">Observation Deck</h3>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="bg-white p-4 rounded-md shadow-sm border border-red-100">
-                <p className="text-sm text-gray-500">Rejected Credits</p>
-                <p className="text-2xl font-bold text-red-600">{stats.rejected_credits_count}</p>
-                <p className="text-xs text-gray-400 mt-1">Requires Institute Review</p>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="bg-white p-3 rounded-xl shadow-sm border border-red-50">
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Rejected Credits</p>
+                <p className="text-lg font-black text-red-600">{stats.rejected_credits_count}</p>
             </div>
-            <div className="bg-white p-4 rounded-md shadow-sm border border-red-100">
-                <p className="text-sm text-gray-500">Exceptions Marked</p>
-                <p className="text-2xl font-bold text-orange-600">{stats.exceptions_count}</p>
-                <p className="text-xs text-gray-400 mt-1">Low Hours / Missing Proof</p>
+            <div className="bg-white p-3 rounded-xl shadow-sm border border-red-50">
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Exceptions</p>
+                <p className="text-lg font-black text-orange-600">{stats.exceptions_count}</p>
             </div>
-            <div className="bg-white p-4 rounded-md shadow-sm border border-red-100">
-                <p className="text-sm text-gray-500">Pending Reviews</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.pending_institute_reviews}</p>
-                <p className="text-xs text-gray-400 mt-1">Institute Action Required</p>
+            <div className="bg-white p-3 rounded-xl shadow-sm border border-red-50">
+                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Pending Reviews</p>
+                <p className="text-lg font-black text-blue-600">{stats.pending_institute_reviews}</p>
             </div>
         </div>
       </div>
 
-      <div className="bg-white shadow rounded-lg overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-            <h3 className="text-lg font-bold text-gray-800">Recent Credit Activity</h3>
+      <div className="bg-white shadow-sm rounded-xl overflow-hidden border border-gray-100">
+        <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+            <h3 className="text-sm font-bold text-gray-800 uppercase tracking-widest">Recent Activity</h3>
+            <span className="text-[10px] font-bold text-gray-400">READ ONLY</span>
         </div>
         
-        {applications.length === 0 ? (
-            <div className="p-6 text-center text-gray-500">No activity yet</div>
-        ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-                <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Institute</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Policy</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Credits</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-                </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-                {applications.slice(0, 10).map((app) => (
-                <tr key={app.id}>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">{app.student?.username}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {app.student?.institute_name || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {app.policy_used || app.internship?.policy || '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                            ${app.status === 'completed' ? 'bg-green-100 text-green-800' : 
-                              app.status === 'rejected' ? 'bg-red-100 text-red-800' :
-                              app.status === 'exception' ? 'bg-orange-100 text-orange-800' :
-                              'bg-blue-100 text-blue-800'}`}>
-                            {app.status.replace('_', ' ').toUpperCase()}
-                        </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {app.credits_awarded ? app.credits_awarded : '-'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                        Read Only
-                    </td>
-                </tr>
-                ))}
-            </tbody>
-            </table>
-        )}
+        <div className="overflow-x-auto">
+            {applications.length === 0 ? (
+                <div className="p-8 text-center text-gray-400 text-xs italic">No activity yet</div>
+            ) : (
+                <table className="min-w-full divide-y divide-gray-50">
+                <thead className="bg-gray-50/80">
+                    <tr>
+                    <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Student</th>
+                    <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Institute</th>
+                    <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Policy</th>
+                    <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                    <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Credits</th>
+                    <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Action</th>
+                    </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-50">
+                    {applications.slice(0, 10).map((app) => (
+                    <tr key={app.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-xs font-bold text-gray-900">{app.student?.username}</div>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-500 font-medium">
+                            {app.student?.institute_name || '-'}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                            <span className="bg-slate-100 px-1.5 py-0.5 rounded text-[10px] font-bold">{app.policy_used || app.internship?.policy || '-'}</span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                            <span className={`px-2 py-0.5 inline-flex text-[10px] font-black uppercase rounded-full 
+                                ${app.status === 'completed' ? 'bg-emerald-100 text-emerald-700' : 
+                                app.status === 'rejected' ? 'bg-red-100 text-red-700' :
+                                app.status === 'exception' ? 'bg-amber-100 text-amber-700' :
+                                'bg-blue-100 text-blue-700'}`}>
+                                {app.status.replace('_', ' ')}
+                            </span>
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-xs font-black text-gray-700">
+                            {app.credits_awarded ? app.credits_awarded : '-'}
+                        </td>
+                        <td className="px-4 py-3 whitespace-nowrap text-[10px] font-bold text-gray-300 italic">
+                            OBSERVATION
+                        </td>
+                    </tr>
+                    ))}
+                </tbody>
+                </table>
+            )}
+        </div>
       </div>
       </div>
       )}
 
       {activeTab === 'internships' && (
-          <div className="bg-white shadow rounded-lg overflow-hidden">
-            <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-bold text-gray-800">Internship Observation</h3>
+          <div className="bg-white shadow-sm rounded-xl overflow-hidden border border-gray-100 animate-fadeIn">
+            <div className="px-4 py-3 border-b border-gray-100 bg-gray-50/50">
+                <h3 className="text-base font-bold text-gray-800 flex items-center gap-2">
+                    <BookOpen size={18} className="text-blue-600" /> Internship Observation
+                </h3>
             </div>
-            <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                    <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Company</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Policy</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">View</th>
-                    </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                    {internships.map((internship) => (
-                        <tr key={internship.id}>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{internship.title}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{internship.company_id}</td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{internship.policy}</td>
-                            <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${internship.status === 'open' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                    {internship.status.toUpperCase()}
-                                </span>
-                            </td>
-                            <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-500">
-                                <Eye size={16} className="cursor-not-allowed opacity-50" />
-                            </td>
+            <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-100">
+                    <thead className="bg-gray-50/80">
+                        <tr>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Title</th>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Company</th>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Policy</th>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                            <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">View</th>
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-50">
+                        {internships.map((internship) => (
+                            <tr key={internship.id} className="hover:bg-slate-50 transition-colors">
+                                <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-gray-900">{internship.title}</td>
+                                <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-500 font-medium">{internship.company_id}</td>
+                                <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                                    <span className="bg-slate-100 px-2 py-0.5 rounded text-[10px] font-bold">{internship.policy}</span>
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap">
+                                    <span className={`px-2 py-0.5 inline-flex text-[10px] leading-4 font-bold rounded-full ${internship.status === 'open' ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-600'}`}>
+                                        {internship.status.toUpperCase()}
+                                    </span>
+                                </td>
+                                <td className="px-4 py-3 whitespace-nowrap text-sm text-blue-500">
+                                    <Eye size={14} className="cursor-not-allowed opacity-30" />
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
           </div>
       )}
 
       {activeTab === 'analytics' && (
-          <div className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-4 animate-fadeIn">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {/* Policy Distribution */}
-                  <div className="bg-white p-6 rounded-lg shadow-sm">
-                      <h3 className="text-lg font-bold text-gray-800 mb-4">Policy Distribution (Credits)</h3>
-                      <div className="h-64">
+                  <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                      <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                          <PieChartIcon size={16} className="text-indigo-500" /> Policy Distribution
+                      </h3>
+                      <div className="h-56">
                         <ResponsiveContainer width="100%" height="100%">
                             <PieChart>
                                 <Pie
@@ -337,7 +346,7 @@ const AdminDashboard = () => {
                                     cy="50%"
                                     labelLine={false}
                                     label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                                    outerRadius={80}
+                                    outerRadius={60}
                                     fill="#8884d8"
                                     dataKey="value"
                                 >
@@ -346,23 +355,27 @@ const AdminDashboard = () => {
                                     ))}
                                 </Pie>
                                 <RechartsTooltip />
-                                <Legend />
+                                <Legend iconSize={10} wrapperStyle={{ fontSize: '10px' }} />
                             </PieChart>
                         </ResponsiveContainer>
                       </div>
                   </div>
 
                   {/* Monthly Trends */}
-                  <div className="bg-white p-6 rounded-lg shadow-sm">
-                      <h3 className="text-lg font-bold text-gray-800 mb-4">Internship Applications Trend</h3>
-                      <div className="h-64">
+                  <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                      <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                          <BarChart2 size={16} className="text-blue-500" /> Application Trends
+                      </h3>
+                      <div className="h-56">
                         <ResponsiveContainer width="100%" height="100%">
                             <BarChart data={analytics.monthly_trends}>
-                                <CartesianGrid strokeDasharray="3 3" />
-                                <XAxis dataKey="month" label={{ value: 'Month', position: 'insideBottom', offset: -5 }} />
-                                <YAxis />
-                                <RechartsTooltip />
-                                <Bar dataKey="count" fill="#8884d8" name="Applications" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                                <XAxis dataKey="month" tick={{fontSize: 10}} axisLine={false} tickLine={false} />
+                                <YAxis tick={{fontSize: 10}} axisLine={false} tickLine={false} />
+                                <RechartsTooltip 
+                                    contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)' }}
+                                />
+                                <Bar dataKey="count" fill="#6366f1" radius={[4, 4, 0, 0]} barSize={30} />
                             </BarChart>
                         </ResponsiveContainer>
                       </div>
@@ -370,12 +383,14 @@ const AdminDashboard = () => {
               </div>
 
               {/* Institute Activity */}
-              <div className="bg-white p-6 rounded-lg shadow-sm">
-                  <h3 className="text-lg font-bold text-gray-800 mb-4">Top Institutes by Credits</h3>
-                  <div className="h-64">
+              <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+                  <h3 className="text-sm font-bold text-gray-800 mb-3 flex items-center gap-2">
+                      <Award size={16} className="text-amber-500" /> Top Institutes (Credits)
+                  </h3>
+                  <div className="h-56">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart data={analytics.institute_activity} layout="vertical">
-                            <CartesianGrid strokeDasharray="3 3" />
+                            <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="#f1f5f9" />
                             <XAxis type="number" />
                             <YAxis dataKey="name" type="category" width={150} />
                             <RechartsTooltip />

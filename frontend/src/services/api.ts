@@ -4,7 +4,7 @@
 
 import { config } from '../config';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://44.205.136.199:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
@@ -75,8 +75,9 @@ async function apiRequest<T>(
     }
 
     let errorMessage = `Request failed with status ${response.status}`;
+    let errorData = null;
     try {
-      const errorData = await response.json();
+      errorData = await response.json();
       if (errorData.detail) {
         errorMessage = errorData.detail;
       } else if (errorData.message) {
@@ -86,7 +87,13 @@ async function apiRequest<T>(
       // If response is not JSON, use status text
       errorMessage = response.statusText || errorMessage;
     }
-    throw new Error(errorMessage);
+    
+    const apiError = new Error(errorMessage) as ApiError;
+    apiError.response = {
+      status: response.status,
+      data: errorData
+    };
+    throw apiError;
   }
 
   if (responseType === 'blob') {
@@ -155,7 +162,12 @@ export function clearAuthToken(): void {
 }
 
 // Export types for error handling
-export type ApiError = Error;
+export interface ApiError extends Error {
+  response?: {
+    status: number;
+    data?: any;
+  };
+}
 
 // Export default API client
 export default api;

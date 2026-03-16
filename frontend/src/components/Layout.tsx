@@ -134,7 +134,7 @@ export function Layout({ children }: LayoutProps) {
   const fetchNotifications = async () => {
     try {
       const token = localStorage.getItem('praktiki_token');
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://44.205.136.199:8000'}/notifications/`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/notifications/`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(res.data);
@@ -146,7 +146,7 @@ export function Layout({ children }: LayoutProps) {
   const markAllAsRead = async () => {
     try {
       const token = localStorage.getItem('praktiki_token');
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://44.205.136.199:8000'}/notifications/mark-all-read`, {}, {
+      await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/notifications/mark-all-read`, {}, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(notifications.map(n => ({ ...n, is_read: 1 })));
@@ -164,7 +164,10 @@ export function Layout({ children }: LayoutProps) {
 
   const config = role ? roleNavConfig[role] : null;
   const navItems = config?.navItems || [];
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname === path || location.pathname.startsWith(path + '/');
+  };
 
   // Get auth token for SSO
   const getSSOUrl = (basePath: string) => {
@@ -204,13 +207,13 @@ export function Layout({ children }: LayoutProps) {
       {/* Authenticated Navbar */}
       {isAuthenticated && (
         <nav className="bg-white border-b border-slate-200 sticky top-0 z-40 w-full">
-          <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex justify-between h-16">
+          <div className="w-full mx-auto px-4 sm:px-5 lg:px-6">
+            <div className="flex justify-between h-14 sm:h-16">
               {/* Logo and Nav Items */}
               <div className="flex items-center">
-                <Link to="/" className="flex items-center gap-2.5 group">
-                  <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105">
-                    <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <Link to="/" className="flex items-center gap-2 group">
+                  <div className="w-9 h-9 bg-brand-600 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105">
+                    <svg className="w-5.5 h-5.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                   </div>
@@ -262,9 +265,9 @@ export function Layout({ children }: LayoutProps) {
                         key={item.path}
                         to={item.path}
                         className={`
-                          flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition-all
+                          flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-bold transition-all
                           ${isActive(item.path)
-                            ? 'bg-brand-50 text-brand-700'
+                            ? 'bg-slate-900 text-white shadow-md scale-[1.02]'
                             : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
                           }
                         `}
@@ -456,22 +459,21 @@ export function Layout({ children }: LayoutProps) {
                       </div>
                     </a>
                   ) : (
-                    <Link
-                      key={item.path}
-                      to={item.path}
-                      onClick={() => setMobileNavOpen(false)}
-                      className={`
-                        flex items-center gap-3 px-4 py-3 rounded-xl text-base font-medium transition-colors
-                        ${isActive(item.path)
-                          ? 'bg-brand-50 text-brand-700'
-                          : 'text-slate-600 hover:bg-slate-50'
-                        }
-                      `}
-                    >
-                      {icons[item.icon]}
-                      {item.label}
-                    </Link>
-                  )
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setMobileNavOpen(false)}
+                        className={`
+                          flex items-center gap-3 px-4 py-3 rounded-xl text-base font-bold transition-colors
+                          ${isActive(item.path)
+                            ? 'bg-slate-900 text-white shadow-md'
+                            : 'text-slate-600 hover:bg-slate-50'}
+                        `}
+                      >
+                        {icons[item.icon]}
+                        {item.label}
+                      </Link>
+                    )
                 ))}
 
                 {/* Mobile Logout */}
@@ -491,7 +493,7 @@ export function Layout({ children }: LayoutProps) {
       )}
 
       {/* Main Content */}
-      <main className={`flex-grow w-full flex flex-col ${isAuthenticated ? 'px-2 sm:px-4 lg:px-6 py-4 sm:py-6' : ''}`}>
+      <main className={`flex-grow w-full flex flex-col ${isAuthenticated ? 'px-2 sm:px-3 lg:px-4 py-3 sm:py-4' : ''}`}>
         <div className={isAuthenticated ? 'w-full flex-grow mx-auto' : 'w-full h-full'}>
           {children}
         </div>

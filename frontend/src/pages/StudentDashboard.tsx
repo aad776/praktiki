@@ -85,7 +85,7 @@ interface CreditSummary {
 export function StudentDashboard() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { user, refreshUser } = useAuth();
+  const { user } = useAuth();
   const toast = useToast();
 
   // State
@@ -100,6 +100,9 @@ export function StudentDashboard() {
 
   const [recommendationLoading, setRecommendationLoading] = useState(false);
   const [showRecommendations, setShowRecommendations] = useState(false);
+  const [showSetupOptions, setShowSetupOptions] = useState(false);
+  const [isParsing, setIsParsing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Loading states
   const [pageLoading, setPageLoading] = useState(true);
@@ -140,7 +143,7 @@ export function StudentDashboard() {
     const query = searchQuery.trim().toLowerCase();
     if (query.length > 0) {
       const suggestions = masterTitles
-        .filter(title => title.toLowerCase().includes(query))
+        .filter(title => title && typeof title === 'string' && title.toLowerCase().includes(query))
         .sort((a, b) => {
           // Prioritize titles starting with the query
           const aStarts = a.toLowerCase().startsWith(query);
@@ -162,7 +165,7 @@ export function StudentDashboard() {
     const query = searchLocation.trim().toLowerCase();
     if (query.length > 0) {
       const suggestions = masterLocations
-        .filter(loc => loc.toLowerCase().includes(query))
+        .filter(loc => loc && typeof loc === 'string' && loc.toLowerCase().includes(query))
         .sort((a, b) => {
           // Prioritize locations starting with the query (B -> Ba logic)
           const aStarts = a.toLowerCase().startsWith(query);
@@ -180,56 +183,94 @@ export function StudentDashboard() {
     }
   }, [searchLocation, masterLocations]);
 
+  const fetchDashboardData = useCallback(async () => {
+    setPageLoading(true);
+    try {
+      // Fetch profile
+      const profileRes = await api.get<StudentProfile>('/students/me');
+      setProfile(profileRes);
+
+      // Fetch resume (optional)
+      try {
+        const resumeRes = await api.get<Resume>('/students/me/resume');
+        setResume(resumeRes);
+      } catch {
+        // Resume doesn't exist yet
+      }
+
+      // Fetch all internships once to build master lists for suggestions
+      const allInternships = await api.get<Internship[]>('/students/internships?limit=1000');
+      if (Array.isArray(allInternships)) {
+        setMasterTitles(Array.from(new Set(allInternships.map(i => i.title).filter(Boolean))));
+        setMasterLocations(Array.from(new Set(allInternships.map(i => i.location).filter(Boolean))));
+      }
+
+      // Fetch applications
+      const appsRes = await api.get<Application[]>('/students/my-applications');
+      setApplications(appsRes);
+
+      // Fetch credit summary (optional)
+      try {
+        const creditsRes = await api.get<CreditSummary>('/credits/summary');
+        setCreditSummary(creditsRes);
+      } catch {
+        // Credits not available yet
+      }
+
+      // Fetch recommendations (optional)
+      try {
+        const recsRes = await api.get<RecommendedInternship[]>('/students/recommendations');
+        setRecommendations(recsRes);
+      } catch {
+        // Recommendations not available yet
+      }
+    } catch (err) {
+      const error = err as ApiError;
+      console.error(error);
+      // Don't show error for 404 on profile (it means setup is needed)
+      if (error.response?.status !== 404) {
+        toast.error(error.message || 'Could not load dashboard data');
+      }
+    } finally {
+      setPageLoading(false);
+    }
+  }, [toast]);
+
   // Fetch initial data
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Fetch profile
-        const profileRes = await api.get<StudentProfile>('/students/me');
-        setProfile(profileRes);
+    fetchDashboardData();
+  }, [fetchDashboardData]);
 
-        // Fetch resume (optional, may not exist)
-        try {
-          const resumeRes = await api.get<Resume>('/students/me/resume');
-          setResume(resumeRes);
-        } catch {
-          // Resume doesn't exist yet, that's ok
-        }
+  const handleParseResume = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-        // Fetch all internships once to build master lists for suggestions
-        const allInternships = await api.get<Internship[]>('/students/internships?limit=1000');
-        setMasterTitles(Array.from(new Set(allInternships.map(i => i.title))));
-        setMasterLocations(Array.from(new Set(allInternships.map(i => i.location))));
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+      toast.error('Please upload a PDF resume for parsing');
+      return;
+    }
 
-        // Fetch applications
-        const appsRes = await api.get<Application[]>('/students/my-applications');
-        setApplications(appsRes);
+    setIsParsing(true);
+    const formData = new FormData();
+    formData.append('file', file);
 
-        // Fetch credit summary
-        try {
-          const creditsRes = await api.get<CreditSummary>('/credits/summary');
-          setCreditSummary(creditsRes);
-        } catch {
-          // Credits not available yet
-        }
+    try {
+      const response: any = await api.post('/students/me/parse-resume', formData);
 
-        // Fetch recommendations (may fail if profile incomplete)
-        try {
-          const recsRes = await api.get<RecommendedInternship[]>('/students/recommendations');
-          setRecommendations(recsRes);
-        } catch {
-          // Recommendations not available yet
-        }
-      } catch (err) {
-        const error = err as ApiError;
-        toast.error(error.message || 'Failed to load dashboard data');
-      } finally {
-        setPageLoading(false);
+      if (response.success) {
+        toast.success("Resume parsed successfully! Let's complete your profile.");
+        // Pass parsed data to setup page
+        navigate('/student/setup?mode=edit', { state: { parsedData: response.data } });
       }
-    };
-
-    fetchData();
-  }, []);
+    } catch (error) {
+      console.error('Parsing failed:', error);
+      toast.error('Failed to parse resume. Please complete manually.');
+      navigate('/student/setup?mode=edit');
+    } finally {
+      setIsParsing(false);
+      setShowSetupOptions(false);
+    }
+  };
 
   // Sync state with URL params (for back/forward navigation)
   useEffect(() => {
@@ -271,13 +312,13 @@ export function StudentDashboard() {
     if (!profile) return false;
     
     // Basic profile completion check - ensure all required fields are present
-    const hasBasicProfile = !!(profile.university_name && profile.department);
+    const hasBasicProfile = !!(profile.university_name && profile.department && profile.year && profile.cgpa);
     
     // Check if skills are available in profile.skills (comma-separated string)
-    const hasSkills = !!(profile.skills && profile.skills.trim() !== '');
+    const hasSkills = !!(profile.skills && typeof profile.skills === 'string' && profile.skills.trim() !== '');
     
     // Check if interests are available (comma-separated string)
-    const hasInterests = !!(profile.interests && profile.interests.trim() !== '');
+    const hasInterests = !!(profile.interests && typeof profile.interests === 'string' && profile.interests.trim() !== '');
     
     // Profile is complete if it has basic info and either skills or interests
     return hasBasicProfile && (hasSkills || hasInterests);
@@ -373,9 +414,9 @@ export function StudentDashboard() {
   }
 
   return (
-    <div className="space-y-6 w-full max-w-full mx-auto px-4 sm:px-6 lg:px-12">
+    <div className="space-y-4 w-full max-w-full mx-auto px-2 sm:px-4 lg:px-6">
       {/* Welcome Message */}
-      <div className="mb-8 flex items-center gap-3">
+      <div className="mb-4 flex items-center gap-3">
         {/* Back Arrow - Only visible on Mobile */}
         <button 
           onClick={() => navigate(-1)}
@@ -397,36 +438,112 @@ export function StudentDashboard() {
 
       {/* Profile Incomplete Warning Banner */}
       {!isProfileComplete() && profile && (
-        <div className="bg-amber-50 border-l-4 border-amber-500 p-4 mb-6 rounded-r-lg shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 animate-fade-in">
-          <div className="flex items-start gap-3">
+        <div className="bg-amber-50 border-l-4 border-amber-500 p-3 mb-4 rounded-r-lg shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 animate-fade-in">
+          <div className="flex items-start gap-2">
             <div className="flex-shrink-0 mt-0.5">
-              <svg className="h-5 w-5 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
+              <svg className="h-4 w-4 text-amber-500" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
               </svg>
             </div>
             <div>
-              <p className="text-sm text-amber-800 font-medium">
-                Attention: You have not completed your profile.
+              <p className="text-xs text-amber-800 font-medium">
+                Attention: Profile Incomplete.
               </p>
-              <p className="text-sm text-amber-700 mt-1">
-                Incomplete profiles are not visible to employers. Please complete your profile to apply for internships.
+              <p className="text-xs text-amber-700 mt-0.5">
+                Incomplete profiles are not visible to employers.
               </p>
             </div>
           </div>
           <button
-            onClick={() => navigate('/student/setup?mode=edit')}
-            className="whitespace-nowrap px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 hover:text-amber-800 rounded-lg text-sm font-semibold transition-colors border border-amber-200"
+            onClick={() => setShowSetupOptions(true)}
+            className="whitespace-nowrap px-3 py-1.5 bg-amber-100 text-amber-700 hover:bg-amber-200 hover:text-amber-800 rounded-lg text-xs font-semibold transition-colors border border-amber-200"
           >
             Complete Profile
           </button>
         </div>
       )}
 
+      {/* Setup Options Modal */}
+      {showSetupOptions && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[100] flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden animate-fade-in">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
+              <h2 className="text-xl font-bold text-slate-900">Complete Your Profile</h2>
+              <button 
+                onClick={() => setShowSetupOptions(false)}
+                className="p-2 hover:bg-white rounded-full transition-colors text-slate-400 hover:text-slate-600"
+              >
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Manual Option */}
+              <div 
+                onClick={() => navigate('/student/setup?mode=edit')}
+                className="group p-6 rounded-2xl border-2 border-slate-100 hover:border-brand-500 hover:bg-brand-50/30 transition-all cursor-pointer text-center flex flex-col items-center gap-4"
+              >
+                <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-brand-100 group-hover:text-brand-600 transition-colors">
+                  <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 mb-1">Fill Manually</h3>
+                  <p className="text-sm text-slate-500">Enter your academic and professional details step by step.</p>
+                </div>
+                <button className="mt-auto px-4 py-2 bg-slate-900 text-white rounded-lg text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                  Select
+                </button>
+              </div>
+
+              {/* Resume Parse Option */}
+              <div 
+                onClick={() => !isParsing && fileInputRef.current?.click()}
+                className={`group p-6 rounded-2xl border-2 border-slate-100 hover:border-brand-500 hover:bg-brand-50/30 transition-all cursor-pointer text-center flex flex-col items-center gap-4 ${isParsing ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center text-slate-600 group-hover:bg-brand-100 group-hover:text-brand-600 transition-colors">
+                  {isParsing ? (
+                    <div className="w-8 h-8 border-4 border-brand-500 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+                    </svg>
+                  )}
+                </div>
+                <div>
+                  <h3 className="font-bold text-slate-900 mb-1">Upload Resume</h3>
+                  <p className="text-sm text-slate-500">We'll use AI to extract your details from your resume instantly.</p>
+                </div>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  accept=".pdf" 
+                  onChange={handleParseResume}
+                />
+                <button className="mt-auto px-4 py-2 bg-brand-600 text-white rounded-lg text-sm font-bold opacity-0 group-hover:opacity-100 transition-opacity">
+                  {isParsing ? 'Parsing...' : 'Upload PDF'}
+                </button>
+              </div>
+            </div>
+            
+            <div className="p-4 bg-slate-50 border-t border-slate-100 text-center">
+              <p className="text-xs text-slate-400 font-medium italic">
+                AI parsing works best with standard PDF resumes. You can still edit everything after upload.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Main Content - Always show */}
       {/* Search Section */}
-          <section className="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-900 mb-4">Search Internships</h2>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <section className="bg-white rounded-xl p-4 shadow-sm border border-slate-200">
+            <h2 className="text-base font-semibold text-slate-900 mb-3">Search Internships</h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
               <div className="relative" ref={keywordRef}>
                 <label className="block text-sm font-medium text-slate-700 mb-1">Keyword</label>
                 <input
@@ -546,27 +663,30 @@ export function StudentDashboard() {
           </section>
 
           {/* Internships Grid */}
-          <section className="bg-white rounded-xl p-4 sm:p-6 lg:p-8 shadow-sm border border-slate-200 w-full flex-grow">
-            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+          <section className="bg-white rounded-xl p-3 sm:p-4 lg:p-5 shadow-sm border border-slate-200 w-full flex-grow">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-lg ${showRecommendations ? 'bg-blue-100 text-blue-600' : 'bg-slate-100 text-slate-600'}`}>
                   {showRecommendations ? (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                     </svg>
                   ) : (
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   )}
                 </div>
                 <div>
-                  <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-                    {showRecommendations ? 'Best Matches For You' : `Available Internships (${internships.length})`}
+                  <h2 className="text-base font-semibold text-slate-900 flex items-center gap-2">
+                    {showRecommendations ? 'Recommended for You' : 'Available Internships'}
+                    <span className="bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full text-[10px] font-bold">
+                      {internships.length}
+                    </span>
                   </h2>
-                  <p className="text-sm text-slate-500">
+                  <p className="text-xs text-slate-500">
                     {showRecommendations 
-                      ? 'AI-powered recommendations based on your profile and skills.' 
+                      ? 'AI-powered recommendations based on your profile.' 
                       : 'Explore all the latest internship opportunities.'}
                   </p>
                 </div>
@@ -686,16 +806,6 @@ export function StudentDashboard() {
                               src={internship.logo_url} 
                               alt={internship.company_name} 
                               className="w-full h-full object-contain" 
-                              onError={(e) => {
-                                e.currentTarget.style.display = 'none';
-                                const parent = e.currentTarget.parentElement;
-                                if (parent) {
-                                    const span = document.createElement('span');
-                                    span.className = "text-xl font-bold text-slate-300 group-hover:text-blue-200";
-                                    span.innerText = internship.company_name?.charAt(0) || 'C';
-                                    parent.appendChild(span);
-                                }
-                              }}
                             />
                           ) : (
                             <span className="text-xl font-bold text-slate-300 group-hover:text-blue-200">

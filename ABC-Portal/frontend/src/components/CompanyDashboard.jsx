@@ -14,7 +14,7 @@ const REJECTION_REASONS = [
 
 const CompanyDashboard = () => {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('applications');
+  const [activeTab, setActiveTab] = useState('dashboard');
   const [applications, setApplications] = useState([]);
   const [newInternship, setNewInternship] = useState({ 
       title: '', 
@@ -160,9 +160,9 @@ const CompanyDashboard = () => {
   const completedInternships = applications.filter(a => a.status === 'completed' || a.status === 'institute_review').length;
 
   return (
-    <div className="space-y-6 w-full">
-      {/* Header with Logout */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+    <div className="space-y-4 w-full">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-3 sm:p-4 rounded-xl shadow-sm">
         <div className="flex items-center gap-3 w-full sm:w-auto">
           {/* Back Arrow - Only visible on Mobile */}
           <button 
@@ -241,15 +241,16 @@ const CompanyDashboard = () => {
           </div>
       </div>
 
-      <div className="flex space-x-2 sm:space-x-4 border-b overflow-x-auto scrollbar-hide">
+      {/* Tabs */}
+      <div className="flex space-x-2 border-b border-gray-200 pb-3 overflow-x-auto scrollbar-hide">
         <button 
-          className={`pb-2 px-3 sm:px-4 whitespace-nowrap text-sm sm:text-base ${activeTab === 'applications' ? 'border-b-2 border-blue-500 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
-          onClick={() => setActiveTab('applications')}
+          className={`px-4 py-2 rounded-xl whitespace-nowrap text-sm sm:text-base transition-all ${activeTab === 'dashboard' ? 'bg-slate-900 text-white shadow-lg scale-[1.02] font-bold' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 font-medium'}`}
+          onClick={() => setActiveTab('dashboard')}
         >
-          Enrolled Students
+          Manage Applications
         </button>
         <button 
-          className={`pb-2 px-3 sm:px-4 whitespace-nowrap text-sm sm:text-base ${activeTab === 'post' ? 'border-b-2 border-blue-500 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`px-4 py-2 rounded-xl whitespace-nowrap text-sm sm:text-base transition-all ${activeTab === 'post' ? 'bg-slate-900 text-white shadow-lg scale-[1.02] font-bold' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 font-medium'}`}
           onClick={() => setActiveTab('post')}
         >
           Post Internship
@@ -260,71 +261,74 @@ const CompanyDashboard = () => {
 
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white p-6 rounded-lg shadow flex items-center border-l-4 border-blue-500">
-            <div className="p-3 rounded-full bg-blue-100 text-blue-600 mr-4">
-                <Users size={24} />
+        <div className="bg-white p-4 rounded-xl shadow-sm flex items-center border-l-4 border-blue-500 transition-all hover:shadow-md">
+            <div className="p-2.5 rounded-full bg-blue-100 text-blue-600 mr-3">
+                <Users size={20} />
             </div>
             <div>
-                <h3 className="text-gray-500 text-sm">Total Applicants</h3>
-                <p className="text-2xl font-bold">{totalApplicants}</p>
+                <h3 className="text-gray-500 text-[10px] font-bold uppercase tracking-wider">Total Applicants</h3>
+                <p className="text-xl font-black text-gray-800 leading-none mt-1">{totalApplicants}</p>
             </div>
         </div>
-        <div className="bg-white p-6 rounded-lg shadow flex items-center border-l-4 border-green-500">
-            <div className="p-3 rounded-full bg-green-100 text-green-600 mr-4">
-                <CheckCircle size={24} />
+        <div className="bg-white p-4 rounded-xl shadow-sm flex items-center border-l-4 border-emerald-500 transition-all hover:shadow-md">
+            <div className="p-2.5 rounded-full bg-emerald-100 text-emerald-600 mr-3">
+                <CheckCircle size={20} />
             </div>
             <div>
-                <h3 className="text-gray-500 text-sm">Completed / Reviewed</h3>
-                <p className="text-2xl font-bold">{completedInternships}</p>
+                <h3 className="text-gray-500 text-[10px] font-bold uppercase tracking-wider">Reviewed</h3>
+                <p className="text-xl font-black text-gray-800 leading-none mt-1">{completedInternships}</p>
             </div>
         </div>
       </div>
 
       {activeTab === 'post' && (
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 w-full">
-          <h3 className="text-lg font-bold mb-4 flex items-center gap-2">
-            <BookOpen size={20} /> Post New Internship
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 w-full animate-fadeIn">
+          <h3 className="text-base font-bold mb-3 flex items-center gap-2 text-gray-800">
+            <BookOpen size={18} className="text-blue-600" /> Post New Internship
           </h3>
-          <form onSubmit={handlePostInternship} className="space-y-4">
+          <form onSubmit={handlePostInternship} className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700">Title</label>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Internship Title</label>
               <input 
                 type="text" 
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                className="block w-full border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all outline-none"
                 value={newInternship.title}
                 onChange={e => setNewInternship({...newInternship, title: e.target.value})}
                 required
+                placeholder="e.g. Full Stack Web Development"
               />
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Duration (e.g. 3 Months)</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Duration</label>
                     <input 
                         type="text" 
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                        className="block w-full border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all outline-none"
                         value={newInternship.duration}
                         onChange={e => setNewInternship({...newInternship, duration: e.target.value})}
                         required
+                        placeholder="e.g. 3 Months"
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Expected Hours</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Total Expected Hours</label>
                     <input 
                         type="number" 
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                        className="block w-full border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all outline-none"
                         value={newInternship.expected_hours}
                         onChange={e => setNewInternship({...newInternship, expected_hours: e.target.value})}
                         required
+                        placeholder="Total working hours"
                     />
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Policy</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Credit Policy</label>
                     <select 
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                        className="block w-full border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all outline-none cursor-pointer"
                         value={newInternship.policy}
                         onChange={e => setNewInternship({...newInternship, policy: e.target.value})}
                     >
@@ -334,22 +338,22 @@ const CompanyDashboard = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">Start Date</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Start Date</label>
                     <input 
                         type="date" 
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                        className="block w-full border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all outline-none"
                         value={newInternship.start_date}
                         onChange={e => setNewInternship({...newInternship, start_date: e.target.value})}
                         required
                     />
                 </div>
                 <div>
-                    <label className="block text-sm font-medium text-gray-700">End Date</label>
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">End Date</label>
                     <input 
                         type="date" 
-                        className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                        className="block w-full border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all outline-none"
                         value={newInternship.end_date}
                         onChange={e => setNewInternship({...newInternship, end_date: e.target.value})}
                         required
@@ -358,205 +362,163 @@ const CompanyDashboard = () => {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700">Description</label>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Description</label>
               <textarea 
-                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2"
+                className="block w-full border border-gray-200 rounded-lg bg-gray-50 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-100 focus:border-blue-400 focus:bg-white transition-all outline-none"
                 rows="4"
                 value={newInternship.description}
                 onChange={e => setNewInternship({...newInternship, description: e.target.value})}
                 required
+                placeholder="Describe the internship role and responsibilities..."
               />
             </div>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">Post Internship</button>
+
+            <div className="pt-2">
+                <button 
+                  type="submit"
+                  className="w-full bg-slate-900 text-white font-bold py-2.5 px-4 rounded-xl hover:bg-slate-800 transition-all shadow-lg active:scale-[0.98] disabled:opacity-50 text-sm"
+                >
+                  Create Internship Opportunity
+                </button>
+            </div>
           </form>
         </div>
       )}
 
-      {activeTab === 'applications' && (
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Student Details</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Institute</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Internship</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied On</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
-              {applications.map((app) => (
-                <React.Fragment key={app.id}>
+      {activeTab === 'dashboard' && (
+        <div className="bg-white shadow-sm rounded-xl overflow-hidden border border-gray-100 animate-fadeIn">
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-100">
+              <thead className="bg-gray-50/80">
                 <tr>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      <div className="flex items-center cursor-pointer" onClick={() => toggleRow(app.id)}>
-                        {expandedRows[app.id] ? <ChevronUp size={16} className="mr-2"/> : <ChevronDown size={16} className="mr-2"/>}
-                        <div>
-                            <div className="font-bold">{app.student?.username}</div>
-                            <div className="text-gray-500 text-xs">{app.student?.email}</div>
+                  <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Student</th>
+                  <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Institute</th>
+                  <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Internship</th>
+                  <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Applied</th>
+                  <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                  <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Action</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-50">
+                {applications.map((app) => (
+                  <React.Fragment key={app.id}>
+                  <tr className="hover:bg-slate-50 transition-colors">
+                    <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        <div className="flex items-center cursor-pointer group" onClick={() => toggleRow(app.id)}>
+                          <div className={`p-1 rounded transition-colors ${expandedRows[app.id] ? 'bg-blue-50 text-blue-600' : 'text-gray-400 group-hover:text-gray-600'}`}>
+                            {expandedRows[app.id] ? <ChevronUp size={14}/> : <ChevronDown size={14}/>}
+                          </div>
+                          <div className="ml-2">
+                              <div className="font-bold text-gray-800">{app.student?.username}</div>
+                              <div className="text-[10px] text-gray-400 font-medium">{app.student?.email}</div>
+                          </div>
                         </div>
-                      </div>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                      {app.student?.institute_name || 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {app.internship?.title}
-                      <span className="block text-xs text-gray-400">Policy: {app.internship?.policy || 'N/A'}</span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                      {app.created_at ? new Date(app.created_at).toLocaleDateString() : 'N/A'}
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                      ${app.status === 'completed' || app.status === 'institute_review' ? 'bg-green-100 text-green-800' : 
-                        app.status === 'rejected' ? 'bg-red-100 text-red-800' : 'bg-yellow-100 text-yellow-800'}`}>
-                      {app.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    {app.status === 'applied' && (
-                      <div className="flex flex-col space-y-2">
-                          {/* Approval / Rejection Logic can be added here if needed, currently Company only "Completes" or "Rejects"? 
-                              Wait, usually Company needs to "Accept" first.
-                              The user prompt says: "Company approves or rejects application -> Student completes -> Company marks as completed"
-                              So we need an "Accept" button too?
-                              Currently we have "Process" (Complete) and "Reject".
-                              The "Process" action seems to be for "Marking as Completed" (end of internship).
-                              If the status is 'applied', the company should "Accept" first?
-                              The user flow: "Company posts -> Student applies -> Company approves/rejects -> Student completes -> Company marks completed".
-                              
-                              I need to add an "Accept" action!
-                              Currently my code jumps from 'applied' to 'complete' (via Process button).
-                              I should probably add an "Approve Application" button.
-                              And then ONLY when status is 'accepted' show the "Mark Completed" inputs.
-                              
-                              Let's verify the user flow:
-                              "Company approves or rejects application -> Student completes -> Company marks internship as completed"
-                              
-                              So:
-                              1. Status: APPLIED -> Action: Approve / Reject
-                              2. Status: ACCEPTED -> Action: Mark Completed (Input Hours)
-                          */}
-                          
-                          {/* For now, sticking to the existing "Process" if it meant "Accept & Complete" in one go? 
-                              No, that's not right. 
-                              The user clearly separates "Company approves application" and "Company marks as completed".
-                              
-                              I should check if backend supports "Accept".
-                              ApplicationStatus has ACCEPTED.
-                              But I don't see an endpoint for "Accept" in company.py?
-                              Let's check company.py again.
-                          */}
-                          
-                          {/* 
-                            Looking at company.py, there is NO "accept" endpoint. 
-                            There is only `complete_internship` (marks as INSTITUTE_REVIEW) and `reject_application`.
-                            
-                            If I add an "Accept" step, I need a backend endpoint.
-                            Or I can just rename "Process" to "Accept" and have a separate "Mark Complete"?
-                            
-                            Given the user prompt is "Company approves or rejects application", I should probably add an endpoint.
-                            BUT, to avoid scope creep and breaking things now:
-                            Maybe the "Process" button in my previous code was acting as "Complete".
-                            
-                            If I want to follow the flow exactly:
-                            I need to add `accept_application` endpoint.
-                            
-                            For this turn, I will assume the user might be testing with "Process" (Complete) directly for simplicity, OR
-                            I will add a simple "Accept" button that updates status to 'accepted'.
-                            
-                            Let's check if I can quickly add `accept_application` to backend.
-                            Yes, I can.
-                          */}
-                          
-                        <div className="flex space-x-2">
-                           {/* Temporary: If we don't have Accept endpoint, maybe we assume "Applied" can be "Completed" directly? 
-                               The user prompt implies a step in between.
-                               "Student completes internship" is a real-world action, not a system state usually (unless student marks it).
-                               
-                               Let's stick to: 
-                               If status is APPLIED: Show "Accept" and "Reject".
-                               If status is ACCEPTED: Show "Mark Completed" (Hours input).
-                               
-                               I need to add `accept_application` to backend.
-                           */}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Re-implementing logic based on flow */}
-                    
-                    {app.status === 'applied' && (
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-600 font-medium">
+                        {app.student?.institute_name || 'N/A'}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-500">
+                        <div className="font-bold text-gray-700">{app.internship?.title}</div>
+                        <span className="text-[9px] text-gray-400 font-bold uppercase">Policy: {app.internship?.policy || 'N/A'}</span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-500 font-medium">
+                        {app.created_at ? new Date(app.created_at).toLocaleDateString() : 'N/A'}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap">
+                      <span className={`px-2 py-0.5 inline-flex text-[9px] font-black uppercase rounded-full 
+                        ${app.status === 'completed' || app.status === 'institute_review' ? 'bg-emerald-100 text-emerald-700' : 
+                          app.status === 'rejected' ? 'bg-red-100 text-red-700' : 'bg-amber-100 text-amber-700'}`}>
+                        {app.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-xs font-medium">
+                      {app.status === 'applied' && (
                         <div className="flex space-x-2">
                             <button 
                                 onClick={async () => {
-                                    // I need an endpoint for this. 
-                                    // For now, I'll use a specific implementation or add it.
-                                    // Let's add it to backend quickly.
                                     try {
                                         await companyService.acceptApplication(app.id);
                                         loadApplications();
-                                    } catch(e) { alert("Failed to accept"); }
+                                        setMessage('Application accepted successfully!');
+                                        setTimeout(() => setMessage(''), 3000);
+                                    } catch(e) { 
+                                        setMessage('Failed to accept application');
+                                        setTimeout(() => setMessage(''), 3000);
+                                    }
                                 }}
-                                className="text-white bg-blue-500 hover:bg-blue-600 px-3 py-1 rounded text-xs"
+                                className="text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded-lg text-[10px] font-bold uppercase transition-all shadow-sm active:scale-[0.98]"
                             >
                                 Accept
                             </button>
                             <button 
                                 onClick={() => openRejectModal(app.id)}
-                                className="text-white bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-xs"
+                                className="text-white bg-red-600 hover:bg-red-700 px-3 py-1 rounded-lg text-[10px] font-bold uppercase transition-all shadow-sm active:scale-[0.98]"
                             >
                                 Reject
                             </button>
                         </div>
-                    )}
+                      )}
 
-                    {app.status === 'accepted' && (
+                      {app.status === 'accepted' && (
                         <div className="flex items-center space-x-2">
                              <input 
                                 type="number" 
                                 placeholder="Hrs" 
                                 min="0"
-                                className="w-16 border rounded px-2 py-1"
+                                className="w-16 border border-gray-200 rounded-lg px-2 py-1 text-xs focus:ring-2 focus:ring-blue-100 outline-none"
                                 onChange={(e) => updateCompletionData(app.id, 'hours', e.target.value)}
                               />
                              <button 
                                 onClick={() => handleComplete(app.id)}
-                                className="text-white bg-green-500 hover:bg-green-600 px-3 py-1 rounded text-xs"
+                                className="text-white bg-emerald-600 hover:bg-emerald-700 px-3 py-1 rounded-lg text-[10px] font-bold uppercase transition-all shadow-sm active:scale-[0.98] whitespace-nowrap"
                             >
-                                Mark Completed
+                                Mark Complete
                             </button>
                         </div>
-                    )}
+                      )}
 
-                    {app.status === 'rejected' && (
-                        <span className="text-red-500 text-xs italic">Rejected: {app.rejection_reason}</span>
-                    )}
-                  </td>
-                </tr>
-                {expandedRows[app.id] && (
-                    <tr className="bg-gray-50">
-                        <td colSpan="6" className="px-6 py-4">
-                            <div className="text-sm text-gray-700 grid grid-cols-2 gap-4">
-                                <div>
-                                    <p><strong>Full Name:</strong> {app.student?.full_name || 'N/A'}</p>
-                                    <p><strong>Email:</strong> {app.student?.email}</p>
-                                    <p><strong>Contact:</strong> {app.student?.phone || 'N/A'}</p>
+                      {(app.status === 'completed' || app.status === 'institute_review') && (
+                        <span className="text-emerald-600 font-bold text-[10px] uppercase flex items-center gap-1">
+                          <CheckCircle size={12} /> Processed
+                        </span>
+                      )}
+
+                      {app.status === 'rejected' && (
+                        <span className="text-red-500 text-[10px] font-bold uppercase flex items-center gap-1" title={app.rejection_reason}>
+                          <XCircle size={12} /> Rejected
+                        </span>
+                      )}
+                    </td>
+                  </tr>
+                  {expandedRows[app.id] && (
+                    <tr className="bg-gray-50/50">
+                        <td colSpan="6" className="px-6 py-4 border-t border-gray-100 shadow-inner">
+                            <div className="text-sm text-gray-700 grid grid-cols-1 sm:grid-cols-2 gap-6 animate-fadeIn">
+                                <div className="space-y-2">
+                                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Student Information</h4>
+                                    <p className="flex items-center gap-2"><span className="font-bold text-gray-900">{app.student?.full_name || 'N/A'}</span></p>
+                                    <p className="text-gray-500 text-xs">{app.student?.email}</p>
+                                    <p className="text-gray-500 text-xs">Contact: {app.student?.phone || 'N/A'}</p>
                                 </div>
-                                <div>
-                                    <p><strong>Institute:</strong> {app.student?.institute_name || 'N/A'}</p>
-                                    <p><strong>ABC ID:</strong> {app.student?.username}</p>
+                                <div className="space-y-2">
+                                    <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Academic Context</h4>
+                                    <p className="text-gray-700 text-xs font-medium">{app.student?.institute_name || 'N/A'}</p>
+                                    <p className="text-gray-400 font-mono text-[10px]">APAAR ID: {app.student?.username}</p>
+                                    {app.rejection_reason && (
+                                      <div className="mt-3 p-2 bg-red-50 text-red-700 text-[10px] rounded-lg border border-red-100">
+                                        <strong>Rejection Reason:</strong> {app.rejection_reason}
+                                      </div>
+                                    )}
                                 </div>
                             </div>
                         </td>
                     </tr>
-                )}
-                </React.Fragment>
-              ))}
-            </tbody>
-          </table>
+                  )}
+                  </React.Fragment>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </div>
       )}
 
