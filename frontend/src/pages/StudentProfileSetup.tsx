@@ -1730,41 +1730,61 @@ export function StudentProfileSetup() {
    };
 
    const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-     if (e.target.files && e.target.files[0]) {
-       const file = e.target.files[0];
+     if (!(e.target.files && e.target.files[0])) return;
 
-       // 1. Client-side validation: File size (5MB)
-       const MAX_SIZE = 5 * 1024 * 1024;
-       if (file.size > MAX_SIZE) {
-         toast.error("File too large. Maximum size allowed is 5MB.");
-         return;
-       }
+     const file = e.target.files[0];
+     const MAX_SIZE = 5 * 1024 * 1024;
+     if (file.size > MAX_SIZE) {
+       toast.error("File too large. Maximum size allowed is 5MB.");
+       return;
+     }
 
-       // 2. Client-side validation: File type
-       const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-       if (!allowedTypes.includes(file.type)) {
-         toast.error("Invalid file format. Please upload PDF, DOC, or DOCX.");
-         return;
-       }
+     const allowedTypes = [
+       'application/pdf',
+       'application/msword',
+       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+     ];
+     if (!allowedTypes.includes(file.type)) {
+       toast.error("Invalid file format. Please upload PDF, DOC, or DOCX.");
+       return;
+     }
 
-       const formDataUpload = new FormData();
-       formDataUpload.append("file", file);
+     const formDataUpload = new FormData();
+     formDataUpload.append("file", file);
 
-       try {
-         setLoading(true);
-         const response = await api.post("/students/me/resume/upload", formDataUpload);
-         toast.success("Resume uploaded successfully!");
+     try {
+       setLoading(true);
 
-         // Refresh profile data if in view mode
-         if (isViewMode) {
-           fetchData();
+       // 1) Parse + auto-fill (primary requirement)
+       // Backend parser route currently supports PDF for parsing.
+       const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+       if (isPdf) {
+         const parseResponse: any = await api.post("/students/me/parse-resume", formDataUpload);
+         if (parseResponse?.success && parseResponse?.data) {
+           await fetchData(parseResponse.data); // merge only known profile-form fields
+           setIsViewMode(false);                // bring user to editable form
+           setStep(1);
+           toast.success("Resume parsed and profile fields auto-filled. Please review and complete missing details.");
+         } else {
+           toast.error("Resume uploaded but parsing failed. Please fill details manually.");
          }
-       } catch (err) {
-         const error = err as ApiError;
-         toast.error(error.message || "Failed to upload resume.");
-       } finally {
-         setLoading(false);
+       } else {
+         toast.info("Auto-fill is currently available for PDF resumes. You can still fill details manually.");
        }
+
+       // 2) Optional best-effort file upload if backend endpoint is present
+       // (kept silent because some deployments may not expose this route)
+       try {
+         await api.post("/students/me/resume/upload", formDataUpload);
+       } catch {
+         // no-op
+       }
+     } catch (err) {
+       const error = err as ApiError;
+       toast.error(error.message || "Failed to process resume.");
+     } finally {
+       setLoading(false);
+       if (e.target) e.target.value = "";
      }
    };
 
@@ -1815,7 +1835,7 @@ export function StudentProfileSetup() {
    };
 
    const fetchData = async (parsedDataOverride?: any) => {
-    const parseList = (str: string | null) => str ? str.split(", ").filter(Boolean) : [];
+    const parseList = (str: string | null) => str ? str.split(",").map(s => s.trim()).filter(Boolean) : [];
     const parseJSON = (val: any, fallback: any) => {
       if (!val) return fallback;
       try {
@@ -1823,6 +1843,29 @@ export function StudentProfileSetup() {
       } catch {
         return fallback;
       }
+    };
+    const normalizeParsedEducation = (rawEducation: any): any[] => {
+      if (!Array.isArray(rawEducation)) return [];
+      return rawEducation.map((edu: any) => {
+        const yearText = String(edu?.year || "");
+        const yearMatches = yearText.match(/\b(19|20)\d{2}\b/g) || [];
+        const derivedStartYear = edu?.start_year
+          ? String(edu.start_year)
+          : (yearMatches.length > 1 ? yearMatches[0] : "");
+        const derivedEndYear = edu?.end_year
+          ? String(edu.end_year)
+          : (yearMatches.length > 0 ? yearMatches[yearMatches.length - 1] : "");
+
+        return {
+          degree: edu?.degree || "",
+          institution: edu?.institution || edu?.university || "",
+          year: edu?.year || (derivedStartYear && derivedEndYear ? `${derivedStartYear}-${derivedEndYear}` : ""),
+          gpa: edu?.gpa || "",
+          field_of_study: edu?.field_of_study || edu?.specialization || "",
+          start_year: derivedStartYear,
+          end_year: derivedEndYear,
+        };
+      });
     };
 
     try {
@@ -1848,6 +1891,16 @@ export function StudentProfileSetup() {
 
       // If we have parsedDataOverride, we'll merge it later
       const dataToUse = parsedDataOverride || {};
+      const parsedEducationEntries = normalizeParsedEducation(
+        dataToUse.education_entries || dataToUse.education
+      );
+      const primaryParsedEducation = parsedEducationEntries[0] || null;
+      const parsedStartYear = primaryParsedEducation?.start_year
+        ? String(primaryParsedEducation.start_year)
+        : "";
+      const parsedEndYear = primaryParsedEducation?.end_year
+        ? String(primaryParsedEducation.end_year)
+        : "";
 
       setFormData(prev => {
         // Prepare updated fields
@@ -1866,11 +1919,22 @@ export function StudentProfileSetup() {
           languages: profileData ? parseList(profileData.languages) : prev.languages,
           apaar_id: (profileData ? profileData.apaar_id : prev.apaar_id) || "",
           profile_type: (profileData ? profileData.profile_type : prev.profile_type) || "",
-          course: (profileData ? profileData.degree : prev.course) || "",
-          specialization: (profileData ? profileData.department : prev.specialization) || "",
-          college_name: (profileData ? profileData.university_name : prev.college_name) || "",
-          start_year: (profileData && profileData.start_year) ? String(profileData.start_year) : prev.start_year,
-          end_year: (profileData && profileData.end_year) ? String(profileData.end_year) : prev.end_year,
+          course: dataToUse.course
+            || primaryParsedEducation?.degree
+            || (profileData ? profileData.degree : prev.course)
+            || "",
+          specialization: dataToUse.specialization
+            || primaryParsedEducation?.field_of_study
+            || (profileData ? profileData.department : prev.specialization)
+            || "",
+          college_name: dataToUse.college_name
+            || primaryParsedEducation?.institution
+            || (profileData ? profileData.university_name : prev.college_name)
+            || "",
+          start_year: parsedStartYear
+            || ((profileData && profileData.start_year) ? String(profileData.start_year) : prev.start_year),
+          end_year: parsedEndYear
+            || ((profileData && profileData.end_year) ? String(profileData.end_year) : prev.end_year),
           
           // 3. Interests (merge parsed skills into interests)
           interests: dataToUse.skills 
@@ -1883,7 +1947,9 @@ export function StudentProfileSetup() {
           // 4. Resume fields
           resume: {
             ...prev.resume,
-            career_objective: (resumeData ? resumeData.career_objective : prev.resume.career_objective) || "",
+            career_objective: dataToUse.career_objective
+              || (resumeData ? resumeData.career_objective : prev.resume.career_objective)
+              || "",
             work_experience: dataToUse.experience 
               ? dataToUse.experience.map((exp: any) => ({
                   company: exp.company || "",
@@ -1894,10 +1960,16 @@ export function StudentProfileSetup() {
                 }))
               : (resumeData ? parseJSON(resumeData.work_experience, []) : prev.resume.work_experience),
             
-            projects: resumeData ? parseJSON(resumeData.projects, []) : prev.resume.projects,
-            certifications: resumeData ? parseJSON(resumeData.certifications, []) : prev.resume.certifications,
+            projects: Array.isArray(dataToUse.projects)
+              ? dataToUse.projects
+              : (resumeData ? parseJSON(resumeData.projects, []) : prev.resume.projects),
+            certifications: Array.isArray(dataToUse.certifications)
+              ? dataToUse.certifications
+              : (resumeData ? parseJSON(resumeData.certifications, []) : prev.resume.certifications),
             extra_curricular: resumeData ? parseJSON(resumeData.extra_curricular, []) : prev.resume.extra_curricular,
-            education_entries: resumeData ? parseJSON(resumeData.education_entries, []) : prev.resume.education_entries,
+            education_entries: parsedEducationEntries.length > 0
+              ? parsedEducationEntries
+              : (resumeData ? parseJSON(resumeData.education_entries, []) : prev.resume.education_entries),
             
             skills_categorized: {
               ...prev.resume.skills_categorized,
@@ -1933,23 +2005,6 @@ export function StudentProfileSetup() {
       setInitialLoading(false);
     }
   };
-
-  // Effect to pre-fill data if parsed from resume
-  useEffect(() => {
-    if (location.state?.parsedData && !hasPreFilled.current) {
-      const { parsedData } = location.state;
-      console.log("Handling pre-filled data from resume:", parsedData);
-      
-      // Re-fetch data but with parsedDataOverride
-      fetchData(parsedData);
-      
-      hasPreFilled.current = true;
-      toast.success("We've pre-filled some details from your resume. Please review and complete the rest.");
-      
-      // Clear the state so it doesn't re-trigger on refresh/back
-      navigate(location.pathname + location.search, { replace: true, state: {} });
-    }
-  }, [location.state, toast, navigate, location.pathname, location.search]);
 
   const handleSubmit = async () => {
     setLoading(true);
