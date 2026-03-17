@@ -26,43 +26,10 @@ import json
 from sqlalchemy import func, desc
 from models.notification import Notification
 from datetime import datetime
-import sys
-import os
-
-# Add resume_parser to sys path for internal imports
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
-
-# Global instances for extractors
-pdf_processor = None
-entity_extractor = None
-experience_extractor = None
-skills_extractor = None
-PARSER_AVAILABLE = False
-
-def init_resume_parser():
-    global pdf_processor, entity_extractor, experience_extractor, skills_extractor, PARSER_AVAILABLE
-    try:
-        from resume_parser.pdf_processor import PDFProcessor
-        from resume_parser.entity_extractor import EntityExtractor
-        from resume_parser.experience_extractor import ExperienceExtractor
-        from resume_parser.skills_extractor import SkillsExtractor
-        from resume_parser.config import SPACY_MODEL
-        
-        print(f"DEBUG: Initializing resume parser with {SPACY_MODEL}...")
-        pdf_processor = PDFProcessor()
-        entity_extractor = EntityExtractor(SPACY_MODEL)
-        experience_extractor = ExperienceExtractor()
-        skills_extractor = SkillsExtractor()
-        PARSER_AVAILABLE = True
-        print("DEBUG: Resume parser initialized successfully!")
-    except Exception as e:
-        print(f"DEBUG: Resume parser initialization failed: {e}")
-        import traceback
-        traceback.print_exc()
-        PARSER_AVAILABLE = False
-
-# Initialize on module load
-init_resume_parser()
+from services.resume_parser_client import (
+    ResumeParserServiceError,
+    parse_resume_via_service,
+)
 
 router = APIRouter()
 
@@ -70,66 +37,38 @@ router = APIRouter()
 async def parse_my_resume(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db)
 ):
-    """Parse a resume PDF and return structured data for profile completion"""
-    if not PARSER_AVAILABLE:
-        raise HTTPException(status_code=503, detail="Resume parser service is not initialized")
-    
+    """
+    Parse a resume via external parser service and return profile-prefill fields.
+
+    This endpoint is a backend façade:
+    Frontend calls only this route, while parser service can be independently deployed/scaled.
+    """
     if current_user.role != "student":
         raise HTTPException(status_code=403, detail="Only students can parse resumes")
 
     # Validate file type
-    if not file.filename.lower().endswith('.pdf'):
+    if not file.filename or not file.filename.lower().endswith('.pdf'):
         raise HTTPException(status_code=400, detail="Only PDF resumes are supported for parsing")
 
     try:
         file_content = await file.read()
-        
-        # Step 1: Extract text from PDF
-        text = pdf_processor.extract_text_from_bytes(file_content)
-        if not text:
-            raise HTTPException(status_code=400, detail="Failed to extract text from PDF")
-            
-        # Step 2: Extract entities
-        name, email, phone = entity_extractor.extract_all_entities(text)
-        
-        # Step 3: Extract skills
-        skills = skills_extractor.extract_skills(text, use_semantic=True)
-        
-        # Step 4: Extract experience
-        experience = experience_extractor.extract_experiences(text)
-        
-        # Format names (split if needed)
-        first_name = ""
-        last_name = ""
-        if name:
-            parts = name.split()
-            first_name = parts[0] if parts else ""
-            last_name = " ".join(parts[1:]) if len(parts) > 1 else ""
-        
-        return {
-            "success": True,
-            "data": {
-                "first_name": first_name or current_user.full_name.split()[0] if current_user.full_name else "",
-                "last_name": last_name or " ".join(current_user.full_name.split()[1:]) if current_user.full_name and len(current_user.full_name.split()) > 1 else "",
-                "email": email or current_user.email,
-                "phone_number": phone or current_user.phone_number,
-                "skills": skills,
-                "experience": [
-                    {
-                        "company": exp.company,
-                        "position": exp.position,
-                        "duration": exp.duration,
-                        "description": exp.description
-                    } for exp in experience
-                ],
-                "raw_text_preview": text[:500]
-            }
-        }
+        if not file_content:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+        return await parse_resume_via_service(
+            file_name=file.filename,
+            file_content=file_content,
+            content_type=file.content_type,
+            current_user=current_user,
+        )
+    except ResumeParserServiceError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except HTTPException:
+        raise
     except Exception as e:
-        print(f"Error parsing resume: {e}")
-        raise HTTPException(status_code=500, detail=f"Failed to parse resume: {str(e)}")
+        print(f"Error parsing resume via parser service: {e}")
+        raise HTTPException(status_code=500, detail="Failed to parse resume")
 
 
 @router.get("/internships/metadata")

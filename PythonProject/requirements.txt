@@ -22,3 +22,4 @@ pdf2image
 python-docx
 numpy
 PyPDF2
+httpx

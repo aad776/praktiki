@@ -58,6 +58,7 @@ Praktiki is deployed as **three separate services**, each running on its own EC2
 | **Frontend** | `frontend/` | N/A (static) | 80 / 443 | React + Vite SPA served by Nginx |
 | **Backend API** | `PythonProject/` | 8000 | 80 | FastAPI with PostgreSQL (Gunicorn + Uvicorn workers) |
 | **AI Matching** | `ai_matching/` | 8001 | 80 | FastAPI with ML models (Sentence-Transformers, PyTorch) |
+| **Resume Parser** | `ai_matching/resume_parser/` | 8002 | 8002 | Dedicated parser microservice consumed by Backend (`/students/me/parse-resume` façade) |
 
 ---
 
@@ -282,8 +283,9 @@ chmod +x deploy/deploy_all.sh
 3. Uploads `ai_matching/` to AI Matching EC2 via SCP
 4. Uploads `frontend/` to Frontend EC2 via rsync (excludes `node_modules/` and `dist/`)
 5. Auto-generates `frontend/.env` with correct Backend/AI Matching IPs
-6. SSHs into each instance and runs the corresponding `setup_*.sh` script with sudo
-7. Runs health checks on all three services
+6. Auto-configures `PARSER_SERVICE_URL` in `PythonProject/.env` to `http://<AI_MATCHING_IP>:8002`
+7. SSHs into each instance and runs the corresponding `setup_*.sh` script with sudo
+8. Runs health checks on all three services
 
 ### Method B: Manual (Per Instance)
 
@@ -363,6 +365,10 @@ DEBUG=false
 ENVIRONMENT=production
 API_HOST=0.0.0.0
 API_PORT=8000
+
+# Resume Parser Service (hosted on AI Matching EC2)
+PARSER_SERVICE_URL=http://AI_MATCHING_EC2_PUBLIC_IP:8002
+PARSER_SERVICE_TIMEOUT_SECONDS=45
 
 # CORS - comma-separated allowed origins
 CORS_ORIGINS=http://your-frontend-domain.com,http://FRONTEND_EC2_IP
@@ -534,6 +540,7 @@ curl http://<FRONTEND_IP>/
 | `http://BACKEND_IP:8000/` | 200 OK | JSON response |
 | `http://BACKEND_IP:8000/docs` | 200 OK | Interactive Swagger documentation |
 | `http://AI_MATCHING_IP:8001/` | 200 OK | May take 10-30s on first request (model loading) |
+| `http://AI_MATCHING_IP:8002/` | 200 OK | Resume parser service (used by backend parser façade) |
 | `http://FRONTEND_IP/` | 200 OK | HTML page (React app) |
 
 ### Service URLs After Deployment
@@ -544,6 +551,8 @@ Backend API:            http://<BACKEND_IP>:8000
 Backend Swagger Docs:   http://<BACKEND_IP>:8000/docs
 AI Matching API:        http://<AI_MATCHING_IP>:8001
 AI Matching Docs:       http://<AI_MATCHING_IP>:8001/docs
+Resume Parser API:      http://<AI_MATCHING_IP>:8002
+Resume Parser Docs:     http://<AI_MATCHING_IP>:8002/docs
 ```
 
 ---

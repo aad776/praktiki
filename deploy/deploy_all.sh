@@ -127,6 +127,17 @@ deploy_backend() {
     log_info "Running setup script..."
     ssh_cmd "$BACKEND_HOST" "chmod +x /home/ubuntu/deploy/setup_backend.sh && sudo /home/ubuntu/deploy/setup_backend.sh"
 
+    # Configure backend to use dedicated parser microservice on AI host
+    log_info "Configuring backend parser service URL..."
+    ssh_cmd "$BACKEND_HOST" "if [ -f /home/ubuntu/PythonProject/.env ]; then \
+        if grep -q '^PARSER_SERVICE_URL=' /home/ubuntu/PythonProject/.env; then \
+            sed -i 's|^PARSER_SERVICE_URL=.*|PARSER_SERVICE_URL=http://$AI_MATCHING_HOST:8002|' /home/ubuntu/PythonProject/.env; \
+        else \
+            printf '\nPARSER_SERVICE_URL=http://$AI_MATCHING_HOST:8002\nPARSER_SERVICE_TIMEOUT_SECONDS=45\n' >> /home/ubuntu/PythonProject/.env; \
+        fi; \
+    fi"
+    ssh_cmd "$BACKEND_HOST" "sudo systemctl restart praktiki-backend || true"
+
     log_info "✅ Backend deployment complete!"
 }
 
