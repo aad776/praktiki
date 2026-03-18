@@ -12,6 +12,7 @@ import { StudentDashboard } from './pages/StudentDashboard';
 import { StudentApplications } from './pages/StudentApplications';
 import { StudentProfileSetup } from './pages/StudentProfileSetup';
 import { StudentCertificateUpload } from './pages/StudentCertificateUpload';
+import { StudentCertificateDetail } from './pages/StudentCertificateDetail';
 import { EmployerDashboard } from './pages/EmployerDashboard';
 import { EmployerInternshipDetails } from './pages/EmployerInternshipDetails';
 import { EmployerProfileSetup } from './pages/EmployerProfileSetup';
@@ -98,6 +99,14 @@ export function App() {
           }
         />
 
+        <Route
+          path="/student/certificate/:id"
+          element={
+            <ProtectedRoute allowedRoles={['student']}>
+              <StudentCertificateDetail />
+            </ProtectedRoute>
+          }
+        />
         {/* Employer Routes */}
         <Route
           path="/employer"
@@ -151,6 +160,30 @@ export function App() {
         {/* Institute Routes */}
         <Route
           path="/institute"
+          element={
+            <ProtectedRoute allowedRoles={['institute']}>
+              <InstituteDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/institute/students"
+          element={
+            <ProtectedRoute allowedRoles={['institute']}>
+              <InstituteDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/institute/certificates"
+          element={
+            <ProtectedRoute allowedRoles={['institute']}>
+              <InstituteDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/institute/profile"
           element={
             <ProtectedRoute allowedRoles={['institute']}>
               <InstituteDashboard />

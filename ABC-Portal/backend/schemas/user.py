@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional
 from datetime import datetime
 
@@ -7,6 +7,11 @@ class UserBase(BaseModel):
     full_name: str
     role: str = "student"
     apaar_id: Optional[str] = None
+
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        return v.lower().strip()
 
 class UserCreate(UserBase):
     password: str

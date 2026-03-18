@@ -12,5 +12,5 @@ def calculate_credits(hours: int, policy: str) -> float:
     elif policy.upper() == "AICTE":
         return round(hours / 40.0, 2)
     else:
-        # Default to UGC if unknown, but maybe raise error in production
-        return round(hours / 30.0, 2)
+        # Default to AICTE as per user instruction (1 credit / 40 hours)
+        return round(hours / 40.0, 2)

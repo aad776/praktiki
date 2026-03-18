@@ -30,6 +30,9 @@ class Settings(BaseSettings):
     AWS_ACCESS_KEY_ID: Optional[str] = None
     AWS_SECRET_ACCESS_KEY: Optional[str] = None
 
+    # Certificate Verification Service URL
+    CERT_VERIFICATION_URL: str = "http://localhost:8003/api/certificates/upload"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

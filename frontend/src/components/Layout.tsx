@@ -2,7 +2,7 @@ import { ReactNode, useState, useEffect, useRef } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { InternshipMegaMenu } from './InternshipMegaMenu';
-import axios from 'axios';
+import api from '../services/api';
 
 interface Notification {
   id: number;
@@ -56,6 +56,8 @@ const roleNavConfig: Record<string, RoleConfig> = {
     navItems: [
       { path: '/institute', label: 'Dashboard', icon: 'home' },
       { path: '/institute/students', label: 'Students', icon: 'users' },
+      { path: '/institute/certificates', label: 'Certificates', icon: 'certificate' },
+      { path: '/institute/profile', label: 'Profile', icon: 'user' },
       { path: import.meta.env.VITE_ABC_PORTAL_URL || 'http://44.197.97.159:3000', label: 'ABC Status', icon: 'star', external: true },
     ],
   },
@@ -65,6 +67,11 @@ const icons: Record<string, JSX.Element> = {
   home: (
     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    </svg>
+  ),
+  certificate: (
+    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" />
     </svg>
   ),
   user: (
@@ -133,11 +140,8 @@ export function Layout({ children }: LayoutProps) {
 
   const fetchNotifications = async () => {
     try {
-      const token = localStorage.getItem('praktiki_token');
-      const res = await axios.get(`${import.meta.env.VITE_API_URL || 'http://44.205.136.199:8000'}/notifications/`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      setNotifications(res.data);
+      const res: any = await api.get("/notifications/");
+      setNotifications(res);
     } catch (err) {
       console.error('Error fetching notifications:', err);
     }
@@ -145,10 +149,7 @@ export function Layout({ children }: LayoutProps) {
 
   const markAllAsRead = async () => {
     try {
-      const token = localStorage.getItem('praktiki_token');
-      await axios.post(`${import.meta.env.VITE_API_URL || 'http://44.205.136.199:8000'}/notifications/mark-all-read`, {}, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await api.post("/notifications/mark-all-read", {});
       setNotifications(notifications.map(n => ({ ...n, is_read: 1 })));
     } catch (err) {
       console.error('Error marking all as read:', err);

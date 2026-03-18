@@ -39,6 +39,14 @@ class CertificateBase(BaseModel):
 class CertificateCreate(CertificateBase):
     pass
 
+class CertificateUpdate(BaseModel):
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    total_hours: Optional[int] = None
+    internship_title: Optional[str] = None
+    organization_name: Optional[str] = None
+    performance_remark: Optional[str] = None
+
 class CertificateResponse(CertificateBase):
     id: int
     student_id: int

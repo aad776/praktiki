@@ -16,7 +16,7 @@ const Login = () => {
     e.preventDefault();
     try {
       // Sending email as username to the login function which uses standard OAuth2 form
-      const data = await login(email, password);
+      const data = await login(email.trim().toLowerCase(), password);
       // Redirect based on role
       switch(data.role) {
         case 'student': navigate('/student/dashboard'); break;

@@ -49,7 +49,7 @@ class StudentProfile(Base):
     
     user = relationship("User", back_populates="student_profile")
     institute = relationship("InstituteProfile", back_populates="students")
-    applications = relationship("backend.models.internship.Application", back_populates="student")
+    applications = relationship("Application", back_populates="student")
 
 class InstituteProfile(Base):
     __tablename__ = "institute_profiles"
@@ -67,5 +67,5 @@ class EmployerProfile(Base):
     company_name = Column(String, nullable=False)
     
     user = relationship("User", back_populates="employer_profile")
-    internships = relationship("backend.models.internship.Internship", back_populates="employer")
+    internships = relationship("Internship", back_populates="employer")
 

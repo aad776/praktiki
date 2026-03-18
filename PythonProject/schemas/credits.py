@@ -11,7 +11,7 @@ class CreditRequestOut(BaseModel):
     id: int
     student_id: int
     student_name: Optional[str] = None
-    application_id: int
+    application_id: Optional[int] = None
     hours: int
     credits_calculated: float
     policy_type: str

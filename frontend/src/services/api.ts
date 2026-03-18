@@ -4,7 +4,7 @@
 
 import { config } from '../config';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://44.205.136.199:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
@@ -78,15 +78,23 @@ async function apiRequest<T>(
     try {
       const errorData = await response.json();
       if (errorData.detail) {
-        errorMessage = errorData.detail;
+        if (Array.isArray(errorData.detail)) {
+          errorMessage = errorData.detail.map((d: any) => d.msg || JSON.stringify(d)).join(', ');
+        } else if (typeof errorData.detail === 'object') {
+          errorMessage = JSON.stringify(errorData.detail);
+        } else {
+          errorMessage = errorData.detail;
+        }
       } else if (errorData.message) {
         errorMessage = errorData.message;
       }
     } catch (e) {
-      // If response is not JSON, use status text
       errorMessage = response.statusText || errorMessage;
     }
-    throw new Error(errorMessage);
+    const error = new Error(errorMessage) as any;
+    error.status = response.status;
+    error.url = url;
+    throw error;
   }
 
   if (responseType === 'blob') {

@@ -22,18 +22,16 @@ export function StudentCertificateUpload() {
   const [internship, setInternship] = useState<InternshipInfo | null>(null);
   const [file, setFile] = useState<File | null>(null);
   const [formData, setFormData] = useState({
-    hours: '',
     policy: 'UGC'
   });
 
   useEffect(() => {
-    if (!applicationId) {
-      toast.error('No application ID provided');
-      navigate('/student/applications');
-      return;
-    }
-
     const fetchInternshipInfo = async () => {
+      if (!applicationId) {
+        setLoading(false);
+        return;
+      }
+
       try {
         const appsRes = await api.get<any[]>('/students/my-applications');
         const app = appsRes.find(a => a.id === parseInt(applicationId));
@@ -80,7 +78,7 @@ export function StudentCertificateUpload() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!file || !internship) return;
+    if (!file) return;
 
     setSubmitting(true);
     try {
@@ -89,13 +87,10 @@ export function StudentCertificateUpload() {
       uploadFormData.append('file', file);
       if (applicationId) {
         uploadFormData.append('application_id', applicationId);
-        uploadFormData.append('hours', formData.hours);
-        uploadFormData.append('policy_type', formData.policy);
       }
+      uploadFormData.append('policy_type', formData.policy);
 
-      await api.post('/certificates/upload', uploadFormData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
+      await api.post('/certificates/upload', uploadFormData);
 
       toast.success('Certificate uploaded successfully! Credit request is being processed.');
       navigate('/student/applications');
@@ -121,22 +116,28 @@ export function StudentCertificateUpload() {
           </svg>
         </button>
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 text-left">Upload Certificate</h1>
-          <p className="text-slate-500 mt-1">Submit your internship certificate for credit approval</p>
+          <h1 className="text-3xl font-bold text-slate-900 text-left">
+            {applicationId ? 'Upload Certificate' : 'External Certificate Submission'}
+          </h1>
+          <p className="text-slate-500 mt-1">
+            {applicationId 
+              ? 'Submit your internship certificate for credit approval' 
+              : 'Upload a certificate from an external internship for credit verification'}
+          </p>
         </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="p-6 bg-slate-50 border-b border-slate-200">
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4 text-left">
             <div className="w-12 h-12 bg-brand-100 rounded-xl flex items-center justify-center text-brand-600">
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
             </div>
             <div>
-              <h2 className="font-bold text-slate-900">{internship?.title}</h2>
-              <p className="text-sm text-slate-500">{internship?.company_name}</p>
+              <h2 className="font-bold text-slate-900">{internship?.title || 'External Internship'}</h2>
+              <p className="text-sm text-slate-500">{internship?.company_name || 'Self-reported Organization'}</p>
             </div>
           </div>
         </div>
@@ -190,20 +191,7 @@ export function StudentCertificateUpload() {
           </div>
 
           {/* Credit Details Section */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-2">
-              <label className="block text-sm font-bold text-slate-700 uppercase tracking-wider">
-                Total Hours Worked
-              </label>
-              <input
-                type="number"
-                required
-                placeholder="e.g. 160"
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all"
-                value={formData.hours}
-                onChange={(e) => setFormData({ ...formData, hours: e.target.value })}
-              />
-            </div>
+          <div className="grid grid-cols-1 gap-6">
             <div className="space-y-2">
               <label className="block text-sm font-bold text-slate-700 uppercase tracking-wider">
                 Credit Policy

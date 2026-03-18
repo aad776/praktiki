@@ -62,12 +62,12 @@ const Signup = () => {
     try {
       await authService.register(
         formData.username,
-        formData.email,
+        formData.email.trim().toLowerCase(),
         formData.role,
         formData.password,
         formData.institute_name
       );
-      navigate('/verify-otp', { state: { email: formData.email } });
+      navigate('/verify-otp', { state: { email: formData.email.trim().toLowerCase() } });
     } catch (err) {
       setError(err.response?.data?.detail || 'Registration failed');
     }

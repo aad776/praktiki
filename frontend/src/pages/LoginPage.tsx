@@ -133,7 +133,7 @@ export function LoginPage() {
 
     try {
       const payload: any = {
-      email: email.trim(),
+      email: email.trim().toLowerCase(),
       password,
       role, // Send the selected role for verification
     };
@@ -376,7 +376,7 @@ export function LoginPage() {
                 <GoogleLogin
                   onSuccess={handleGoogleSuccess}
                   onError={() => toast.error("Google login failed")}
-                  useOneTap
+                  useOneTap={false}
                   theme="outline"
                   size="large"
                   width="100%"

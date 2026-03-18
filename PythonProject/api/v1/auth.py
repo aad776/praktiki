@@ -88,6 +88,7 @@ def verify_email(token: str, db: Session = Depends(get_db)):
 @router.post("/forgot-password")
 def forgot_password(email: str, db: Session = Depends(get_db)):
     """Request a password reset token"""
+    email = email.lower().strip()
     user = db.query(User).filter(User.email == email).first()
     
     if not user:
@@ -211,7 +212,14 @@ def google_login(
         user = db.query(User).filter(User.email == email).first()
         is_new_user = False
         
-        if not user:
+        if user:
+            # Check if role matches
+            if user.role != req.role:
+                raise HTTPException(
+                    status_code=403, 
+                    detail=f"This Google account is already registered as a {user.role.capitalize()}. Please select the correct role."
+                )
+        else:
             is_new_user = True
             # Create new user if doesn't exist
             # For social login, we can generate a random password

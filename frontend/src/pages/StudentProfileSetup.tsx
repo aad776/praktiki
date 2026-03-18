@@ -1064,7 +1064,10 @@ const Step4 = ({ formData, setFormData, handleResumeUpload, handleSubmit, loadin
 
 const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const certInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
+  const [certUploading, setCertUploading] = useState(false);
+  const toast = useToast();
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -1077,6 +1080,30 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
     }
   };
 
+  const onCertChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setCertUploading(true);
+      const file = e.target.files[0];
+      const formData = new FormData();
+      formData.append("file", file);
+
+      try {
+        const response: any = await api.post("/certificates/upload", formData);
+        
+        if (response.verification_data) {
+          toast.success("Certificate uploaded & verified! Submitted to Institute.");
+        } else {
+          toast.info("Certificate uploaded. Manual verification pending.");
+        }
+      } catch (error) {
+        console.error("Certificate upload failed:", error);
+        toast.error("Failed to upload certificate.");
+      } finally {
+        setCertUploading(false);
+      }
+    }
+  };
+
   return (
     <div className="max-w-[1200px] mx-auto py-4 sm:py-8 px-2 sm:px-4 animate-fadeIn">
       {/* Upload Resume Hidden Input */}
@@ -1085,6 +1112,14 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
         ref={fileInputRef}
         onChange={onFileChange}
         accept=".pdf,.doc,.docx"
+        className="hidden"
+      />
+
+      <input
+        type="file"
+        ref={certInputRef}
+        onChange={onCertChange}
+        accept=".pdf,.jpg,.jpeg,.png"
         className="hidden"
       />
 
@@ -1118,6 +1153,25 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
                   </svg>
                 )}
                 {uploading ? 'Uploading...' : 'Upload Resume'}
+              </button>
+
+              {/* Verify Certificate Button */}
+              <button
+                onClick={() => certInputRef.current?.click()}
+                disabled={certUploading}
+                className={`px-6 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 shadow-md transition-all flex items-center gap-2 ${certUploading ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}
+              >
+                {certUploading ? (
+                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                )}
+                {certUploading ? 'Verifying...' : 'Verify Certificate'}
               </button>
 
               {formData.resume.resume_file_path && (

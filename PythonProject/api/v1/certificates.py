@@ -5,7 +5,7 @@ from models.user import User
 from models.student_profile import StudentProfile
 from models.application import Application
 from models.certificate import Certificate
-from schemas.certificate import CertificateCreate, CertificateResponse
+from schemas.certificate import CertificateCreate, CertificateResponse, CertificateUpdate
 from utils.dependencies import get_current_student, get_current_user
 from typing import List
 import shutil
@@ -30,7 +30,7 @@ def process_certificate_background(
     student_id: int, 
     user: User,
     hours: int = None,
-    policy_type: str = "UGC"
+    policy_type: str = "AICTE"
 ):
     """Background task for certificate processing and automated credit request"""
     try:
@@ -46,46 +46,72 @@ def process_certificate_background(
         run_verification_workflow(db_session, cert, user, verification_data["ai_extracted_data"])
         
         # 3. Automatically create CreditRequest entry (Idempotency check)
-        if cert.application_id:
-            existing_request = db_session.query(CreditRequest).filter(
-                CreditRequest.application_id == cert.application_id
-            ).first()
-            
-            if not existing_request:
-                # Use provided hours or extracted hours
-                final_hours = hours or cert.total_hours or 0
-                credits_val = calculate_credits(final_hours, policy_type)
-                
-                new_request = CreditRequest(
-                    student_id=student_id,
-                    application_id=cert.application_id,
-                    hours=final_hours,
-                    credits_calculated=credits_val,
-                    policy_type=policy_type,
-                    status="pending"
-                )
-                db_session.add(new_request)
-                
-                # Log the action
-                audit = AuditLog(
-                    action="automated_credit_request_created",
-                    performed_by_id=user.id,
-                    target_type="credit_request",
-                    details=f"Automated: Requested {credits_val} credits for {final_hours} hours using {policy_type} policy after certificate upload"
-                )
-                db_session.add(audit)
-                
-                # 4. Notify institute dashboard
-                student_profile = db_session.query(StudentProfile).filter(StudentProfile.id == student_id).first()
-                if student_profile and student_profile.institute_id:
-                    institute = db_session.query(InstituteProfile).filter(InstituteProfile.id == student_profile.institute_id).first()
-                    if institute:
-                        notif = Notification(
-                            user_id=institute.user_id,
-                            message=f"New automated credit request from student {user.full_name} for certificate upload."
-                        )
-                        db_session.add(notif)
+        # Check if a request already exists for this certificate
+        existing_request = db_session.query(CreditRequest).filter(
+            CreditRequest.certificate_id == cert.id
+        ).first()
         
+        if not existing_request:
+            # Use provided hours or extracted hours
+            final_hours = hours or cert.total_hours or 0
+            credits_val = calculate_credits(final_hours, policy_type)
+            
+            new_request = CreditRequest(
+                student_id=student_id,
+                application_id=cert.application_id, # None for external
+                certificate_id=cert.id,
+                hours=final_hours,
+                credits_calculated=credits_val,
+                policy_type=policy_type,
+                status="pending",
+                remarks=f"Certificate: {cert.internship_title}" if cert.internship_title else "Internship Certificate"
+            )
+            db_session.add(new_request)
+            
+            # Log the action
+            audit = AuditLog(
+                action="automated_credit_request_created",
+                performed_by_id=user.id,
+                target_type="credit_request",
+                details=f"Automated: Requested {credits_val} credits for {final_hours} hours using {policy_type} policy after certificate upload"
+            )
+            db_session.add(audit)
+            
+            # 4. Notify institute dashboard
+            student_profile = db_session.query(StudentProfile).filter(StudentProfile.id == student_id).first()
+            if student_profile:
+                # Find institute (by ID or name match)
+                institute = None
+                if student_profile.institute_id:
+                    institute = db_session.query(InstituteProfile).filter(InstituteProfile.id == student_profile.institute_id).first()
+                
+                if not institute:
+                    # Try to find by university name match or email domain
+                    institute = db_session.query(InstituteProfile).filter(
+                        InstituteProfile.institute_name.ilike(f"%{student_profile.university_name}%")
+                    ).first()
+                
+                if not institute and user.email:
+                    # Try matching by email domain
+                    domain = user.email.split('@')[-1]
+                    common_domains = ["gmail.com", "outlook.com", "yahoo.com", "hotmail.com"]
+                    if domain not in common_domains:
+                        institute_user = db_session.query(User).filter(
+                            User.role == "institute",
+                            User.email.ilike(f"%@{domain}%")
+                        ).first()
+                        if institute_user:
+                            institute = db_session.query(InstituteProfile).filter(
+                                InstituteProfile.user_id == institute_user.id
+                            ).first()
+                
+                if institute:
+                    notif = Notification(
+                        user_id=institute.user_id,
+                        message=f"New certificate for '{cert.internship_title or 'External Internship'}' uploaded by {user.full_name}. Review now."
+                    )
+                    db_session.add(notif)
+
         # Update certificate
         db_session.add(cert)
         db_session.commit()
@@ -176,6 +202,34 @@ def upload_certificate(
     
     return new_cert
 
+from fastapi.responses import FileResponse
+
+@router.get("/view/{certificate_id}")
+def view_certificate(
+    certificate_id: int,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """
+    Serve certificate file securely.
+    """
+    cert = db.query(Certificate).filter(Certificate.id == certificate_id).first()
+    if not cert:
+        raise HTTPException(status_code=404, detail="Certificate not found")
+    
+    # Check permissions
+    if current_user.role == "student":
+        student_profile = db.query(StudentProfile).filter(StudentProfile.user_id == current_user.id).first()
+        if not student_profile or cert.student_id != student_profile.id:
+            raise HTTPException(status_code=403, detail="Not authorized")
+    elif current_user.role not in ["institute", "admin"]:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    if not os.path.exists(cert.file_url):
+        raise HTTPException(status_code=404, detail="File not found on server")
+        
+    return FileResponse(cert.file_url)
+
 @router.get("/", response_model=List[CertificateResponse])
 def get_my_certificates(
     current_user: User = Depends(get_current_user),
@@ -217,4 +271,44 @@ def get_certificate(
         if not student_profile or cert.student_id != student_profile.id:
             raise HTTPException(status_code=403, detail="Not authorized to view this certificate")
             
+    return cert
+
+@router.patch("/{certificate_id}", response_model=CertificateResponse)
+def update_certificate(
+    certificate_id: int,
+    update_data: CertificateUpdate,
+    current_student: User = Depends(get_current_student),
+    db: Session = Depends(get_db)
+):
+    """
+    Allow student to manually correct extracted certificate details.
+    """
+    student_profile = db.query(StudentProfile).filter(StudentProfile.user_id == current_student.id).first()
+    if not student_profile:
+        raise HTTPException(status_code=404, detail="Student profile not found")
+
+    cert = db.query(Certificate).filter(Certificate.id == certificate_id, Certificate.student_id == student_profile.id).first()
+    if not cert:
+        raise HTTPException(status_code=404, detail="Certificate not found or not owned by you")
+
+    # Update fields if provided
+    update_dict = update_data.model_dump(exclude_unset=True)
+    for key, value in update_dict.items():
+        setattr(cert, key, value)
+    
+    # Recalculate duration if hours changed
+    if update_data.total_hours is not None:
+        cert.duration_in_months = update_data.total_hours // 160 or 1
+    
+    # Update CreditRequest if it exists
+    credit_request = db.query(CreditRequest).filter(CreditRequest.certificate_id == cert.id).first()
+    if credit_request:
+        if update_data.total_hours is not None:
+            credit_request.hours = update_data.total_hours
+            credit_request.credits_calculated = calculate_credits(update_data.total_hours, credit_request.policy_type)
+        if update_data.internship_title is not None:
+            credit_request.remarks = f"Certificate: {update_data.internship_title}"
+
+    db.commit()
+    db.refresh(cert)
     return cert

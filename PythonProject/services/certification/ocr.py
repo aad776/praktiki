@@ -125,7 +125,7 @@ def extract_structured_data_from_ocr(ocr_text: str) -> Dict[str, Any]:
     Extract structured data using the TP-style rule-based parsing.
     This replaces our previous rule-based logic.
     """
-    from app.services.tp_extractor import extract_from_text
+    from .tp_extractor import extract_from_text
     
     # Use the TP extractor logic
     tp_data = extract_from_text(ocr_text)

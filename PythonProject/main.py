@@ -20,6 +20,7 @@ from api.v1.certificates import router as certificates_router
 
 from fastapi.staticfiles import StaticFiles
 import os
+from datetime import datetime
 
 # Create FastAPI app
 app = FastAPI(
@@ -40,15 +41,7 @@ app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:5174",
-        "http://127.0.0.1:5174",
-        "http://localhost:3000",
-        "http://localhost:5175",
-        "http://127.0.0.1:5175",
-    ],
+    allow_origins=["*"], # More permissive for development
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -57,9 +50,17 @@ app.add_middleware(
 @app.middleware("http")
 async def log_requests(request, call_next):
     print(f"Incoming request: {request.method} {request.url}")
-    response = await call_next(request)
-    print(f"Response status: {response.status_code}")
-    return response
+    try:
+        response = await call_next(request)
+        print(f"Response status: {response.status_code}")
+        return response
+    except Exception as e:
+        print(f"ERROR processing request: {e}")
+        raise
+
+@app.get("/ping")
+def ping():
+    return {"status": "pong", "timestamp": datetime.now().isoformat()}
 
 # Include routers
 app.include_router(auth_router, prefix="/auth", tags=["Authentication"])
