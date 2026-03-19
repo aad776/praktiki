@@ -44,6 +44,21 @@ const Autocomplete = ({
   const [loading, setLoading] = useState(false);
   const [inputValue, setInputValue] = useState(value);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const cacheRef = useRef<Map<string, string[]>>(new Map());
+  const abortRef = useRef<AbortController | null>(null);
+
+  const MIN_QUERY_LENGTH = 2;
+  const DEBOUNCE_MS = 350;
+
+  const normalizedQueryParamEntries = Object.entries(queryParams)
+    .map(([key, val]) => [key, (val ?? "").trim()] as const)
+    .filter(([, val]) => val.length > 0)
+    .sort(([a], [b]) => a.localeCompare(b));
+  const normalizedQueryParams = Object.fromEntries(normalizedQueryParamEntries) as Record<string, string>;
+  const hasAllQueryParams =
+    Object.keys(queryParams).length === 0 ||
+    Object.keys(queryParams).length === normalizedQueryParamEntries.length;
+  const queryParamsKey = JSON.stringify(normalizedQueryParamEntries);
 
   // Sync internal state with prop value
   useEffect(() => {
@@ -51,40 +66,80 @@ const Autocomplete = ({
   }, [value]);
 
   useEffect(() => {
-    const fetchSuggestions = async () => {
-      if (!endpoint) return;
+    if (endpoint) return;
 
+    if (inputValue) {
+      const lower = inputValue.toLowerCase();
+      setFiltered(options.filter(o => o.toLowerCase().includes(lower)));
+    } else {
+      setFiltered(options);
+    }
+  }, [inputValue, options, endpoint]);
+
+  useEffect(() => {
+    if (!endpoint) return;
+
+    if (!show) {
+      setLoading(false);
+      return;
+    }
+
+    if (!hasAllQueryParams) {
+      setFiltered([]);
+      setLoading(false);
+      return;
+    }
+
+    const trimmedQuery = inputValue.trim();
+    if (trimmedQuery.length < MIN_QUERY_LENGTH) {
+      setFiltered([]);
+      setLoading(false);
+      return;
+    }
+
+    const cacheKey = `${endpoint}::${queryParamsKey}::${trimmedQuery.toLowerCase()}`;
+    const cached = cacheRef.current.get(cacheKey);
+    if (cached) {
+      setLoading(false);
+      setFiltered(cached);
+      return;
+    }
+
+    const controller = new AbortController();
+    abortRef.current?.abort();
+    abortRef.current = controller;
+
+    const fetchSuggestions = async () => {
       setLoading(true);
       try {
-        const response: any = await api.get(endpoint, { 
-          params: { q: inputValue || '', ...queryParams } 
+        const response: any = await api.get(endpoint, {
+          params: { q: trimmedQuery, ...normalizedQueryParams },
+          signal: controller.signal
         });
-        // Correct response handling
-        const names = Array.isArray(response) ? response.map((item: any) => item.name) : [];
+        const names = Array.isArray(response)
+          ? response
+              .map((item: any) => (typeof item === "string" ? item : item?.name))
+              .filter((name: unknown): name is string => typeof name === "string" && name.trim().length > 0)
+          : [];
+        cacheRef.current.set(cacheKey, names);
         setFiltered(names);
-      } catch (error) {
-        console.error("Error fetching suggestions:", error);
+      } catch (error: any) {
+        if (error?.name !== "AbortError") {
+          console.error("Error fetching suggestions:", error);
+        }
       } finally {
-        setLoading(false);
+        if (!controller.signal.aborted) {
+          setLoading(false);
+        }
       }
     };
 
-    if (endpoint) {
-      const timeoutId = setTimeout(() => {
-        // Fetch if show is true OR if queryParams exist (dependent fields)
-        // OR if inputValue changes (real-time search)
-        fetchSuggestions();
-      }, 300);
-      return () => clearTimeout(timeoutId);
-    } else {
-      if (inputValue) {
-        const lower = inputValue.toLowerCase();
-        setFiltered(options.filter(o => o.toLowerCase().includes(lower)));
-      } else {
-        setFiltered(options);
-      }
-    }
-  }, [inputValue, options, endpoint, show, JSON.stringify(queryParams)]);
+    const timeoutId = setTimeout(fetchSuggestions, DEBOUNCE_MS);
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+  }, [inputValue, endpoint, show, queryParamsKey, hasAllQueryParams]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -109,6 +164,14 @@ const Autocomplete = ({
       }
     }
   };
+
+  const shouldShowDependencyMessage = !!endpoint && show && !hasAllQueryParams;
+  const shouldShowMinCharsMessage =
+    !!endpoint &&
+    show &&
+    hasAllQueryParams &&
+    inputValue.trim().length > 0 &&
+    inputValue.trim().length < MIN_QUERY_LENGTH;
 
   return (
     <div className="relative w-full" ref={wrapperRef}>
@@ -160,11 +223,19 @@ const Autocomplete = ({
                 </li>
               ))}
             </ul>
-          ) : !loading && inputValue.length > 0 && (
+          ) : !loading && shouldShowDependencyMessage ? (
+            <div className="px-4 py-3 text-sm text-amber-600 text-center italic">
+              Please select the previous required field first.
+            </div>
+          ) : !loading && shouldShowMinCharsMessage ? (
+            <div className="px-4 py-3 text-sm text-gray-500 text-center italic">
+              Type at least {MIN_QUERY_LENGTH} characters to search.
+            </div>
+          ) : !loading && inputValue.trim().length >= MIN_QUERY_LENGTH ? (
             <div className="px-4 py-3 text-sm text-gray-500 text-center italic">
               No results found. Feel free to type yours.
             </div>
-          )}
+          ) : null}
         </div>
       )}
     </div>
@@ -613,8 +684,9 @@ const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggeste
 
     <div className="flex justify-end pt-8">
       <button
-        onClick={() => navigate('/resume-maker')}
-        className="px-8 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 font-medium transition-colors"
+        onClick={handleNext}
+        disabled={loading}
+        className="px-8 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
       >
         {formData.resume.resume_file_path ? "View/Edit Resume" : "Create your resume"}
       </button>
@@ -1580,7 +1652,7 @@ export function StudentProfileSetup() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
-  const toast = useToast();
+  const { success: showSuccessToast, error: showErrorToast, info: showInfoToast } = useToast();
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -1630,27 +1702,28 @@ export function StudentProfileSetup() {
     } as any
   });
 
-  const hasPreFilled = useRef(false);
+  const hasInitialized = useRef(false);
 
   // Main Effect to load data (either from API or from parsed resume)
   useEffect(() => {
     // Check if we have parsedData from navigation
-    if (location.state?.parsedData && !hasPreFilled.current) {
+    if (location.state?.parsedData) {
       const { parsedData } = location.state;
       console.log("Handling pre-filled data from resume:", parsedData);
-      
+
       fetchData(parsedData);
-      
-      hasPreFilled.current = true;
-      toast.success("We've pre-filled some details from your resume. Please review and complete the rest.");
-      
+
+      hasInitialized.current = true;
+      showSuccessToast("We've pre-filled some details from your resume. Please review and complete the rest.");
+
       // Clear the state so it doesn't re-trigger on refresh/back
       navigate(location.pathname + location.search, { replace: true, state: {} });
-    } else if (!hasPreFilled.current) {
+    } else if (!hasInitialized.current) {
       // Normal fetch only if not already pre-filled
+      hasInitialized.current = true;
       fetchData();
     }
-  }, [location.state, toast, navigate, location.pathname, location.search]);
+  }, [location.state, navigate, location.pathname, location.search, showSuccessToast]);
 
    // Watch for Stream changes to update Suggested Skills
    useEffect(() => {
@@ -1735,7 +1808,7 @@ export function StudentProfileSetup() {
      const file = e.target.files[0];
      const MAX_SIZE = 5 * 1024 * 1024;
      if (file.size > MAX_SIZE) {
-       toast.error("File too large. Maximum size allowed is 5MB.");
+      showErrorToast("File too large. Maximum size allowed is 5MB.");
        return;
      }
 
@@ -1745,7 +1818,7 @@ export function StudentProfileSetup() {
        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
      ];
      if (!allowedTypes.includes(file.type)) {
-       toast.error("Invalid file format. Please upload PDF, DOC, or DOCX.");
+      showErrorToast("Invalid file format. Please upload PDF, DOC, or DOCX.");
        return;
      }
 
@@ -1764,12 +1837,12 @@ export function StudentProfileSetup() {
            await fetchData(parseResponse.data); // merge only known profile-form fields
            setIsViewMode(false);                // bring user to editable form
            setStep(1);
-           toast.success("Resume parsed and profile fields auto-filled. Please review and complete missing details.");
+          showSuccessToast("Resume parsed and profile fields auto-filled. Please review and complete missing details.");
          } else {
-           toast.error("Resume uploaded but parsing failed. Please fill details manually.");
+          showErrorToast("Resume uploaded but parsing failed. Please fill details manually.");
          }
        } else {
-         toast.info("Auto-fill is currently available for PDF resumes. You can still fill details manually.");
+        showInfoToast("Auto-fill is currently available for PDF resumes. You can still fill details manually.");
        }
 
        // 2) Optional best-effort file upload if backend endpoint is present
@@ -1781,7 +1854,7 @@ export function StudentProfileSetup() {
        }
      } catch (err) {
        const error = err as ApiError;
-       toast.error(error.message || "Failed to process resume.");
+      showErrorToast(error.message || "Failed to process resume.");
      } finally {
        setLoading(false);
        if (e.target) e.target.value = "";
@@ -2058,12 +2131,12 @@ export function StudentProfileSetup() {
         // Resume save failed but profile saved, continue
       }
 
-      toast.success("Profile saved successfully!");
+      showSuccessToast("Profile saved successfully!");
       setIsViewMode(true);
       fetchData(); // Refresh data to show latest
     } catch (err) {
       const error = err as ApiError;
-      toast.error(error.message || "Failed to save profile. Please try again.");
+      showErrorToast(error.message || "Failed to save profile. Please try again.");
       setError(error.message || "Failed to save profile. Please try again.");
     } finally {
       setLoading(false);
