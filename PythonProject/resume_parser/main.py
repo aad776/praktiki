@@ -9,13 +9,24 @@ import logging
 import time
 from typing import Optional
 
-from schemas import ParseResponse, ResumeData
-from pdf_processor import PDFProcessor
-from entity_extractor import EntityExtractor
-from experience_extractor import ExperienceExtractor
-from skills_extractor import SkillsExtractor
-from production_monitor import get_monitor
-from config import MAX_FILE_SIZE_MB, ALLOWED_EXTENSIONS, SPACY_MODEL
+try:
+    # Package mode: `uvicorn resume_parser.main:app`
+    from .schemas import ParseResponse, ResumeData
+    from .pdf_processor import PDFProcessor
+    from .entity_extractor import EntityExtractor
+    from .experience_extractor import ExperienceExtractor
+    from .skills_extractor import SkillsExtractor
+    from .production_monitor import get_monitor
+    from .config import MAX_FILE_SIZE_MB, ALLOWED_EXTENSIONS, SPACY_MODEL
+except ImportError:
+    # Script mode: `uvicorn main:app` from resume_parser directory
+    from schemas import ParseResponse, ResumeData
+    from pdf_processor import PDFProcessor
+    from entity_extractor import EntityExtractor
+    from experience_extractor import ExperienceExtractor
+    from skills_extractor import SkillsExtractor
+    from production_monitor import get_monitor
+    from config import MAX_FILE_SIZE_MB, ALLOWED_EXTENSIONS, SPACY_MODEL
 
 # Configure logging
 logging.basicConfig(

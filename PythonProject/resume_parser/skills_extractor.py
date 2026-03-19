@@ -9,14 +9,27 @@ import faiss
 import difflib
 import re
 from sentence_transformers import SentenceTransformer
-from resume_parser.config import (
-    SKILL_LIST, 
-    SKILL_ALIASES, 
-    SKILL_ONTOLOGY,
-    SENTENCE_TRANSFORMER_MODEL,
-    FAISS_SIMILARITY_THRESHOLD,
-    FAISS_INDEX_DIM
-)
+
+try:
+    # Package mode: `uvicorn resume_parser.main:app`
+    from .config import (
+        SKILL_LIST,
+        SKILL_ALIASES,
+        SKILL_ONTOLOGY,
+        SENTENCE_TRANSFORMER_MODEL,
+        FAISS_SIMILARITY_THRESHOLD,
+        FAISS_INDEX_DIM,
+    )
+except ImportError:
+    # Script mode: `uvicorn main:app` from resume_parser directory
+    from config import (
+        SKILL_LIST,
+        SKILL_ALIASES,
+        SKILL_ONTOLOGY,
+        SENTENCE_TRANSFORMER_MODEL,
+        FAISS_SIMILARITY_THRESHOLD,
+        FAISS_INDEX_DIM,
+    )
 
 logger = logging.getLogger(__name__)
 

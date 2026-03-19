@@ -10,7 +10,12 @@ from typing import Optional, Dict, List
 from collections import defaultdict
 import statistics
 
-from schemas import ResumeData, FieldMetrics
+try:
+    # Package mode: `uvicorn resume_parser.main:app`
+    from .schemas import ResumeData, FieldMetrics
+except ImportError:
+    # Script mode: `uvicorn main:app` from resume_parser directory
+    from schemas import ResumeData, FieldMetrics
 
 logger = logging.getLogger(__name__)
 

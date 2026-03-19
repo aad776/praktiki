@@ -6,7 +6,13 @@ import spacy
 import logging
 from typing import Optional, Tuple
 import re
-from resume_parser.config import EMAIL_PATTERN, PHONE_PATTERN, MIN_NAME_WORDS, MAX_NAME_WORDS
+
+try:
+    # Package mode: `uvicorn resume_parser.main:app`
+    from .config import EMAIL_PATTERN, PHONE_PATTERN, MIN_NAME_WORDS, MAX_NAME_WORDS
+except ImportError:
+    # Script mode: `uvicorn main:app` from resume_parser directory
+    from config import EMAIL_PATTERN, PHONE_PATTERN, MIN_NAME_WORDS, MAX_NAME_WORDS
 
 logger = logging.getLogger(__name__)
 
