@@ -62,13 +62,16 @@ export function LoginPage() {
       let from = (typeof fromState === 'string' ? fromState : fromState?.pathname);
       console.log('LoginPage: from from location.state:', from);
 
+      // Consume redirect only if it's not a new login to dashboard
       if (storedRedirect) {
         console.log('LoginPage: Prioritizing storedRedirect:', storedRedirect);
         from = storedRedirect;
-        sessionStorage.removeItem('auth_redirect'); // Consume the redirect
+        sessionStorage.removeItem('auth_redirect'); 
       }
 
-      const finalRedirect = from || `/${currentRole}`;
+      // If it's a student, always go to /student first to see the dashboard
+      // unless they are explicitly coming from a deep link (like /student/setup)
+      const finalRedirect = currentRole === 'student' ? '/student' : (from || `/${currentRole}`);
       console.log('LoginPage: Final redirect path:', finalRedirect);
       navigate(finalRedirect, { replace: true });
     }

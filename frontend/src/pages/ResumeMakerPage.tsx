@@ -85,7 +85,6 @@ export function ResumeMakerPage() {
   if (isAuthenticated) {
     return (
       <div className="min-h-screen bg-slate-50">
-        <PublicNavbar />
         <ResumeBuilder />
         {/* Hidden file input for authenticated users to also upload if needed from within builder, 
             but usually builder has its own controls. 

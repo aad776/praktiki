@@ -40,6 +40,8 @@ origins = [
     "http://localhost",
     "http://localhost:5173", # Vite Frontend
     "http://localhost:5174", # ABC Portal Frontend
+    "http://localhost:5175",
+    "http://localhost:5176",
     "http://localhost:3000",
     "http://44.197.97.159:3000",  # ABC Frontend on EC2
     
@@ -103,4 +105,4 @@ def root():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("backend.main:app", host="44.205.136.199", port=8002, reload=True)
+    uvicorn.run("backend.main:app", host="127.0.0.1", port=8002, reload=True)

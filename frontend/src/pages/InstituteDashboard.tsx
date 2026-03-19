@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
 import api, { ApiError } from '../services/api';
-import { PageLoader } from '../components/LoadingSpinner';
+import { PageLoader, ButtonSpinner } from '../components/LoadingSpinner';
 
 // Types
 interface StudentInfo {
@@ -100,6 +100,7 @@ interface InstituteProfile {
 
 export function InstituteDashboard() {
   const navigate = useNavigate();
+  const location = useLocation();
   const toast = useToast();
   const { user } = useAuth();
   const [students, setStudents] = useState<StudentInfo[]>([]);
@@ -112,32 +113,31 @@ export function InstituteDashboard() {
 
   // Sync active tab with URL path
   useEffect(() => {
-    const path = window.location.pathname;
-    if (path.includes('/institute/students')) {
+    const path = location.pathname;
+    if (path === '/institute/students') {
       setActiveTab('students');
-    } else if (path.includes('/institute/certificates')) {
+    } else if (path === '/institute/certificates') {
       setActiveTab('external');
-    } else if (path.includes('/institute/profile')) {
+    } else if (path === '/institute/profile') {
       setActiveTab('profile');
     }
-  }, [window.location.pathname]);
+  }, [location.pathname]);
 
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [profileFormData, setProfileFormData] = useState<Partial<InstituteProfile>>({});
-
   const [actionLoading, setActionLoading] = useState<number | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [selectedYear, setSelectedYear] = useState<string>('all');
   const [certImageUrls, setCertImageUrls] = useState<Record<number, string>>({});
-   const [expandedStudentId, setExpandedStudentId] = useState<number | null>(null);
-   const [selectedRequest, setSelectedRequest] = useState<CreditRequest | null>(null);
- 
-   const getStudentForRequest = (studentId: number) => {
-     return students.find(s => s.id === studentId);
-   };
+  const [expandedStudentId, setExpandedStudentId] = useState<number | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<CreditRequest | null>(null);
 
-   const fetchCertImage = async (certId: number) => {
+  const getStudentForRequest = (studentId: number) => {
+    return students.find(s => s.id === studentId);
+  };
+
+  const fetchCertImage = async (certId: number) => {
     if (certImageUrls[certId]) return certImageUrls[certId];
     try {
       const response = await api.get(`/certificates/view/${certId}`, { responseType: 'blob' });
@@ -319,24 +319,18 @@ export function InstituteDashboard() {
     }
   };
 
-  const handleApproveCertificate = async (request: CreditRequest) => {
-    if (!request.certificate) return;
-    
-    setActionLoading(request.id);
+  const handleApproveCertificate = async (requestId: number, certId: number) => {
     try {
-      // Hit the specific certificate approval endpoint that also pushes to ABC
-      await api.post(`/institutes/certificates/${request.certificate.id}/approve-and-push`, {});
-      toast.success('Certificate approved and credits pushed to ABC portal!');
+      setActionLoading(requestId);
+      await api.post(`/institutes/certificates/${certId}/approve-and-push`);
+      toast.success('Certificate approved and credits pushed to ABC!');
       
-      // Update local state instead of full fetchData to avoid jumping
+      // Update local state
       setCreditRequests(prev => prev.map(r => 
-        r.id === request.id ? { ...r, status: 'approved', is_pushed_to_abc: true } : r
+        r.id === requestId ? { ...r, status: 'approved', is_pushed_to_abc: true } : r
       ));
       
-      // Optionally close modal or stay on it to show success state
-      // setSelectedRequest(null); 
-      
-      fetchData(); // Still refresh in background
+      fetchData();
     } catch (err) {
       const error = err as ApiError;
       toast.error(error.message || 'Failed to approve certificate');
@@ -345,19 +339,17 @@ export function InstituteDashboard() {
     }
   };
 
-  const handleRejectCertificate = async (request: CreditRequest) => {
-    if (!request.certificate) return;
-    
+  const handleRejectCertificate = async (requestId: number, certId: number) => {
     const reason = prompt("Enter reason for rejection:");
     if (!reason) return;
 
-    setActionLoading(request.id);
     try {
-      await api.post(`/institutes/certificates/${request.certificate.id}/reject`, { reason });
+      setActionLoading(requestId);
+      await api.post(`/institutes/certificates/${certId}/reject`, { reason });
       toast.success('Certificate rejected');
       
       setCreditRequests(prev => prev.map(r => 
-        r.id === request.id ? { ...r, status: 'rejected' } : r
+        r.id === requestId ? { ...r, status: 'rejected' } : r
       ));
       
       fetchData();
@@ -464,13 +456,13 @@ export function InstituteDashboard() {
   return (
     <div className="min-h-screen bg-slate-50 relative overflow-hidden flex flex-col items-center">
       {/* Dynamic Background Elements */}
-      <div className="absolute top-0 left-0 w-full h-96 bg-gradient-to-br from-indigo-100/50 via-slate-50 to-transparent -z-10" />
-      <div className="absolute -top-24 -right-24 w-96 h-96 bg-blue-100/30 rounded-full blur-3xl -z-10" />
-      <div className="absolute top-1/2 -left-24 w-72 h-72 bg-indigo-100/20 rounded-full blur-3xl -z-10" />
+      <div className="absolute top-0 left-0 w-full h-72 bg-gradient-to-br from-indigo-100/50 via-slate-50 to-transparent -z-10" />
+      <div className="absolute -top-24 -right-24 w-80 h-80 bg-blue-100/30 rounded-full blur-3xl -z-10" />
+      <div className="absolute top-1/2 -left-24 w-64 h-64 bg-indigo-100/20 rounded-full blur-3xl -z-10" />
 
-      <div className="w-full px-2 sm:px-4 lg:px-6 py-4 sm:py-6 relative z-10 space-y-6 flex-grow">
+      <div className="w-full px-2 sm:px-3 lg:px-4 py-3 sm:py-4 relative z-10 space-y-4 flex-grow">
       {/* Header Section */}
-      <div className="flex flex-col sm:flex-row justify-between items-start border-b border-slate-100 pb-6 gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start border-b border-slate-100 pb-4 gap-3">
         <div className="flex items-center gap-3">
           {/* Back Arrow - Only visible on Mobile */}
           <button 
@@ -515,7 +507,6 @@ export function InstituteDashboard() {
           </div>
         </div>
       </div>
-
       {/* Selected Request Details Modal (Simple Review) */}
       {selectedRequest && !selectedRequest.certificate && (
         <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[100] flex items-center justify-center p-4 animate-fadeIn">
@@ -573,62 +564,62 @@ export function InstituteDashboard() {
       )}
 
       {/* Stats Chips Row */}
-      <div className="grid grid-cols-1 xs:grid-cols-2 gap-4">
-        <div className="flex items-center gap-3 bg-slate-50 p-4 rounded-xl border border-slate-100">
-          <div className="p-2 bg-white rounded-full text-slate-600 shadow-sm">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <div className="grid grid-cols-1 xs:grid-cols-2 md:grid-cols-4 gap-3">
+        <div className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-100">
+          <div className="p-1.5 bg-white rounded-full text-slate-600 shadow-sm">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
             </svg>
           </div>
           <div>
-            <p className="text-2xl font-bold text-slate-700">{totalStudents}</p>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Students</p>
+            <p className="text-xl font-bold text-slate-700">{totalStudents}</p>
+            <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Students</p>
           </div>
         </div>
         
-        <div className="flex items-center gap-3 bg-emerald-50/50 p-4 rounded-xl border border-emerald-100">
-          <div className="p-2 bg-white rounded-full text-emerald-600 shadow-sm">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex items-center gap-2 bg-emerald-50/50 p-3 rounded-xl border border-emerald-100">
+          <div className="p-1.5 bg-white rounded-full text-emerald-600 shadow-sm">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
           <div>
-            <p className="text-2xl font-bold text-slate-700">{verifiedStudents}</p>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Verified</p>
+            <p className="text-xl font-bold text-slate-700">{verifiedStudents}</p>
+            <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Verified</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 bg-amber-50/50 p-4 rounded-xl border border-amber-100">
-          <div className="p-2 bg-white rounded-full text-amber-600 shadow-sm">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex items-center gap-2 bg-amber-50/50 p-3 rounded-xl border border-amber-100">
+          <div className="p-1.5 bg-white rounded-full text-amber-600 shadow-sm">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
           <div>
-            <p className="text-2xl font-bold text-slate-700">{pendingStudents}</p>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Pending</p>
+            <p className="text-xl font-bold text-slate-700">{pendingStudents}</p>
+            <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Pending</p>
           </div>
         </div>
 
-        <div className="flex items-center gap-3 bg-red-50/50 p-4 rounded-xl border border-red-100">
-          <div className="p-2 bg-white rounded-full text-red-600 shadow-sm">
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="flex items-center gap-2 bg-red-50/50 p-3 rounded-xl border border-red-100">
+          <div className="p-1.5 bg-white rounded-full text-red-600 shadow-sm">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
             </svg>
           </div>
           <div>
-            <p className="text-2xl font-bold text-slate-700">{rejectedStudents}</p>
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-wider">Rejected</p>
+            <p className="text-xl font-bold text-slate-700">{rejectedStudents}</p>
+            <p className="text-[10px] font-medium text-slate-500 uppercase tracking-wider">Rejected</p>
           </div>
         </div>
       </div>
 
       {/* Search and Filters Bar */}
-      <div className="bg-white p-4 sm:p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4 animate-fadeIn">
-        <div className="flex flex-col lg:flex-row gap-4">
+      <div className="bg-white p-3 sm:p-4 rounded-2xl border border-slate-200 shadow-sm space-y-3 animate-fadeIn">
+        <div className="flex flex-col lg:flex-row gap-3">
           <div className="flex-1 relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+              <svg className="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
               </svg>
             </div>
@@ -637,44 +628,44 @@ export function InstituteDashboard() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search by student name, department, or APAAR ID..."
-              className="block w-full pl-11 pr-4 py-3.5 bg-slate-50 border border-slate-100 text-slate-900 placeholder-slate-400 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 focus:bg-white transition-all outline-none font-medium"
+              className="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-100 text-sm text-slate-900 placeholder-slate-400 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 focus:bg-white transition-all outline-none font-medium"
             />
           </div>
           
-          <div className="flex gap-3 sm:flex-row flex-col">
-            <div className="relative min-w-[220px]">
-              <label className="absolute -top-2 left-3 px-1 bg-white text-[10px] font-bold text-slate-400 uppercase tracking-wider z-10">Department</label>
+          <div className="flex gap-2 sm:flex-row flex-col">
+            <div className="relative min-w-[180px]">
+              <label className="absolute -top-2 left-3 px-1 bg-white text-[9px] font-bold text-slate-400 uppercase tracking-wider z-10">Department</label>
               <select
                 value={selectedDepartment}
                 onChange={(e) => setSelectedDepartment(e.target.value)}
-                className="w-full pl-4 pr-10 py-3.5 bg-white border border-slate-200 text-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all shadow-sm appearance-none font-medium cursor-pointer outline-none"
+                className="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-200 text-xs text-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all shadow-sm appearance-none font-medium cursor-pointer outline-none"
               >
                 <option value="all">All Departments</option>
                 {departments.map(dept => (
                   <option key={dept} value={dept}>{dept}</option>
                 ))}
               </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
             </div>
 
-            <div className="relative min-w-[160px]">
-              <label className="absolute -top-2 left-3 px-1 bg-white text-[10px] font-bold text-slate-400 uppercase tracking-wider z-10">Academic Year</label>
+            <div className="relative min-w-[140px]">
+              <label className="absolute -top-2 left-3 px-1 bg-white text-[9px] font-bold text-slate-400 uppercase tracking-wider z-10">Academic Year</label>
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(e.target.value)}
-                className="w-full pl-4 pr-10 py-3.5 bg-white border border-slate-200 text-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all shadow-sm appearance-none font-medium cursor-pointer outline-none"
+                className="w-full pl-3 pr-8 py-2.5 bg-white border border-slate-200 text-xs text-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-100 focus:border-indigo-400 transition-all shadow-sm appearance-none font-medium cursor-pointer outline-none"
               >
                 <option value="all">All Years</option>
                 {years.map(year => (
                   <option key={year} value={year.toString()}>Year {year}</option>
                 ))}
               </select>
-              <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-slate-400">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <div className="absolute inset-y-0 right-0 flex items-center pr-2.5 pointer-events-none text-slate-400">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </div>
@@ -687,12 +678,12 @@ export function InstituteDashboard() {
                   setSelectedDepartment('all');
                   setSelectedYear('all');
                 }}
-                className="px-4 py-3.5 text-rose-600 hover:bg-rose-50 rounded-xl transition-all font-bold text-sm flex items-center justify-center gap-2 whitespace-nowrap border border-rose-100"
+                className="px-3 py-2.5 text-rose-600 hover:bg-rose-50 rounded-xl transition-all font-bold text-xs flex items-center justify-center gap-1.5 whitespace-nowrap border border-rose-100"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-                Clear Filters
+                Clear
               </button>
             )}
           </div>
@@ -787,7 +778,7 @@ export function InstituteDashboard() {
                           `}
                           onClick={() => setExpandedStudentId(expandedStudentId === student.id ? null : student.id)}
                         >
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
                               <div className={`
                                 p-1 rounded transition-transform duration-200 text-slate-400 group-hover:text-slate-600
@@ -800,19 +791,19 @@ export function InstituteDashboard() {
                               <span className="font-semibold text-slate-700 group-hover:text-slate-900">{student.name}</span>
                             </div>
                           </td>
-                          <td className="px-6 py-4 text-sm text-slate-500">
+                          <td className="px-4 py-3 text-sm text-slate-500">
                             {student.department || '-'}
                           </td>
-                          <td className="px-6 py-4 text-sm text-slate-500">
+                          <td className="px-4 py-3 text-sm text-slate-500">
                             {student.year ? `Year ${student.year}` : '-'}
                           </td>
-                          <td className="px-6 py-4 text-sm font-mono text-slate-500">
+                          <td className="px-4 py-3 text-sm font-mono text-slate-500">
                             {student.apaar_id || '-'}
                           </td>
-                          <td className="px-6 py-4">
+                          <td className="px-4 py-3 text-right">
                             <span
                               className={`
-                                px-3 py-1 text-xs font-medium rounded-md
+                                px-2 py-0.5 text-[10px] font-bold uppercase rounded-md
                                 ${student.is_apaar_verified
                                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-100'
                                   : 'bg-amber-50 text-amber-700 border border-amber-100'
@@ -825,12 +816,12 @@ export function InstituteDashboard() {
                         </tr>
                         {expandedStudentId === student.id && (
                           <tr className="bg-slate-50/50">
-                            <td colSpan={5} className="px-8 py-6 border-t border-slate-100 shadow-inner">
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <td colSpan={5} className="px-6 py-4 border-t border-slate-100 shadow-inner">
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 {/* Student Info */}
                                 <div>
-                                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Contact Information</h3>
-                                  <div className="space-y-3">
+                                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Contact Information</h3>
+                                  <div className="space-y-2.5">
                                     <div className="flex items-center gap-2 text-sm text-slate-600">
                                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7 8.914M3 8L3 17a2 2 0 002 2h14a2 2 0 002-2V8M3 8l7-5.914M21 8l-7-5.914M10 2.086L2.172 10M14 2.086L21.828 10" />
@@ -843,17 +834,17 @@ export function InstituteDashboard() {
                                       </svg>
                                       <span>{student.phone_number || 'No phone number'}</span>
                                     </div>
-                                    <div className="pt-2">
-                                      <div className="text-xs font-semibold text-slate-500 uppercase">Academic Details</div>
-                                      <p className="text-sm text-slate-700 mt-1">
+                                    <div className="pt-1.5">
+                                      <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Academic Details</div>
+                                      <p className="text-sm text-slate-700 mt-0.5">
                                         {student.department} • Year {student.year}
                                         {student.cgpa && <span className="ml-2 px-1.5 py-0.5 bg-slate-100 rounded text-xs font-medium">CGPA: {student.cgpa}</span>}
                                       </p>
                                     </div>
                                     {student.skills && (
-                                      <div className="pt-2">
-                                        <div className="text-xs font-semibold text-slate-500 uppercase">Skills</div>
-                                        <div className="flex flex-wrap gap-1 mt-1">
+                                      <div className="pt-1.5">
+                                        <div className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">Skills</div>
+                                        <div className="flex flex-wrap gap-1 mt-0.5">
                                           {student.skills.split(',').map((skill, idx) => (
                                             <span key={idx} className="px-2 py-0.5 bg-slate-100 text-slate-600 rounded text-[10px]">
                                               {skill.trim()}
@@ -867,16 +858,16 @@ export function InstituteDashboard() {
 
                                 {/* Internship History */}
                                 <div>
-                                  <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider mb-4">Internship & Applications</h3>
+                                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider mb-3">Internship & Applications</h3>
                                   {student.internships.length === 0 ? (
-                                    <p className="text-sm text-slate-500 italic">No internship records found.</p>
+                                    <p className="text-sm text-slate-500 italic">No records found.</p>
                                   ) : (
-                                    <div className="space-y-4">
+                                    <div className="space-y-3">
                                       {student.internships.map((int) => (
-                                        <div key={int.id} className="bg-white p-3 rounded-lg border border-slate-200 shadow-sm">
-                                          <div className="flex justify-between items-start mb-1">
-                                            <div className="font-semibold text-slate-900 text-sm">{int.title}</div>
-                                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                                        <div key={int.id} className="bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm">
+                                          <div className="flex justify-between items-start mb-0.5">
+                                            <div className="font-semibold text-slate-900 text-xs">{int.title}</div>
+                                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase ${
                                               int.status === 'completed' ? 'bg-emerald-100 text-emerald-700' :
                                               int.status === 'accepted' ? 'bg-blue-100 text-blue-700' :
                                               int.status === 'rejected' ? 'bg-red-100 text-red-700' :
@@ -885,29 +876,29 @@ export function InstituteDashboard() {
                                               {int.status}
                                             </span>
                                           </div>
-                                          <div className="text-xs text-slate-600 mb-2">{int.company_name} • {int.location} ({int.mode})</div>
+                                          <div className="text-[11px] text-slate-600 mb-1.5">{int.company_name} • {int.location} ({int.mode})</div>
                                           
                                           {(int.hours_worked || int.policy_used) && (
-                                            <div className="flex gap-4 mt-2 pt-2 border-t border-slate-100">
+                                            <div className="flex gap-3 mt-1.5 pt-1.5 border-t border-slate-100">
                                               {int.hours_worked && (
-                                                <div className="text-[11px]">
+                                                <div className="text-[10px]">
                                                   <span className="text-slate-500">Hours:</span> <span className="font-bold text-slate-700">{int.hours_worked}h</span>
                                                 </div>
                                               )}
                                               {int.policy_used && (
-                                                <div className="text-[11px]">
+                                                <div className="text-[10px]">
                                                   <span className="text-slate-500">Policy:</span> <span className="font-bold text-slate-700">{int.policy_used}</span>
                                                 </div>
                                               )}
                                               {int.credits_awarded && (
-                                                <div className="text-[11px]">
+                                                <div className="text-[10px]">
                                                   <span className="text-slate-500">Credits:</span> <span className="font-bold text-teal-600">{int.credits_awarded}</span>
                                                 </div>
                                               )}
                                             </div>
                                           )}
                                           {int.rejection_reason && (
-                                            <div className="mt-2 p-2 bg-red-50 text-red-700 text-[10px] rounded border border-red-100">
+                                            <div className="mt-1.5 p-1.5 bg-red-50 text-red-700 text-[9px] rounded border border-red-100">
                                               <strong>Rejection Reason:</strong> {int.rejection_reason}
                                             </div>
                                           )}
@@ -930,16 +921,16 @@ export function InstituteDashboard() {
         </>
       ) : activeTab === 'completed' || activeTab === 'pending' ? (
         <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-900">
+          <div className="px-4 py-3 border-b border-slate-200">
+            <h2 className="text-base font-semibold text-slate-900">
               {activeTab === 'completed' ? 'Completed Internships' : 'Pending/Ongoing Internships'} 
-              ({activeTab === 'completed' ? completedInternships.length : pendingInternships.length})
+              <span className="ml-2 text-slate-400 font-normal">({activeTab === 'completed' ? completedInternships.length : pendingInternships.length})</span>
             </h2>
           </div>
 
           {(activeTab === 'completed' ? completedInternships : pendingInternships).length === 0 ? (
-            <div className="p-12 text-center">
-              <p className="text-slate-500">
+            <div className="py-12 text-center">
+              <p className="text-slate-500 text-sm italic">
                 No {activeTab} internships found.
               </p>
             </div>
@@ -948,47 +939,47 @@ export function InstituteDashboard() {
               <table className="w-full">
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Student</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Internship</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Company</th>
-                    <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                    <th className="text-left px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Student</th>
+                    <th className="text-left px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Internship</th>
+                    <th className="text-left px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Company</th>
+                    <th className="text-left px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Status</th>
                     {activeTab === 'completed' && (
                       <>
-                        <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Hours</th>
-                        <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Credits</th>
+                        <th className="text-left px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Hours</th>
+                        <th className="text-left px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Credits</th>
                       </>
                     )}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-200">
+                <tbody className="divide-y divide-slate-100">
                   {(activeTab === 'completed' ? completedInternships : pendingInternships).map((int) => (
-                    <tr key={int.id} className="hover:bg-slate-50">
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-slate-900">{int.student_name}</div>
-                        <div className="text-xs text-slate-500">{int.student_dept}</div>
+                    <tr key={int.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-slate-800 text-sm">{int.student_name}</div>
+                        <div className="text-[10px] text-slate-400 uppercase tracking-wider">{int.student_dept}</div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-slate-900 font-medium">{int.title}</div>
-                        <div className="text-xs text-slate-500">{int.location} ({int.mode})</div>
+                      <td className="px-4 py-3">
+                        <div className="text-xs text-slate-900 font-bold">{int.title}</div>
+                        <div className="text-[10px] text-slate-500">{int.location} ({int.mode})</div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600">
+                      <td className="px-4 py-3 text-xs text-slate-600 font-medium">
                         {int.company_name}
                       </td>
-                      <td className="px-6 py-4">
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          int.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                          int.status === 'accepted' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
-                          'bg-amber-50 text-amber-700 border border-amber-200'
+                      <td className="px-4 py-3">
+                        <span className={`px-2 py-0.5 text-[9px] font-bold uppercase rounded-md border ${
+                          int.status === 'completed' ? 'bg-emerald-50 text-emerald-700 border-emerald-100' :
+                          int.status === 'accepted' ? 'bg-blue-50 text-blue-700 border-blue-100' :
+                          'bg-amber-50 text-amber-700 border-amber-100'
                         }`}>
                           {int.status}
                         </span>
                       </td>
                       {activeTab === 'completed' && (
                         <>
-                          <td className="px-6 py-4 text-sm text-slate-600">
+                          <td className="px-4 py-3 text-xs text-slate-600 font-bold">
                             {int.hours_worked}h
                           </td>
-                          <td className="px-6 py-4 text-sm font-semibold text-teal-600">
+                          <td className="px-4 py-3 text-xs font-black text-teal-600">
                             {int.credits_awarded || '-'}
                           </td>
                         </>
@@ -1002,20 +993,20 @@ export function InstituteDashboard() {
         </section>
       ) : activeTab === 'status' ? (
         <section className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-200 flex justify-between items-center">
-            <h2 className="text-lg font-semibold text-slate-900">Student Internship Progress</h2>
-            <div className="flex gap-4 text-xs">
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                <span className="text-slate-600">Completed</span>
+          <div className="px-4 py-3 border-b border-slate-200 flex flex-wrap justify-between items-center gap-3">
+            <h2 className="text-base font-semibold text-slate-900">Student Internship Progress</h2>
+            <div className="flex gap-3 text-[10px] font-bold uppercase tracking-wider">
+              <div className="flex items-center gap-1.5 text-emerald-600">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/20"></span>
+                <span>Completed</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-blue-500"></span>
-                <span className="text-slate-600">Ongoing/Accepted</span>
+              <div className="flex items-center gap-1.5 text-blue-600">
+                <span className="w-2 h-2 rounded-full bg-blue-500 shadow-sm shadow-blue-500/20"></span>
+                <span>Ongoing</span>
               </div>
-              <div className="flex items-center gap-1.5">
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
-                <span className="text-slate-600">Applied/Pending</span>
+              <div className="flex items-center gap-1.5 text-amber-600">
+                <span className="w-2 h-2 rounded-full bg-amber-500 shadow-sm shadow-amber-500/20"></span>
+                <span>Applied</span>
               </div>
             </div>
           </div>
@@ -1024,73 +1015,73 @@ export function InstituteDashboard() {
             <table className="w-full">
               <thead className="bg-slate-50 border-b border-slate-200">
                 <tr>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Student</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Department</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Current Status</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Progress</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Action</th>
+                  <th className="text-left px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Student</th>
+                  <th className="text-left px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Department</th>
+                  <th className="text-left px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Current Status</th>
+                  <th className="text-left px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Progress</th>
+                  <th className="text-left px-4 py-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">Action</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-200">
+              <tbody className="divide-y divide-slate-100">
                 {filteredStudents.map((student) => {
                   const completed = student.internships.filter(i => i.status === 'completed').length;
                   const ongoing = student.internships.filter(i => i.status === 'accepted').length;
                   const pending = student.internships.filter(i => i.status === 'applied' || i.status === 'pending').length;
                   
                   return (
-                    <tr key={student.id} className="hover:bg-slate-50">
-                      <td className="px-6 py-4">
-                        <div className="font-medium text-slate-900">{student.name}</div>
-                        <div className="text-xs text-slate-500">APAAR: {student.apaar_id || 'N/A'}</div>
+                    <tr key={student.id} className="hover:bg-slate-50 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="font-semibold text-slate-900 text-sm">{student.name}</div>
+                        <div className="text-[10px] text-slate-400 font-mono">APAAR: {student.apaar_id || 'N/A'}</div>
                       </td>
-                      <td className="px-6 py-4 text-sm text-slate-600">
+                      <td className="px-4 py-3 text-xs text-slate-600 font-medium">
                         {student.department || '-'}
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="flex flex-wrap gap-1.5">
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-1">
                           {completed > 0 && (
-                            <span className="px-2 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded text-[10px] font-bold">
+                            <span className="px-1.5 py-0.5 bg-emerald-50 text-emerald-700 border border-emerald-100 rounded text-[9px] font-black uppercase">
                               {completed} COMPLETED
                             </span>
                           )}
                           {ongoing > 0 && (
-                            <span className="px-2 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded text-[10px] font-bold">
+                            <span className="px-1.5 py-0.5 bg-blue-50 text-blue-700 border border-blue-100 rounded text-[9px] font-black uppercase">
                               {ongoing} ONGOING
                             </span>
                           )}
                           {pending > 0 && (
-                            <span className="px-2 py-0.5 bg-amber-50 text-amber-700 border border-amber-100 rounded text-[10px] font-bold">
+                            <span className="px-1.5 py-0.5 bg-amber-50 text-amber-700 border border-amber-100 rounded text-[9px] font-black uppercase">
                               {pending} APPLIED
                             </span>
                           )}
                           {student.internships.length === 0 && (
-                            <span className="px-2 py-0.5 bg-slate-50 text-slate-500 border border-slate-100 rounded text-[10px] font-bold">
+                            <span className="px-1.5 py-0.5 bg-slate-50 text-slate-500 border border-slate-100 rounded text-[9px] font-black uppercase">
                               NO INTERNSHIPS
                             </span>
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4">
-                        <div className="w-full bg-slate-100 rounded-full h-1.5 max-w-[100px]">
+                      <td className="px-4 py-3">
+                        <div className="w-full bg-slate-100 rounded-full h-1.5 max-w-[80px]">
                           <div 
-                            className="bg-emerald-500 h-1.5 rounded-full" 
+                            className="bg-emerald-500 h-1.5 rounded-full shadow-sm shadow-emerald-500/20" 
                             style={{ width: `${student.internships.length > 0 ? (completed / student.internships.length) * 100 : 0}%` }}
                           ></div>
                         </div>
-                        <div className="text-[10px] text-slate-400 mt-1">
-                          {completed} of {student.internships.length} finished
+                        <div className="text-[9px] text-slate-400 mt-1 font-bold uppercase tracking-tight">
+                          {completed}/{student.internships.length} finished
                         </div>
                       </td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-3">
                         <button 
                           onClick={() => {
                             setActiveTab('students');
                             setExpandedStudentId(student.id);
                             setSearchQuery(student.name);
                           }}
-                          className="text-brand-600 hover:text-brand-700 text-xs font-medium"
+                          className="text-brand-600 hover:text-brand-700 text-[10px] font-black uppercase tracking-widest hover:underline"
                         >
-                          View Details
+                          Details
                         </button>
                       </td>
                     </tr>
@@ -1203,16 +1194,36 @@ export function InstituteDashboard() {
                         </span>
                       </td>
                       <td className="px-8 py-6 text-right" onClick={(e) => e.stopPropagation()}>
-                        <button
-                          onClick={() => setSelectedRequest(request)}
-                          className="p-3 bg-white text-slate-400 hover:text-brand-600 hover:bg-brand-50 border border-slate-100 rounded-2xl transition-all shadow-sm hover:shadow-md active:scale-95"
-                          title="Review Certificate"
-                        >
-                          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                        </button>
+                        <div className="flex justify-end gap-2">
+                          <button
+                            onClick={() => setSelectedRequest(request)}
+                            className="p-3 bg-white text-slate-400 hover:text-brand-600 hover:bg-brand-50 border border-slate-100 rounded-2xl transition-all shadow-sm hover:shadow-md active:scale-95"
+                            title="Review Certificate"
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                          </button>
+                          {request.status === 'pending' && request.certificate && (
+                            <>
+                              <button
+                                onClick={() => handleApproveCertificate(request.id, request.certificate!.id)}
+                                disabled={actionLoading === request.id}
+                                className="px-4 py-2 bg-emerald-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-500/20 active:scale-95 disabled:opacity-50"
+                              >
+                                {actionLoading === request.id ? <ButtonSpinner /> : 'Approve'}
+                              </button>
+                              <button
+                                onClick={() => handleRejectCertificate(request.id, request.certificate!.id)}
+                                disabled={actionLoading === request.id}
+                                className="px-4 py-2 bg-white text-rose-600 border border-rose-100 text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-50 transition-all active:scale-95 disabled:opacity-50"
+                              >
+                                Reject
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -1805,7 +1816,7 @@ export function InstituteDashboard() {
                   <div className="space-y-5">
                     <div className="flex gap-4">
                       <button
-                        onClick={() => handleApproveCertificate(selectedRequest)}
+                        onClick={() => handleApproveCertificate(selectedRequest.id, selectedRequest.certificate!.id)}
                         disabled={actionLoading === selectedRequest.id}
                         className="flex-[2] bg-emerald-600 text-white py-5 rounded-[24px] font-black hover:bg-emerald-700 transition-all flex items-center justify-center gap-3 shadow-xl shadow-emerald-200 active:scale-95 disabled:opacity-50"
                       >
@@ -1821,7 +1832,7 @@ export function InstituteDashboard() {
                         )}
                       </button>
                       <button
-                        onClick={() => handleRejectCertificate(selectedRequest)}
+                        onClick={() => handleRejectCertificate(selectedRequest.id, selectedRequest.certificate!.id)}
                         disabled={actionLoading === selectedRequest.id}
                         className="flex-1 bg-rose-50 text-rose-600 py-5 rounded-[24px] font-black hover:bg-rose-100 transition-all border border-rose-100 active:scale-95 disabled:opacity-50"
                       >

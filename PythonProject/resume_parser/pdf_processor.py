@@ -77,6 +77,40 @@ class PDFProcessor:
             logger.error(f"Unexpected error processing PDF: {e}")
             return None
     
+    def extract_text_from_bytes(self, pdf_bytes: bytes) -> Optional[str]:
+        """
+        Extract text from PDF byte content
+        
+        Args:
+            pdf_bytes: Bytes of the PDF file
+            
+        Returns:
+            Extracted text as a single string, or None if extraction fails
+        """
+        try:
+            import io
+            text_content = []
+            
+            with pdfplumber.open(io.BytesIO(pdf_bytes)) as pdf:
+                total_pages = len(pdf.pages)
+                for page_num, page in enumerate(pdf.pages, start=1):
+                    try:
+                        page_text = page.extract_text()
+                        if page_text:
+                            page_text = self._clean_text(page_text)
+                            text_content.append(page_text)
+                    except Exception as page_error:
+                        logger.error(f"Error extracting text from page {page_num}: {page_error}")
+                        continue
+            
+            if not text_content:
+                return None
+            
+            return "\n\n".join(text_content)
+        except Exception as e:
+            logger.error(f"Unexpected error processing PDF bytes: {e}")
+            return None
+
     def _clean_text(self, text: str) -> str:
         """
         Clean and normalize extracted text

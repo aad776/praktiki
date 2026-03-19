@@ -1,47 +1,24 @@
 import { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   User, MapPin, Phone, Mail, Plus, Edit2, Trash2, 
   Sparkles, Download, Save, ChevronDown, ChevronUp,
   Briefcase, GraduationCap, Code, Award, FileText, Lightbulb,
-  X, Check, Upload
+  X, Check, Upload, ArrowLeft
 } from 'lucide-react';
 import { getProfile, getResumeSuggestions, StudentProfile, getSkills, updateResume, StudentResume, parseResume } from '../services/students';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
+import { ResumePreview, Education, Experience, Project, Certification, ExtraCurricular } from './ResumePreview';
 
 interface Suggestion {
   section: string;
   items: string[];
 }
 
-interface Education {
-  id: string;
-  degree: string;
-  department: string;
-  university: string;
-  start_year: string;
-  end_year: string;
-}
-
-interface Experience {
-  id: string;
-  role: string;
-  company: string;
-  start_date: string;
-  end_date: string;
-  description: string;
-}
-
-interface Project {
-  id: string;
-  title: string;
-  description: string;
-  technologies: string;
-}
-
 export function ResumeBuilder() {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const { success, error: showError } = useToast();
   const location = useLocation();
   const [profile, setProfile] = useState<StudentProfile | null>(null);
@@ -54,6 +31,8 @@ export function ResumeBuilder() {
   const [educations, setEducations] = useState<Education[]>([]);
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [projects, setProjects] = useState<Project[]>([]);
+  const [certifications, setCertifications] = useState<Certification[]>([]);
+  const [extraCurricular, setExtraCurricular] = useState<ExtraCurricular[]>([]);
   
   const [suggestions, setSuggestions] = useState<Suggestion | null>(null);
   const [loadingSuggestion, setLoadingSuggestion] = useState<string | null>(null);
@@ -238,6 +217,17 @@ export function ResumeBuilder() {
           description: e.description || '',
           technologies: e.technologies || ''
         })));
+        setCertifications(parseJson(data.resume.certifications, []).map((e: any) => ({
+          id: e.id || Date.now().toString(),
+          name: e.name || '',
+          issuer: e.issuer || '',
+          year: e.year || ''
+        })));
+        setExtraCurricular(parseJson(data.resume.extra_curricular, []).map((e: any) => ({
+          id: e.id || Date.now().toString(),
+          activity: e.activity || '',
+          description: e.description || ''
+        })));
         
       } else {
         // Pre-fill from profile if no resume exists
@@ -272,6 +262,8 @@ export function ResumeBuilder() {
         education_entries: JSON.stringify(educations),
         work_experience: JSON.stringify(experiences),
         projects: JSON.stringify(projects),
+        certifications: JSON.stringify(certifications),
+        extra_curricular: JSON.stringify(extraCurricular),
       };
       
       await updateResume(resumeData);
@@ -350,256 +342,331 @@ export function ResumeBuilder() {
   const updateProject = (id: string, field: keyof Project, value: string) => setProjects(projects.map(p => p.id === id ? { ...p, [field]: value } : p));
   const removeProject = (id: string) => setProjects(projects.filter(p => p.id !== id));
 
+  const addCertification = () => setCertifications([...certifications, { id: Date.now().toString(), name: '', issuer: '', year: '' }]);
+  const updateCertification = (id: string, field: keyof Certification, value: string) => setCertifications(certifications.map(c => c.id === id ? { ...c, [field]: value } : c));
+  const removeCertification = (id: string) => setCertifications(certifications.filter(c => c.id !== id));
+
+  const addExtraCurricular = () => setExtraCurricular([...extraCurricular, { id: Date.now().toString(), activity: '', description: '' }]);
+  const updateExtraCurricular = (id: string, field: keyof ExtraCurricular, value: string) => setExtraCurricular(extraCurricular.map(e => e.id === id ? { ...e, [field]: value } : e));
+  const removeExtraCurricular = (id: string) => setExtraCurricular(extraCurricular.filter(e => e.id !== id));
+
+  const handleExportPDF = () => {
+    window.print();
+  };
 
   if (loading) {
-    return <div className="flex justify-center items-center h-64"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div></div>;
+    return (
+      <div className="flex justify-center items-center h-screen bg-slate-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-600 mx-auto mb-4"></div>
+          <p className="text-slate-600 font-medium animate-pulse">Designing your profile...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 font-sans">
-      {/* Header / Personal Info */}
-      <div className="mb-10">
-        <div className="flex justify-between items-start">
-          <div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-2 flex items-center gap-2">
-              {profile?.full_name || user?.full_name} 
-              <button className="text-slate-400 hover:text-brand-600 transition-colors ml-2">
-                <Edit2 size={18} />
-              </button>
-            </h1>
-            <div className="space-y-1 text-slate-600">
-              <p className="text-sm">{profile?.email || user?.email}</p>
-              <p className="text-sm">{profile?.phone || "+91 9149101875"}</p>
-              <p className="text-sm">{profile?.current_city || "Haridwar"}</p>
+    <div className="max-w-[1400px] mx-auto px-4 py-8 font-sans bg-slate-50/30">
+      {/* Premium Header Section */}
+      <div className="relative mb-8">
+        <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 flex flex-wrap items-center justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate('/student/setup')}
+              className="p-2 hover:bg-slate-100 rounded-xl transition-colors text-slate-400 group"
+            >
+               <ArrowLeft size={24} className="group-hover:text-slate-900" />
+            </button>
+            <div className="w-12 h-12 bg-brand-500 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
+              <FileText size={24} />
+            </div>
+            <div>
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">Professional Resume Builder</h1>
+              <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Create a job-winning resume in minutes</p>
             </div>
           </div>
-          <div className="flex gap-3">
-            <input 
-              type="file" 
-              ref={fileInputRef} 
-              className="hidden" 
-              accept=".pdf,.docx,.doc"
-              onChange={handleFileUpload}
-            />
+          
+          <div className="flex items-center gap-3">
             <button 
-              onClick={() => fileInputRef.current?.click()} 
-              disabled={isParsing} 
-              className="flex items-center gap-2 border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-medium hover:bg-slate-50 transition-colors"
-              title="Upload existing resume to parse"
+              onClick={handleSave} 
+              disabled={saving} 
+              className="flex items-center gap-3 bg-slate-900 text-white px-6 py-3 rounded-xl font-black text-sm hover:bg-slate-800 transition-all shadow-xl shadow-slate-900/10 disabled:opacity-50 group"
             >
-              {isParsing ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-600"></div> : <Upload size={18} />}
-              Upload
+                {saving ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <Save size={16} />}
+                Save Changes
             </button>
-            <button onClick={handleSave} disabled={saving} className="flex items-center gap-2 bg-brand-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-brand-700 transition-colors disabled:opacity-50">
-                {saving ? <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div> : <Save size={18} />}
-                Save Resume
-            </button>
-            <button className="flex items-center gap-2 border border-slate-300 text-slate-700 px-4 py-2 rounded-lg font-medium hover:bg-slate-50 transition-colors">
-                <Download size={18} /> Download PDF
+            <button 
+              onClick={handleExportPDF}
+              className="flex items-center gap-3 bg-white text-slate-700 border border-slate-200 px-6 py-3 rounded-xl font-black text-sm hover:bg-slate-50 transition-all"
+            >
+                <Download size={16} /> Export PDF
             </button>
           </div>
         </div>
-        <hr className="mt-8 border-slate-200" />
       </div>
 
-      {/* AI Suggestions Panel */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        {/* Left: Editor (Scrollable) */}
+        <div className="space-y-8 max-h-[calc(100vh-200px)] overflow-y-auto pr-4 custom-scrollbar">
+          
+          {/* Section: Professional Summary */}
+          <section className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                <Sparkles size={16} className="text-brand-500" />
+                Professional Summary
+              </h2>
+              <button 
+                onClick={() => handleGetSuggestions('career_objective')}
+                className="text-[10px] font-black text-brand-600 bg-brand-50 px-3 py-1.5 rounded-lg uppercase tracking-widest hover:bg-brand-100 transition-colors"
+              >
+                AI Suggestions
+              </button>
+            </div>
+            <textarea 
+              value={objective}
+              onChange={(e) => setObjective(e.target.value)}
+              placeholder="Describe your professional journey and what makes you unique..."
+              className="w-full text-sm text-slate-600 bg-slate-50/50 rounded-2xl p-4 focus:bg-white focus:ring-2 focus:ring-brand-100 transition-all outline-none leading-relaxed placeholder:text-slate-300 min-h-[120px]"
+            />
+          </section>
+
+          {/* Section: Experience */}
+          <section className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                <Briefcase size={16} className="text-brand-500" />
+                Experience
+              </h2>
+              <button onClick={addExperience} className="p-2 bg-brand-50 text-brand-600 rounded-xl hover:bg-brand-100 transition-colors">
+                <Plus size={18} />
+              </button>
+            </div>
+            <div className="space-y-6">
+              {experiences.map((exp) => (
+                <div key={exp.id} className="p-6 bg-slate-50/50 rounded-2xl border border-slate-100 relative group">
+                  <button onClick={() => removeExperience(exp.id)} className="absolute top-4 right-4 text-slate-200 hover:text-red-500 transition-colors">
+                    <Trash2 size={16} />
+                  </button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <input type="text" value={exp.role} onChange={(e) => updateExperience(exp.id, 'role', e.target.value)} placeholder="Role/Title" className="bg-white border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-100" />
+                    <input type="text" value={exp.company} onChange={(e) => updateExperience(exp.id, 'company', e.target.value)} placeholder="Company" className="bg-white border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-100" />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <input type="text" value={exp.start_date} onChange={(e) => updateExperience(exp.id, 'start_date', e.target.value)} placeholder="Start Date (e.g. Jan 2023)" className="bg-white border border-slate-100 rounded-xl px-4 py-2 text-xs outline-none focus:ring-2 focus:ring-brand-100" />
+                    <input type="text" value={exp.end_date} onChange={(e) => updateExperience(exp.id, 'end_date', e.target.value)} placeholder="End Date (e.g. Present)" className="bg-white border border-slate-100 rounded-xl px-4 py-2 text-xs outline-none focus:ring-2 focus:ring-brand-100" />
+                  </div>
+                  <textarea value={exp.description} onChange={(e) => updateExperience(exp.id, 'description', e.target.value)} placeholder="Responsibilities and achievements..." className="w-full text-xs text-slate-600 bg-white border border-slate-100 rounded-xl p-4 outline-none focus:ring-2 focus:ring-brand-100 leading-relaxed" rows={3} />
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Section: Education */}
+          <section className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                <GraduationCap size={16} className="text-brand-500" />
+                Education
+              </h2>
+              <button onClick={addEducation} className="p-2 bg-brand-50 text-brand-600 rounded-xl hover:bg-brand-100 transition-colors">
+                <Plus size={18} />
+              </button>
+            </div>
+            <div className="space-y-6">
+              {educations.map((edu) => (
+                <div key={edu.id} className="p-6 bg-slate-50/50 rounded-2xl border border-slate-100 relative">
+                  <button onClick={() => removeEducation(edu.id)} className="absolute top-4 right-4 text-slate-200 hover:text-red-500 transition-colors">
+                    <Trash2 size={16} />
+                  </button>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <input type="text" value={edu.degree} onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)} placeholder="Degree" className="bg-white border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-100" />
+                    <input type="text" value={edu.university} onChange={(e) => updateEducation(edu.id, 'university', e.target.value)} placeholder="University" className="bg-white border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-100" />
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input type="text" value={edu.start_year} onChange={(e) => updateEducation(edu.id, 'start_year', e.target.value)} placeholder="Start Year" className="bg-white border border-slate-100 rounded-xl px-4 py-2 text-xs outline-none focus:ring-2 focus:ring-brand-100" />
+                    <input type="text" value={edu.end_year} onChange={(e) => updateEducation(edu.id, 'end_year', e.target.value)} placeholder="End Year/Passing" className="bg-white border border-slate-100 rounded-xl px-4 py-2 text-xs outline-none focus:ring-2 focus:ring-brand-100" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Section: Projects */}
+          <section className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                <Code size={16} className="text-brand-500" />
+                Projects
+              </h2>
+              <button onClick={addProject} className="p-2 bg-brand-50 text-brand-600 rounded-xl hover:bg-brand-100 transition-colors">
+                <Plus size={18} />
+              </button>
+            </div>
+            <div className="space-y-6">
+              {projects.map((proj) => (
+                <div key={proj.id} className="p-6 bg-slate-50/50 rounded-2xl border border-slate-100 relative">
+                  <button onClick={() => removeProject(proj.id)} className="absolute top-4 right-4 text-slate-200 hover:text-red-500 transition-colors">
+                    <Trash2 size={16} />
+                  </button>
+                  <input type="text" value={proj.title} onChange={(e) => updateProject(proj.id, 'title', e.target.value)} placeholder="Project Title" className="w-full bg-white border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-100 mb-4" />
+                  <textarea value={proj.description} onChange={(e) => updateProject(proj.id, 'description', e.target.value)} placeholder="Project description..." className="w-full text-xs text-slate-600 bg-white border border-slate-100 rounded-xl p-4 outline-none focus:ring-2 focus:ring-brand-100 leading-relaxed mb-4" rows={2} />
+                  <input type="text" value={proj.technologies} onChange={(e) => updateProject(proj.id, 'technologies', e.target.value)} placeholder="Technologies used (e.g. React, Node.js)" className="w-full bg-white border border-slate-100 rounded-xl px-4 py-2 text-xs outline-none focus:ring-2 focus:ring-brand-100" />
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Section: Certifications */}
+          <section className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                <Award size={16} className="text-brand-500" />
+                Certifications
+              </h2>
+              <button onClick={addCertification} className="p-2 bg-brand-50 text-brand-600 rounded-xl hover:bg-brand-100 transition-colors">
+                <Plus size={18} />
+              </button>
+            </div>
+            <div className="space-y-6">
+              {certifications.map((cert) => (
+                <div key={cert.id} className="p-6 bg-slate-50/50 rounded-2xl border border-slate-100 relative">
+                  <button onClick={() => removeCertification(cert.id)} className="absolute top-4 right-4 text-slate-200 hover:text-red-500 transition-colors">
+                    <Trash2 size={16} />
+                  </button>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <input type="text" value={cert.name} onChange={(e) => updateCertification(cert.id, 'name', e.target.value)} placeholder="Certification Name" className="bg-white border border-slate-100 rounded-xl px-4 py-2 text-xs font-bold outline-none focus:ring-2 focus:ring-brand-100" />
+                    <input type="text" value={cert.issuer} onChange={(e) => updateCertification(cert.id, 'issuer', e.target.value)} placeholder="Issuer" className="bg-white border border-slate-100 rounded-xl px-4 py-2 text-xs outline-none focus:ring-2 focus:ring-brand-100" />
+                    <input type="text" value={cert.year} onChange={(e) => updateCertification(cert.id, 'year', e.target.value)} placeholder="Year" className="bg-white border border-slate-100 rounded-xl px-4 py-2 text-xs outline-none focus:ring-2 focus:ring-brand-100" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          {/* Section: Extra-Curricular */}
+          <section className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-sm font-black text-slate-900 uppercase tracking-widest flex items-center gap-2">
+                <Sparkles size={16} className="text-brand-500" />
+                Extra-Curricular
+              </h2>
+              <button onClick={addExtraCurricular} className="p-2 bg-brand-50 text-brand-600 rounded-xl hover:bg-brand-100 transition-colors">
+                <Plus size={18} />
+              </button>
+            </div>
+            <div className="space-y-6">
+              {extraCurricular.map((extra) => (
+                <div key={extra.id} className="p-6 bg-slate-50/50 rounded-2xl border border-slate-100 relative">
+                  <button onClick={() => removeExtraCurricular(extra.id)} className="absolute top-4 right-4 text-slate-200 hover:text-red-500 transition-colors">
+                    <Trash2 size={16} />
+                  </button>
+                  <input type="text" value={extra.activity} onChange={(e) => updateExtraCurricular(extra.id, 'activity', e.target.value)} placeholder="Activity Name (e.g. Volunteer, Club Lead)" className="w-full bg-white border border-slate-100 rounded-xl px-4 py-2 text-sm font-bold outline-none focus:ring-2 focus:ring-brand-100 mb-4" />
+                  <textarea value={extra.description} onChange={(e) => updateExtraCurricular(extra.id, 'description', e.target.value)} placeholder="Describe your role..." className="w-full text-xs text-slate-600 bg-white border border-slate-100 rounded-xl p-4 outline-none focus:ring-2 focus:ring-brand-100 leading-relaxed" rows={2} />
+                </div>
+              ))}
+            </div>
+          </section>
+        </div>
+
+        {/* Right: Live Preview (A4 Paper Style) */}
+        <div className="sticky top-24 hidden lg:block print:hidden">
+          <div className="flex items-center justify-between mb-4 px-2">
+            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Live Preview</p>
+            <div className="flex gap-2">
+               <div className="w-3 h-3 rounded-full bg-red-400"></div>
+               <div className="w-3 h-3 rounded-full bg-amber-400"></div>
+               <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
+            </div>
+          </div>
+          
+          <ResumePreview 
+            data={{
+              full_name: profile?.full_name || user?.full_name || undefined,
+              email: profile?.email || user?.email || undefined,
+              phone: profile?.phone || "+91 9149101875",
+              current_city: profile?.current_city || "Haridwar",
+              objective,
+              skills,
+              educations,
+              experiences,
+              projects,
+              certifications,
+              extraCurricular
+            }}
+          />
+        </div>
+
+        {/* Print Only Version */}
+        <div className="hidden print:block">
+          <ResumePreview 
+            isPrintMode={true}
+            data={{
+              full_name: profile?.full_name || user?.full_name || undefined,
+              email: profile?.email || user?.email || undefined,
+              phone: profile?.phone || "+91 9149101875",
+              current_city: profile?.current_city || "Haridwar",
+              objective,
+              skills,
+              educations,
+              experiences,
+              projects,
+              certifications,
+              extraCurricular
+            }}
+          />
+        </div>
+      </div>
+      
+      {/* AI Suggestions Modal/Drawer */}
       {suggestions && (
-        <div className="mb-8 bg-sky-50 border border-sky-100 rounded-xl p-6 relative animate-in fade-in slide-in-from-top-4">
-          <div className="flex items-start gap-4">
-            <div className="bg-orange-100 p-2 rounded-full text-orange-500 mt-1">
-              <Lightbulb size={24} fill="currentColor" className="text-orange-400" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-[2rem] shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100">
+            <div className="p-8 border-b border-slate-100 flex items-center justify-between bg-brand-50/30">
+              <h3 className="font-black text-slate-900 uppercase tracking-widest text-sm flex items-center gap-3">
+                <Sparkles size={20} className="text-brand-500" />
+                AI Suggestions
+              </h3>
+              <button onClick={() => setSuggestions(null)} className="p-2 hover:bg-white rounded-xl transition-colors">
+                <X size={20} className="text-slate-400" />
+              </button>
             </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-lg text-slate-900 mb-2">Suggestions for {suggestions.section.replace('_', ' ')}</h3>
-              <p className="text-slate-600 mb-4 text-sm leading-relaxed">
-                Transform your experience into impressive achievements. Click on a suggestion to add it to your resume.
-              </p>
-              
-              <div className="space-y-2">
-                  <h4 className="font-semibold text-slate-800 mb-2 text-sm">Recommended for {profile?.department || "your profile"}</h4>
-                  <ul className="space-y-2">
-                    {suggestions.items.map((item, idx) => (
-                      <li key={idx} 
-                          onClick={() => applySuggestion(item, suggestions.section)}
-                          className="flex items-start gap-2 text-slate-700 text-sm hover:bg-white p-3 rounded-lg cursor-pointer transition-all border border-transparent hover:border-brand-100 hover:shadow-sm group">
-                        <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-slate-400 group-hover:bg-brand-500 block shrink-0" />
-                        {item}
-                      </li>
-                    ))}
-                  </ul>
-              </div>
+            <div className="p-8 space-y-4 max-h-[400px] overflow-y-auto custom-scrollbar">
+              {suggestions.items.map((item, i) => (
+                <div key={i} className="p-4 rounded-2xl border border-slate-100 hover:border-brand-200 hover:bg-brand-50/30 transition-all cursor-pointer group" onClick={() => applySuggestion(item, suggestions.section)}>
+                   <p className="text-sm text-slate-600 leading-relaxed group-hover:text-slate-900">{item}</p>
+                   <div className="mt-3 flex justify-end">
+                      <span className="text-[10px] font-black text-brand-600 uppercase tracking-widest">Apply Now +</span>
+                   </div>
+                </div>
+              ))}
             </div>
-            <button onClick={() => setSuggestions(null)} className="text-slate-400 hover:text-slate-600 p-1"><X size={20} /></button>
           </div>
         </div>
       )}
 
-      {/* Career Objective */}
-      <div className="mb-8 group/section">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xs font-bold text-slate-500 tracking-wider uppercase flex items-center gap-2">
-            <User size={16} /> Career Objective
-          </h2>
-          <button 
-               onClick={() => handleGetSuggestions('career_objective')}
-               disabled={!!loadingSuggestion}
-               className="text-xs font-medium text-brand-600 hover:bg-brand-50 px-2 py-1 rounded transition-colors flex items-center gap-1 opacity-0 group-hover/section:opacity-100 transition-opacity"
-          >
-            {loadingSuggestion === 'career_objective' ? <span className="animate-spin">⌛</span> : <Sparkles size={12} />}
-            AI Enhance
-          </button>
+      {loadingSuggestion && (
+        <div className="fixed bottom-12 right-12 z-50 bg-slate-900 text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-4 border border-white/10">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-500"></div>
+          <span className="text-xs font-black uppercase tracking-widest">AI is thinking...</span>
         </div>
-        
-        <textarea 
-            value={objective}
-            onChange={(e) => setObjective(e.target.value)}
-            placeholder="Write a career objective..."
-            className="w-full p-3 text-sm text-slate-700 border border-slate-200 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none min-h-[100px]"
-        />
-      </div>
+      )}
 
-      {/* Education */}
-      <div className="mb-8 group/section">
-        <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xs font-bold text-slate-500 tracking-wider uppercase flex items-center gap-2">
-                <GraduationCap size={16} /> Education
-            </h2>
-        </div>
-        
-        <div className="space-y-4">
-            {educations.map((edu) => (
-                <div key={edu.id} className="border border-slate-200 rounded-lg p-4 bg-white relative group">
-                    <button onClick={() => removeEducation(edu.id)} className="absolute top-2 right-2 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <input type="text" value={edu.university} onChange={(e) => updateEducation(edu.id, 'university', e.target.value)} placeholder="University/School Name" className="font-bold text-slate-900 text-sm border-b border-transparent focus:border-brand-500 outline-none w-full" />
-                        <div className="flex gap-2">
-                             <input type="text" value={edu.degree} onChange={(e) => updateEducation(edu.id, 'degree', e.target.value)} placeholder="Degree" className="text-slate-700 text-sm border-b border-transparent focus:border-brand-500 outline-none w-full" />
-                             <input type="text" value={edu.department} onChange={(e) => updateEducation(edu.id, 'department', e.target.value)} placeholder="Stream/Dept" className="text-slate-700 text-sm border-b border-transparent focus:border-brand-500 outline-none w-full" />
-                        </div>
-                        <div className="flex gap-2 text-xs text-slate-500">
-                             <input type="text" value={edu.start_year} onChange={(e) => updateEducation(edu.id, 'start_year', e.target.value)} placeholder="Start Year" className="w-20 border-b border-transparent focus:border-brand-500 outline-none" />
-                             <span>-</span>
-                             <input type="text" value={edu.end_year} onChange={(e) => updateEducation(edu.id, 'end_year', e.target.value)} placeholder="End Year" className="w-20 border-b border-transparent focus:border-brand-500 outline-none" />
-                        </div>
-                    </div>
-                </div>
-            ))}
-        </div>
-        
-        <button onClick={addEducation} className="mt-4 flex items-center gap-2 text-brand-600 text-sm font-medium hover:underline">
-          <Plus size={16} /> Add education
-        </button>
-      </div>
-
-      {/* Work Experience */}
-      <div className="mb-8 group/section">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xs font-bold text-slate-500 tracking-wider uppercase flex items-center gap-2">
-            <Briefcase size={16} /> Work Experience
-          </h2>
-          <button 
-             onClick={() => handleGetSuggestions('work_experience')}
-             disabled={!!loadingSuggestion}
-             className="text-xs font-medium text-brand-600 hover:bg-brand-50 px-2 py-1 rounded transition-colors flex items-center gap-1 opacity-0 group-hover/section:opacity-100 transition-opacity"
-          >
-            {loadingSuggestion === 'work_experience' ? <span className="animate-spin">⌛</span> : <Sparkles size={12} />}
-            AI Suggestions
-          </button>
-        </div>
-
-        <div className="space-y-4">
-            {experiences.map((exp) => (
-                <div key={exp.id} className="border border-slate-200 rounded-lg p-4 bg-white relative group">
-                    <button onClick={() => removeExperience(exp.id)} className="absolute top-2 right-2 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
-                    <div className="space-y-2">
-                        <div className="flex justify-between">
-                            <input type="text" value={exp.role} onChange={(e) => updateExperience(exp.id, 'role', e.target.value)} placeholder="Job Role / Title" className="font-bold text-slate-900 text-sm border-b border-transparent focus:border-brand-500 outline-none w-full" />
-                            <input type="text" value={exp.company} onChange={(e) => updateExperience(exp.id, 'company', e.target.value)} placeholder="Company Name" className="text-right text-slate-700 text-sm border-b border-transparent focus:border-brand-500 outline-none w-1/2" />
-                        </div>
-                         <div className="flex gap-2 text-xs text-slate-500">
-                             <input type="text" value={exp.start_date} onChange={(e) => updateExperience(exp.id, 'start_date', e.target.value)} placeholder="Start Date" className="w-24 border-b border-transparent focus:border-brand-500 outline-none" />
-                             <span>-</span>
-                             <input type="text" value={exp.end_date} onChange={(e) => updateExperience(exp.id, 'end_date', e.target.value)} placeholder="End Date" className="w-24 border-b border-transparent focus:border-brand-500 outline-none" />
-                        </div>
-                        <textarea value={exp.description} onChange={(e) => updateExperience(exp.id, 'description', e.target.value)} placeholder="Description of responsibilities..." className="w-full text-sm text-slate-600 border border-slate-100 rounded p-2 focus:ring-1 focus:ring-brand-500 outline-none" rows={3} />
-                    </div>
-                </div>
-            ))}
-        </div>
-
-        <div className="flex gap-6 mt-4">
-            <button onClick={addExperience} className="flex items-center gap-2 text-brand-600 text-sm font-medium hover:underline">
-                <Plus size={16} /> Add experience
-            </button>
-        </div>
-      </div>
-
-      {/* Projects */}
-      <div className="mb-8 group/section">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xs font-bold text-slate-500 tracking-wider uppercase flex items-center gap-2">
-            <Code size={16} /> Projects
-          </h2>
-          <button 
-             onClick={() => handleGetSuggestions('projects')}
-             disabled={!!loadingSuggestion}
-             className="text-xs font-medium text-brand-600 hover:bg-brand-50 px-2 py-1 rounded transition-colors flex items-center gap-1 opacity-0 group-hover/section:opacity-100 transition-opacity"
-          >
-            {loadingSuggestion === 'projects' ? <span className="animate-spin">⌛</span> : <Sparkles size={12} />}
-            AI Suggestions
-          </button>
-        </div>
-
-        <div className="space-y-4">
-            {projects.map((proj) => (
-                <div key={proj.id} className="border border-slate-200 rounded-lg p-4 bg-white relative group">
-                    <button onClick={() => removeProject(proj.id)} className="absolute top-2 right-2 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={16} /></button>
-                    <div className="space-y-2">
-                         <input type="text" value={proj.title} onChange={(e) => updateProject(proj.id, 'title', e.target.value)} placeholder="Project Title" className="font-bold text-slate-900 text-sm border-b border-transparent focus:border-brand-500 outline-none w-full" />
-                         <textarea value={proj.description} onChange={(e) => updateProject(proj.id, 'description', e.target.value)} placeholder="Project Description..." className="w-full text-sm text-slate-600 border border-slate-100 rounded p-2 focus:ring-1 focus:ring-brand-500 outline-none" rows={2} />
-                         <input type="text" value={proj.technologies} onChange={(e) => updateProject(proj.id, 'technologies', e.target.value)} placeholder="Technologies used (e.g. React, Python)" className="text-xs text-slate-500 border-b border-transparent focus:border-brand-500 outline-none w-full" />
-                    </div>
-                </div>
-            ))}
-        </div>
-
-        <button onClick={addProject} className="flex items-center gap-2 text-brand-600 text-sm font-medium hover:underline mt-4">
-            <Plus size={16} /> Add project
-        </button>
-      </div>
-
-      {/* Skills */}
-      <div className="mb-8 group/section">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xs font-bold text-slate-500 tracking-wider uppercase flex items-center gap-2">
-            <Award size={16} /> Skills
-          </h2>
-          <button 
-             onClick={() => handleGetSuggestions('skills')}
-             disabled={!!loadingSuggestion}
-             className="text-xs font-medium text-brand-600 hover:bg-brand-50 px-2 py-1 rounded transition-colors flex items-center gap-1 opacity-0 group-hover/section:opacity-100 transition-opacity"
-          >
-             {loadingSuggestion === 'skills' ? <span className="animate-spin">⌛</span> : <Sparkles size={12} />}
-             AI Suggestions
-          </button>
-        </div>
-
-        <div className="flex flex-wrap gap-2 mb-4">
-          {skills.map((skill, idx) => (
-            <div key={idx} className="bg-slate-100 text-slate-700 px-3 py-1 rounded-full text-sm font-medium flex items-center gap-2 group hover:bg-slate-200 transition-colors border border-slate-200">
-              {skill}
-              <button onClick={() => setSkills(skills.filter(s => s !== skill))} className="text-slate-400 hover:text-red-500 transition-colors"><X size={14} /></button>
-            </div>
-          ))}
-          <button onClick={() => {
-              const newSkill = prompt("Enter skill:");
-              if(newSkill) setSkills([...skills, newSkill]);
-          }} className="px-3 py-1 rounded-full text-sm font-medium flex items-center gap-1 border border-dashed border-slate-300 text-slate-500 hover:text-brand-600 hover:border-brand-600 transition-colors">
-              <Plus size={14} /> Add
-          </button>
-        </div>
-      </div>
-
+      <style>{`
+        .custom-scrollbar::-webkit-scrollbar {
+          width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+          background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+          background: #e2e8f0;
+          border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+          background: #cbd5e1;
+        }
+      `}</style>
     </div>
   );
 }

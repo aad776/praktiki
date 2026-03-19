@@ -148,9 +148,9 @@ const StudentDashboard = () => {
   };
 
   return (
-    <div className="space-y-6 w-full">
+    <div className="space-y-4 w-full">
       {/* Header with Logout */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white p-3 sm:p-4 rounded-xl shadow-sm">
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full sm:w-auto">
           <div className="flex items-center gap-3 w-full sm:w-auto">
             {/* Back Arrow - Only visible on Mobile */}
@@ -237,21 +237,21 @@ const StudentDashboard = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-2 sm:space-x-4 border-b overflow-x-auto scrollbar-hide">
+      <div className="flex space-x-2 sm:space-x-2 border-b border-gray-200 pb-3 overflow-x-auto scrollbar-hide">
         <button 
-          className={`pb-2 px-3 sm:px-4 whitespace-nowrap text-sm sm:text-base ${activeTab === 'dashboard' ? 'border-b-2 border-blue-500 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`px-4 py-2 rounded-xl whitespace-nowrap text-sm sm:text-base transition-all ${activeTab === 'dashboard' ? 'bg-slate-900 text-white shadow-lg scale-[1.02] font-bold' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 font-medium'}`}
           onClick={() => setActiveTab('dashboard')}
         >
           My Applications
         </button>
         <button 
-          className={`pb-2 px-3 sm:px-4 whitespace-nowrap text-sm sm:text-base ${activeTab === 'internships' ? 'border-b-2 border-blue-500 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`px-4 py-2 rounded-xl whitespace-nowrap text-sm sm:text-base transition-all ${activeTab === 'internships' ? 'bg-slate-900 text-white shadow-lg scale-[1.02] font-bold' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 font-medium'}`}
           onClick={() => setActiveTab('internships')}
         >
           Available Internships
         </button>
         <button 
-          className={`pb-2 px-3 sm:px-4 whitespace-nowrap text-sm sm:text-base ${activeTab === 'credits' ? 'border-b-2 border-blue-500 text-blue-600 font-medium' : 'text-gray-500 hover:text-gray-700'}`}
+          className={`px-4 py-2 rounded-xl whitespace-nowrap text-sm sm:text-base transition-all ${activeTab === 'credits' ? 'bg-slate-900 text-white shadow-lg scale-[1.02] font-bold' : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 font-medium'}`}
           onClick={() => setActiveTab('credits')}
         >
           My Credits
@@ -263,41 +263,38 @@ const StudentDashboard = () => {
 
       {/* STUDENT CREDENTIALS SECTION (Requested to be shown only here) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-6 rounded-xl shadow-lg text-white">
-          <div className="flex justify-between items-start mb-4">
+        <div className="bg-gradient-to-br from-blue-600 to-indigo-700 p-4 rounded-xl shadow-lg text-white">
+          <div className="flex justify-between items-start mb-3">
             <div>
-              <p className="text-blue-100 text-xs font-semibold uppercase tracking-wider mb-1">Academic Identity</p>
-              <h3 className="text-xl font-bold">APAAR ID</h3>
+              <p className="text-blue-100 text-[10px] font-semibold uppercase tracking-wider mb-0.5">Academic Identity</p>
+              <h3 className="text-lg font-bold">APAAR ID</h3>
             </div>
-            <Fingerprint className="text-blue-200 opacity-50" size={32} />
+            <Fingerprint className="text-blue-200 opacity-50" size={24} />
           </div>
-          <div className="bg-white/10 backdrop-blur-sm p-4 rounded-lg border border-white/20">
-            <p className="text-2xl font-mono tracking-widest text-center">
+          <div className="bg-white/10 backdrop-blur-sm p-3 rounded-lg border border-white/20">
+            <p className="text-xl font-mono tracking-widest text-center">
               {user?.apaar_id ? user.apaar_id.replace(/(\d{4})/g, '$1 ').trim() : 'NOT LINKED'}
             </p>
           </div>
-          <p className="mt-4 text-sm text-blue-100 flex items-center gap-2">
-            <CheckCircle size={14} className={user?.is_apaar_verified ? "text-green-300" : "text-amber-300"} />
-            {user?.is_apaar_verified ? 'Verified Identity' : 'Verification Pending'}
+          <p className="mt-3 text-xs text-blue-100 flex items-center gap-2">
+            <CheckCircle size={12} className={user?.is_apaar_verified ? "text-green-300" : "text-amber-300"} />
+            {user?.is_apaar_verified ? 'Verified via DigiLocker' : 'Verification Pending'}
           </p>
         </div>
 
-        <div className="bg-gradient-to-br from-emerald-500 to-teal-600 p-6 rounded-xl shadow-lg text-white">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <p className="text-emerald-100 text-xs font-semibold uppercase tracking-wider mb-1">Academic Credit Bank</p>
-              <h3 className="text-xl font-bold">Total Credits</h3>
+        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-3 opacity-5 text-indigo-600 group-hover:scale-110 transition-transform">
+            <CreditCard size={64} />
+          </div>
+          <div className="relative z-10">
+            <p className="text-gray-400 text-[10px] font-semibold uppercase tracking-wider mb-0.5">Accumulated Value</p>
+            <h3 className="text-lg font-bold text-gray-800 mb-3">Academic Credits</h3>
+            <div className="flex items-end gap-2">
+              <span className="text-4xl font-black text-indigo-600 leading-none">{stats?.total_credits || 0}</span>
+              <span className="text-sm font-bold text-gray-400 mb-1 uppercase tracking-tight">Credits earned</span>
             </div>
-            <CreditCard className="text-emerald-200 opacity-50" size={32} />
-          </div>
-          <div className="flex items-baseline gap-2">
-            <span className="text-5xl font-bold">{stats?.total_credits || 0}</span>
-            <span className="text-emerald-100 text-lg">Credits</span>
-          </div>
-          <div className="mt-4 flex items-center gap-4 text-sm">
-            <div className="flex items-center gap-1.5 bg-white/10 px-3 py-1 rounded-full">
-              <CheckCircle size={14} />
-              <span>{stats?.applications.filter(app => app.status === 'completed').length || 0} Completed</span>
+            <div className="mt-3 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+               <div className="h-full bg-indigo-500 rounded-full" style={{ width: `${Math.min(((stats?.total_credits || 0)/40)*100, 100)}%` }}></div>
             </div>
           </div>
         </div>
@@ -395,43 +392,42 @@ const StudentDashboard = () => {
             ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
+                  <thead className="bg-gray-50/80">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Internship / Company</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Applied On</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Remarks / Reason</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Action</th>
+                      <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Internship</th>
+                      <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Date</th>
+                      <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                      <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Remarks</th>
+                      <th className="px-4 py-2 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Action</th>
                     </tr>
                   </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
+                  <tbody className="bg-white divide-y divide-gray-50">
                     {stats.applications.map((app) => (
-                      <tr key={app.id}>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm font-medium text-gray-900">{app.internship?.title}</div>
-                          <div className="text-sm text-gray-500">{app.internship?.company_name || app.internship?.company?.full_name || 'Unknown Company'}</div>
+                      <tr key={app.id} className="hover:bg-slate-50 transition-colors">
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <div className="text-sm font-bold text-gray-900">{app.internship?.title}</div>
+                          <div className="text-[10px] text-gray-500 font-medium uppercase tracking-tight">{app.internship?.company_name || app.internship?.company?.full_name || 'Unknown Company'}</div>
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-4 py-3 whitespace-nowrap text-xs text-gray-500 font-medium">
                           {new Date(app.created_at).toLocaleDateString()}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(app.status)}`}>
+                        <td className="px-4 py-3 whitespace-nowrap">
+                          <span className={`px-2 py-0.5 inline-flex text-[10px] leading-4 font-bold rounded-full ${getStatusColor(app.status)}`}>
                             {getStatusLabel(app.status)}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-sm text-gray-500 max-w-xs truncate">
+                        <td className="px-4 py-3 text-xs text-gray-500 max-w-xs truncate">
                           {app.status === 'rejected' || app.status === 'exception' ? (
-                            <div className="text-red-600 font-semibold">
-                              <span className="block text-xs text-gray-400">Reason:</span>
+                            <div className="text-red-600 font-bold">
                               {app.rejection_reason || 'No reason provided'}
                             </div>
                           ) : (
-                            <span className="text-gray-400">-</span>
+                            <span className="text-gray-300">-</span>
                           )}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-blue-600 cursor-pointer hover:text-blue-800">
+                        <td className="px-4 py-3 whitespace-nowrap text-xs text-blue-600 font-black uppercase tracking-widest cursor-pointer hover:text-blue-800 hover:underline">
                           <button onClick={() => setSelectedInternship(app)}>
-                            View Details
+                            Details
                           </button>
                         </td>
                       </tr>

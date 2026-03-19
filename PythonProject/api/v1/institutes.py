@@ -208,8 +208,8 @@ def approve_cert_and_push_to_abc(
     }
 
     try:
-        # Pushing to ABC Portal (Port 8000 based on previous context)
-        abc_response = requests.post("http://127.0.0.1:8000/institute/receive-credits", json=payload, timeout=5)
+        # Pushing to ABC Portal (Running on Port 8003 as per setup_backend.sh)
+        abc_response = requests.post("http://127.0.0.1:8003/institute/receive-credits", json=payload, timeout=5)
         abc_response.raise_for_status()
     except Exception as e:
         print(f"Failed to push to ABC: {e}")
@@ -626,8 +626,8 @@ def push_to_abc(
     abc_data = {"status": "success", "synced": True}
     
     try:
-        # Assuming ABC Portal is running on localhost:8000
-        abc_response = requests.post("http://localhost:8000/institute/receive-credits", json=payload, timeout=5)
+        # Assuming ABC Portal is running on port 8003
+        abc_response = requests.post("http://localhost:8003/institute/receive-credits", json=payload, timeout=5)
         abc_response.raise_for_status()
         abc_data = abc_response.json()
     except requests.exceptions.RequestException as e:

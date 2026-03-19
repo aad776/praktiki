@@ -6,7 +6,8 @@ class College(Base):
     __tablename__ = "colleges"
 
     id = Column(Integer, primary_key=True, index=True)
-    name = Column(String, unique=True, index=True, nullable=False)
+    aishe_code = Column(String, unique=True, index=True, nullable=True)
+    name = Column(String, index=True, nullable=False)
     state = Column(String, nullable=True)
     city = Column(String, nullable=True)
 

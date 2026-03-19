@@ -35,6 +35,8 @@ export interface StudentResume {
   projects?: string; // JSON string
   education_entries?: string; // JSON string
   skills_categorized?: string; // JSON string
+  certifications?: string; // JSON string
+  extra_curricular?: string; // JSON string
   resume_file_path?: string;
 }
 
@@ -121,6 +123,7 @@ export const getResumeSuggestions = (section: string, currentContent?: string, c
 };
 
 export interface ResumeParseResponse {
+  // Resume builder fields
   career_objective: string;
   skills: string[];
   education: Array<{
@@ -140,15 +143,67 @@ export interface ResumeParseResponse {
     link: string;
     description: string;
   }>;
+
+  // Optional profile-level fields (available in /students/me/parse-resume response)
+  first_name?: string;
+  last_name?: string;
+  email?: string;
+  phone_number?: string;
+  raw_text_preview?: string;
 }
 
 /**
  * Parse uploaded resume
+ *
+ * Backend route currently available: POST /students/me/parse-resume
+ * It may return either:
+ *  1) { success: true, data: {...} }  (student profile parser format), OR
+ *  2) direct parser payload            (resume builder format)
+ *
+ * This function normalizes both into ResumeParseResponse.
  */
 export const parseResume = (file: File): Promise<ResumeParseResponse> => {
   const formData = new FormData();
   formData.append('file', file);
-  return post<ResumeParseResponse>('/students/me/resume/parse', formData);
+  return post<any>('/students/me/parse-resume', formData).then((res) => {
+    const payload = res?.data ?? res ?? {};
+    const normalizedEducation = Array.isArray(payload.education)
+      ? payload.education
+      : Array.isArray(payload.education_entries)
+        ? payload.education_entries.map((entry: any) => ({
+            degree: entry.degree || '',
+            university: entry.institution || entry.university || '',
+            start_year: entry.start_year || '',
+            end_year: entry.end_year || entry.year || '',
+          }))
+        : [];
+
+    const normalizedExperience = Array.isArray(payload.experience)
+      ? payload.experience.map((exp: any) => ({
+          role: exp.role || exp.position || '',
+          company: exp.company || exp.organization || '',
+          duration: exp.duration || '',
+          description: exp.description || '',
+          start_date: exp.start_date || '',
+          end_date: exp.end_date || '',
+        }))
+      : [];
+
+    const normalized: ResumeParseResponse = {
+      career_objective: payload.career_objective || '',
+      skills: Array.isArray(payload.skills) ? payload.skills : [],
+      education: normalizedEducation,
+      experience: normalizedExperience,
+      projects: Array.isArray(payload.projects) ? payload.projects : [],
+      first_name: payload.first_name,
+      last_name: payload.last_name,
+      email: payload.email,
+      phone_number: payload.phone_number,
+      raw_text_preview: payload.raw_text_preview,
+    };
+
+    return normalized;
+  });
 };
 
 /**

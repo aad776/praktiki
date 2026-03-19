@@ -96,6 +96,11 @@ DATABASE_URL=postgresql://user:password@localhost:5432/praktiki
 # JWT Configuration
 JWT_SECRET=CHANGE_THIS_TO_A_SECURE_SECRET_KEY
 
+# Resume Parser Service (AI Matching EC2)
+# Update this to your parser service URL, e.g. http://<AI_MATCHING_IP>:8002
+PARSER_SERVICE_URL=http://127.0.0.1:8002
+PARSER_SERVICE_TIMEOUT_SECONDS=45
+
 # Application Settings
 DEBUG=false
 ENVIRONMENT=production

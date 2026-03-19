@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { ButtonSpinner } from "../components/LoadingSpinner";
 import { useToast } from "../context/ToastContext";
 import { useAuth } from "../context/AuthContext";
+import { PublicNavbar } from "../components/PublicNavbar";
 import { InternshipCard } from "../components/InternshipCard";
 import { FilterModal } from "../components/FilterModal";
 import { FilterBar } from "../components/FilterBar";
@@ -200,6 +201,7 @@ export function BrowseInternshipsPage() {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 w-full flex flex-col">
+      <PublicNavbar />
       <main className="w-full px-2 sm:px-4 lg:px-6 py-6 sm:py-10 flex-grow">
         <div className="mb-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <div className="flex items-center gap-3">

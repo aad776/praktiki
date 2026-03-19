@@ -40,7 +40,7 @@ function AppRoutes() {
         path="/student/dashboard" 
         element={
           <ProtectedRoute allowedRoles={['student']}>
-            <div className="min-h-screen bg-gray-50 px-2 sm:px-4 lg:px-6 py-4 flex flex-col items-center w-full">
+            <div className="min-h-screen bg-gray-50 px-2 sm:px-3 lg:px-4 py-3 flex flex-col items-center w-full">
                  <div className="w-full">
                    <StudentDashboard />
                  </div>
@@ -54,7 +54,7 @@ function AppRoutes() {
         path="/company/dashboard" 
         element={
           <ProtectedRoute allowedRoles={['company']}>
-             <div className="min-h-screen bg-gray-50 px-2 sm:px-4 lg:px-6 py-4 flex flex-col items-center w-full">
+             <div className="min-h-screen bg-gray-50 px-2 sm:px-3 lg:px-4 py-3 flex flex-col items-center w-full">
                 <div className="w-full">
                   <CompanyDashboard />
                 </div>
@@ -68,7 +68,7 @@ function AppRoutes() {
         path="/institute/dashboard" 
         element={
           <ProtectedRoute allowedRoles={['institute']}>
-             <div className="min-h-screen bg-gray-50 px-2 sm:px-4 lg:px-6 py-4 flex flex-col items-center w-full">
+             <div className="min-h-screen bg-gray-50 px-2 sm:px-3 lg:px-4 py-3 flex flex-col items-center w-full">
                 <div className="w-full">
                   <InstituteDashboard />
                 </div>
@@ -82,7 +82,7 @@ function AppRoutes() {
         path="/admin/dashboard" 
         element={
           <ProtectedRoute allowedRoles={['admin']}>
-             <div className="min-h-screen bg-gray-50 px-2 sm:px-4 lg:px-6 py-4 flex flex-col items-center w-full">
+             <div className="min-h-screen bg-gray-50 px-2 sm:px-3 lg:px-4 py-3 flex flex-col items-center w-full">
                 <div className="w-full">
                   <AdminDashboard />
                 </div>

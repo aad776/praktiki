@@ -5,8 +5,8 @@ Extracts work experience entries using rule-based pattern matching
 import re
 import logging
 from typing import List
-from schemas import Experience
-from config import YEAR_RANGE_PATTERN, MONTH_YEAR_PATTERN
+from resume_parser.schemas import Experience
+from resume_parser.config import YEAR_RANGE_PATTERN, MONTH_YEAR_PATTERN
 
 logger = logging.getLogger(__name__)
 

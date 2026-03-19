@@ -1,7 +1,7 @@
 import requests
 import sys
 
-BASE_URL = "http://44.205.136.199:8000"
+BASE_URL = "http://localhost:8000"
 
 def register(username, email, role, password="password123"):
     print(f"Registering {role}: {username}...")

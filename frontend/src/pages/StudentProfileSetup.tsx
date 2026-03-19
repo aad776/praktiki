@@ -1,5 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { useNavigate, Link, useSearchParams } from "react-router-dom";
+import { useNavigate, Link, useSearchParams, useLocation } from "react-router-dom";
+import { 
+  User, MapPin, Phone, Mail, Plus, Edit2, Trash2, 
+  Sparkles, Download, Save, ChevronDown, ChevronUp,
+  Briefcase, GraduationCap, Code, Award, FileText, Lightbulb,
+  X, Check, Upload, Camera, Target, Globe, Rocket, ChevronRight
+} from 'lucide-react';
+import { ResumeBuilder } from "../components/ResumeBuilder";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
 import api, { ApiError } from "../services/api";
@@ -127,7 +134,7 @@ const Autocomplete = ({
           placeholder={placeholder}
           className={minimal
             ? "bg-transparent border-none p-0 focus:ring-0 font-medium w-full"
-            : "w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            : "w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
           }
         />
         {loading && (
@@ -147,7 +154,7 @@ const Autocomplete = ({
                     onChange(opt);
                     setShow(false);
                   }}
-                  className="px-4 py-2 hover:bg-blue-50 cursor-pointer text-sm text-gray-700"
+                  className="px-4 py-2 hover:bg-brand-50 cursor-pointer text-sm text-gray-700"
                 >
                   {opt}
                 </li>
@@ -203,7 +210,7 @@ const YearPicker = ({
       </label>
       <div
         onClick={() => setShow(!show)}
-        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white cursor-pointer flex justify-between items-center"
+        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none bg-white cursor-pointer flex justify-between items-center"
       >
         <span className={value ? "text-gray-900" : "text-gray-400"}>
           {value || "YYYY"}
@@ -221,7 +228,7 @@ const YearPicker = ({
                   onChange(String(year));
                   setShow(false);
                 }}
-                className={`p-2 text-sm rounded hover:bg-blue-100 ${value === String(year) ? "bg-blue-500 text-white hover:bg-blue-600" : "text-gray-700"
+                className={`p-2 text-sm rounded hover:bg-brand-100 ${value === String(year) ? "bg-brand-500 text-white hover:bg-brand-600" : "text-gray-700"
                   }`}
               >
                 {year}
@@ -253,7 +260,7 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
           value={formData.first_name}
           onChange={handleChange}
           placeholder="Aditya"
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
         />
       </div>
       <div>
@@ -264,7 +271,7 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
           value={formData.last_name}
           onChange={handleChange}
           placeholder="Yadav"
-          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
         />
       </div>
     </div>
@@ -291,7 +298,7 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
           onChange={handleChange}
           placeholder="Mobile number"
           maxLength={10}
-          className="w-full px-4 py-2 border rounded-r-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full px-4 py-2 border rounded-r-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
         />
       </div>
     </div>
@@ -305,7 +312,7 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
         value={formData.current_city}
         onChange={handleChange}
         placeholder="Current location"
-        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+        className="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
       />
     </div>
 
@@ -313,7 +320,7 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
       <label className="block text-sm font-medium text-gray-700 mb-1">APAAR ID (ABC ID)</label>
       <p className="text-xs text-gray-500 mb-2">
         12-digit APAAR ID is required to apply for internships.
-        <a href="https://apaar.education.gov.in" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline ml-1">
+        <a href="https://apaar.education.gov.in" target="_blank" rel="noopener noreferrer" className="text-brand-600 hover:underline ml-1">
           Get your APAAR ID
         </a>
       </p>
@@ -330,7 +337,7 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
           onChange={(e) => handleChange({ target: { name: 'apaar_id', value: e.target.value.replace(/\D/g, '').slice(0, 12) } } as any)}
           placeholder="123456789012"
           maxLength={12}
-          className="w-full px-4 py-2 pl-12 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+          className="w-full px-4 py-2 pl-12 border rounded-lg focus:ring-2 focus:ring-brand-500 focus:outline-none"
         />
       </div>
       {formData.apaar_id && formData.apaar_id.length !== 12 && (
@@ -350,7 +357,7 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
             type="button"
             onClick={() => handleChange({ target: { name: "gender", value: g } } as any)}
             className={`px-6 py-2 rounded-full border transition-colors ${formData.gender === g
-              ? "bg-blue-50 border-blue-500 text-blue-600 font-medium"
+              ? "bg-brand-50 border-brand-500 text-brand-600 font-medium"
               : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
               }`}
           >
@@ -369,7 +376,7 @@ const Step1 = ({ formData, handleChange, toggleSelection, user }: any) => (
             type="button"
             onClick={() => toggleSelection("languages", lang)}
             className={`px-4 py-1 rounded-full border text-sm transition-colors ${formData.languages.includes(lang)
-              ? "bg-blue-50 border-blue-500 text-blue-600"
+              ? "bg-brand-50 border-brand-500 text-brand-600"
               : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
               }`}
           >
@@ -397,7 +404,7 @@ const Step2 = ({ formData, handleChange, setFormData }: any) => (
             type="button"
             onClick={() => handleChange({ target: { name: "profile_type", value: type } } as any)}
             className={`px-4 py-2 rounded-full border text-sm transition-colors ${formData.profile_type === type
-              ? "bg-blue-600 text-white border-blue-600"
+              ? "bg-brand-600 text-white border-brand-600"
               : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
               }`}
           >
@@ -474,7 +481,7 @@ const Step2 = ({ formData, handleChange, setFormData }: any) => (
   </div>
 );
 
-const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggestedSkills, handleChange }: any) => (
+const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggestedSkills, navigate }: any) => (
   <div className="space-y-6 animate-fadeIn">
     <div className="text-center mb-8">
       <h2 className="text-2xl font-bold text-gray-800">Your preferences 🎯</h2>
@@ -512,13 +519,13 @@ const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggeste
         {formData.interests.map((interest: string) => (
           <span
             key={interest}
-            className="inline-flex items-center px-3 py-1 rounded-full bg-blue-100 text-blue-700 text-sm"
+            className="inline-flex items-center px-3 py-1 rounded-full bg-brand-100 text-brand-700 text-sm"
           >
             {interest}
             <button
               type="button"
               onClick={() => toggleSelection("interests", interest)}
-              className="ml-2 text-blue-500 hover:text-blue-700"
+              className="ml-2 text-brand-500 hover:text-brand-700"
             >
               ×
             </button>
@@ -528,8 +535,8 @@ const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggeste
 
       {/* Suggested Skills based on Stream */}
       {suggestedSkills.length > 0 && (
-        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-100">
-          <p className="text-xs font-semibold text-blue-700 mb-2">Suggested for your stream ({formData.specialization}):</p>
+        <div className="mb-4 p-3 bg-brand-50 rounded-lg border border-brand-100">
+          <p className="text-xs font-semibold text-brand-700 mb-2">Suggested for your stream ({formData.specialization}):</p>
           <div className="flex flex-wrap gap-2">
             {suggestedSkills.map((skill: string) => (
               <button
@@ -537,8 +544,8 @@ const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggeste
                 type="button"
                 onClick={() => toggleSelection("interests", skill)}
                 className={`px-3 py-1 rounded-full text-xs transition-colors border ${formData.interests.includes(skill)
-                  ? "bg-blue-600 text-white border-blue-600"
-                  : "bg-white text-blue-700 border-blue-200 hover:bg-blue-100"
+                  ? "bg-brand-600 text-white border-brand-600"
+                  : "bg-white text-brand-700 border-brand-200 hover:bg-brand-100"
                   }`}
               >
                 {skill} {formData.interests.includes(skill) ? "✓" : "+"}
@@ -556,7 +563,7 @@ const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggeste
             type="button"
             onClick={() => toggleSelection("interests", interest)}
             className={`px-4 py-1 rounded-full border text-sm transition-colors ${formData.interests.includes(interest)
-              ? "bg-blue-50 border-blue-500 text-blue-600"
+              ? "bg-brand-50 border-brand-500 text-brand-600"
               : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
               }`}
           >
@@ -575,7 +582,7 @@ const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggeste
             type="button"
             onClick={() => toggleSelection("looking_for", type)}
             className={`px-6 py-2 rounded-full border transition-colors ${formData.looking_for.includes(type)
-              ? "bg-blue-50 border-blue-500 text-blue-600 font-medium"
+              ? "bg-brand-50 border-brand-500 text-brand-600 font-medium"
               : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
               }`}
           >
@@ -594,7 +601,7 @@ const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggeste
             type="button"
             onClick={() => toggleSelection("work_mode", mode)}
             className={`px-6 py-2 rounded-full border transition-colors ${formData.work_mode.includes(mode)
-              ? "bg-blue-50 border-blue-500 text-blue-600 font-medium"
+              ? "bg-brand-50 border-brand-500 text-brand-600 font-medium"
               : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
               }`}
           >
@@ -606,8 +613,8 @@ const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggeste
 
     <div className="flex justify-end pt-8">
       <button
-        onClick={handleNext}
-        className="px-8 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium transition-colors"
+        onClick={() => navigate('/resume-maker')}
+        className="px-8 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 font-medium transition-colors"
       >
         {formData.resume.resume_file_path ? "View/Edit Resume" : "Create your resume"}
       </button>
@@ -682,7 +689,7 @@ const Step4 = ({ formData, setFormData, handleResumeUpload, handleSubmit, loadin
             <div className="no-print flex items-center gap-3">
               {formData.resume.resume_file_path && (
                 <a
-                  href={`http://44.205.136.199:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
+                  href={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-4 py-1.5 bg-blue-50 text-blue-700 border border-blue-100 rounded-lg text-xs font-bold hover:bg-blue-100 transition-all flex items-center gap-2"
@@ -1062,11 +1069,18 @@ const Step4 = ({ formData, setFormData, handleResumeUpload, handleSubmit, loadin
 
 // --- Profile View Component (Card-based Interface) ---
 
-const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) => {
+const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload, user }: { 
+  formData: any, 
+  onEdit: (step: number) => void, 
+  onLogout: () => void,
+  handleResumeUpload: (e: any) => void, 
+  user: any 
+}) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const certInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
   const [certUploading, setCertUploading] = useState(false);
+  const [activeTab, setActiveTab] = useState('view');
   const toast = useToast();
 
   const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -1080,15 +1094,22 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
     }
   };
 
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
   const onCertChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setCertUploading(true);
       const file = e.target.files[0];
-      const formData = new FormData();
-      formData.append("file", file);
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
 
       try {
-        const response: any = await api.post("/certificates/upload", formData);
+        const response: any = await api.post("/certificates/upload", formDataUpload);
         
         if (response.verification_data) {
           toast.success("Certificate uploaded & verified! Submitted to Institute.");
@@ -1104,8 +1125,24 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
     }
   };
 
+  const calculateCompletion = () => {
+    let total = 0;
+    if (formData.first_name && formData.last_name) total += 10;
+    if (formData.phone_number) total += 10;
+    if (formData.current_city) total += 5;
+    if (formData.course) total += 15;
+    if (formData.specialization) total += 10;
+    if (formData.college_name) total += 10;
+    if (formData.resume?.resume_file_path) total += 20;
+    if (formData.resume?.skills_categorized?.technical?.length > 0) total += 10;
+    if (formData.languages?.length > 0) total += 10;
+    return Math.min(total, 100);
+  };
+
+  const completion = calculateCompletion();
+
   return (
-    <div className="max-w-[1200px] mx-auto py-4 sm:py-8 px-2 sm:px-4 animate-fadeIn">
+    <div className="container-wide py-8 animate-fadeIn bg-[#f8fafc]">
       {/* Upload Resume Hidden Input */}
       <input
         type="file"
@@ -1123,229 +1160,554 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
         className="hidden"
       />
 
-      {/* Profile Header Card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-6">
-        <div className="h-32 bg-gradient-to-r from-brand-500 to-brand-600"></div>
-        <div className="px-8 pb-8">
-          <div className="relative flex justify-between items-end -mt-12 mb-6">
-            <div className="w-32 h-32 rounded-2xl bg-white p-1 border-4 border-white shadow-lg overflow-hidden">
-              {formData.resume.profile_picture ? (
-                <img src={formData.resume.profile_picture} alt="Profile" className="w-full h-full object-cover rounded-xl" />
-              ) : (
-                <div className="w-full h-full bg-slate-100 flex items-center justify-center text-4xl">👤</div>
-              )}
-            </div>
-            <div className="flex flex-wrap gap-3 mb-2 justify-end items-center">
-              {/* Prominent Upload Resume Button */}
-              <button
-                onClick={() => fileInputRef.current?.click()}
-                disabled={uploading}
-                className={`px-6 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 shadow-md transition-all flex items-center gap-2 ${uploading ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}
-              >
-                {uploading ? (
-                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
+      {/* Top Header Card */}
+      <div className="bg-white rounded-3xl shadow-soft border border-slate-100 overflow-hidden mb-8 relative">
+        <div className="p-8 flex flex-col md:flex-row gap-8 items-center md:items-start">
+          {/* Profile Photo with Progress Ring */}
+          <div className="relative flex-shrink-0">
+            <div className="relative w-40 h-40">
+              <svg className="w-full h-full transform -rotate-90">
+                <circle
+                  cx="80"
+                  cy="80"
+                  r="74"
+                  stroke="#e2e8f0"
+                  strokeWidth="8"
+                  fill="transparent"
+                />
+                <circle
+                  cx="80"
+                  cy="80"
+                  r="74"
+                  stroke="#14b8a6"
+                  strokeWidth="8"
+                  fill="transparent"
+                  strokeDasharray={2 * Math.PI * 74}
+                  strokeDashoffset={2 * Math.PI * 74 * (1 - completion / 100)}
+                  className="transition-all duration-1000 ease-out"
+                />
+              </svg>
+              <div className="absolute inset-2 rounded-full overflow-hidden bg-slate-100 flex items-center justify-center border-4 border-white shadow-inner group">
+                {formData.resume?.profile_picture ? (
+                  <img src={formData.resume.profile_picture} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                  </svg>
+                  <div className="flex flex-col items-center justify-center text-slate-400 group-hover:text-brand-500 transition-colors">
+                    <User size={48} strokeWidth={1.5} />
+                    <span className="text-[10px] font-bold mt-1 uppercase">Add Photo</span>
+                  </div>
                 )}
-                {uploading ? 'Uploading...' : 'Upload Resume'}
-              </button>
-
-              {/* Verify Certificate Button */}
-              <button
-                onClick={() => certInputRef.current?.click()}
-                disabled={certUploading}
-                className={`px-6 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 shadow-md transition-all flex items-center gap-2 ${certUploading ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}
-              >
-                {certUploading ? (
-                  <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : (
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                  </svg>
-                )}
-                {certUploading ? 'Verifying...' : 'Verify Certificate'}
-              </button>
-
-              {formData.resume.resume_file_path && (
-                <a
-                  href={`http://44.205.136.199:8000/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-2 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl text-sm font-semibold hover:bg-blue-100 transition-all flex items-center gap-2"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                  </svg>
-                  View Resume
-                </a>
-              )}
-
-              <button
-                onClick={onEdit}
-                className="px-6 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-                Edit
-              </button>
-
-              <Link
-                to="/resume-maker"
-                className="px-6 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 hover:scale-105 transition-all flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Enhance Resume
-              </Link>
-              <button
-                onClick={onLogout}
-                className="px-6 py-2 bg-red-50 text-red-600 border border-red-100 rounded-xl text-sm font-semibold hover:bg-red-100 transition-all flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                </svg>
-                Logout
-              </button>
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                  <Camera size={24} className="text-white" />
+                </div>
+              </div>
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 bg-white px-3 py-1 rounded-full shadow-md border border-slate-100">
+                <span className="text-xs font-black text-brand-600">{completion}%</span>
+              </div>
             </div>
           </div>
 
-          <div className="space-y-1">
-            <h1 className="text-3xl font-bold text-slate-900">{formData.first_name} {formData.last_name}</h1>
-            <p className="text-lg text-slate-600">{formData.resume.title || formData.specialization}</p>
-            <div className="flex flex-wrap gap-4 mt-4 text-slate-500 text-sm">
-              <span className="flex items-center gap-1.5">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                </svg>
-                {formData.current_city}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                </svg>
-                {formData.phone_number}
-              </span>
-              <span className="flex items-center gap-1.5">
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
-                </svg>
-                {/* APAAR ID hidden as per requirements */}
-                {/* APAAR ID: {formData.apaar_id} */}
-              </span>
+          {/* User Basic Info */}
+          <div className="flex-grow text-center md:text-left pt-4">
+            <div className="flex items-center justify-center md:justify-start gap-3 mb-2">
+              <h1 className="text-3xl font-black text-slate-900 tracking-tight">
+                {formData.first_name} {formData.last_name}
+              </h1>
+              <button onClick={() => onEdit(1)} className="text-slate-400 hover:text-brand-500 transition-colors">
+                <Edit2 size={18} />
+              </button>
             </div>
+            
+            <p className="text-lg font-bold text-slate-600 mb-1">{formData.course}</p>
+            <p className="text-sm font-medium text-slate-500 mb-6">{formData.college_name}</p>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-8 max-w-2xl">
+              <div className="flex items-center gap-2.5 text-slate-500">
+                <MapPin size={16} className="text-brand-500" />
+                <span className="text-sm font-semibold">{formData.current_city || "City not set"}</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-slate-500">
+                <Phone size={16} className="text-brand-500" />
+                <span className="text-sm font-semibold">{formData.phone_number || "Add phone"}</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-slate-500">
+                <User size={16} className="text-brand-500" />
+                <span className="text-sm font-semibold capitalize">{formData.gender || "Add gender"}</span>
+              </div>
+              <div className="flex items-center gap-2.5 text-slate-500">
+                <Mail size={16} className="text-brand-500" />
+                <span className="text-sm font-semibold truncate">{user?.email || "Email not found"}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Profile Completion Box */}
+          <div className="w-full md:w-80 bg-brand-50/50 rounded-2xl p-6 border border-brand-100">
+            <div className="space-y-4 mb-6">
+              {[
+                { label: 'Add details', bonus: '8%', done: !!formData.current_city },
+                { label: 'Add skills', bonus: '10%', done: formData.resume?.skills_categorized?.technical?.length > 0 },
+                { label: 'Upload resume', bonus: '20%', done: !!formData.resume?.resume_file_path },
+              ].map((item, i) => (
+                <div key={i} className="flex items-center justify-between group">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${item.done ? 'bg-brand-500 text-white' : 'bg-white text-slate-400 border border-slate-200'}`}>
+                      {item.done ? <Check size={14} strokeWidth={3} /> : i + 1}
+                    </div>
+                    <span className={`text-xs font-bold ${item.done ? 'text-slate-400 line-through' : 'text-slate-600'}`}>{item.label}</span>
+                  </div>
+                  {!item.done && <span className="text-[10px] font-black text-brand-600 bg-white px-2 py-0.5 rounded border border-brand-100">↑ {item.bonus}</span>}
+                </div>
+              ))}
+            </div>
+            <button 
+              onClick={() => onEdit(1)}
+              className="w-full py-3 bg-brand-500 text-white rounded-xl text-sm font-black shadow-lg shadow-brand-500/20 hover:bg-brand-600 transition-all active:scale-[0.98]"
+            >
+              Update Profile
+            </button>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Left Column: Education & Info */}
-        <div className="space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <span className="text-brand-500">🎓</span> Education
-            </h3>
-            <div className="space-y-4">
-              <div>
-                <p className="font-semibold text-slate-800 text-sm">{formData.course}</p>
-                <p className="text-xs text-slate-500">{formData.specialization}</p>
-                <p className="text-xs text-slate-400 mt-1">{formData.college_name}</p>
-                <p className="text-[10px] text-slate-400 mt-0.5">{formData.start_year} - {formData.end_year}</p>
-              </div>
-              {formData.resume.education_entries?.map((edu: any, i: number) => (
-                <div key={i} className="pt-3 border-t border-slate-50">
-                  <p className="font-semibold text-slate-800 text-sm">{edu.degree}</p>
-                  <p className="text-xs text-slate-500">{edu.institution}</p>
-                  <p className="text-xs text-slate-400 mt-1">{edu.year}</p>
-                </div>
-              ))}
-            </div>
-          </div>
+      <div className="flex flex-wrap gap-3 mb-6">
+        {/* Prominent Upload Resume Button */}
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className={`px-6 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 shadow-md transition-all flex items-center gap-2 ${uploading ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}
+        >
+          {uploading ? (
+            <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            <Upload size={18} />
+          )}
+          {uploading ? 'Uploading...' : 'Upload Resume'}
+        </button>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <span className="text-brand-500">🌐</span> Languages
-            </h3>
-            <div className="flex flex-wrap gap-2">
-              {formData.languages.map((lang: string, i: number) => (
-                <span key={i} className="px-3 py-1 bg-slate-50 text-slate-600 rounded-lg text-xs font-medium border border-slate-100">
-                  {lang}
-                </span>
-              ))}
-            </div>
-          </div>
-        </div>
+        {/* Verify Certificate Button */}
+        <button
+          onClick={() => certInputRef.current?.click()}
+          disabled={certUploading}
+          className={`px-6 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 shadow-md transition-all flex items-center gap-2 ${certUploading ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}
+        >
+          {certUploading ? (
+            <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          )}
+          {certUploading ? 'Verifying...' : 'Verify Certificate'}
+        </button>
 
-        {/* Right Column: Experience & Skills */}
-        <div className="md:col-span-2 space-y-6">
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <span className="text-brand-500">💼</span> Experience
-            </h3>
-            {formData.resume.work_experience?.length > 0 ? (
-              <div className="space-y-6">
-                {formData.resume.work_experience.map((exp: any, i: number) => (
-                  <div key={i} className="relative pl-6 border-l-2 border-slate-100 pb-2 last:pb-0">
-                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-brand-100 border-2 border-white shadow-sm"></div>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-bold text-slate-800">{exp.position}</p>
-                        <p className="text-sm text-brand-600 font-medium">{exp.company}</p>
+        {formData.resume?.resume_file_path && (
+          <a
+            href={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-6 py-2 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl text-sm font-semibold hover:bg-blue-100 transition-all flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            View Resume
+          </a>
+        )}
+
+        <button
+          onClick={onLogout}
+          className="px-6 py-2 bg-red-50 text-red-600 border border-red-100 rounded-xl text-sm font-semibold hover:bg-red-100 transition-all flex items-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          Logout
+        </button>
+
+        <button
+          onClick={() => onEdit(1)}
+          className="px-6 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Edit Profile
+        </button>
+
+        <Link
+          to="/resume-maker"
+          className="px-6 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 hover:scale-105 transition-all flex items-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          Enhance Resume
+        </Link>
+      </div>
+
+      {/* Navigation Tabs */}
+      <div className="flex items-center gap-8 border-b border-slate-200 mb-8">
+        <button 
+          onClick={() => setActiveTab('view')}
+          className={`pb-4 text-sm font-black uppercase tracking-widest transition-all relative ${activeTab === 'view' ? 'text-brand-600' : 'text-slate-400 hover:text-slate-600'}`}
+        >
+          View & Edit
+          {activeTab === 'view' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-brand-500 rounded-t-full" />}
+        </button>
+        <button 
+          onClick={() => setActiveTab('insights')}
+          className={`pb-4 text-sm font-black uppercase tracking-widest transition-all relative ${activeTab === 'insights' ? 'text-brand-600' : 'text-slate-400 hover:text-slate-600'}`}
+        >
+          Activity insights
+          {activeTab === 'insights' && <div className="absolute bottom-0 left-0 right-0 h-1 bg-brand-500 rounded-t-full" />}
+        </button>
+      </div>
+
+      <div className="flex flex-col lg:flex-row gap-8">
+        {activeTab === 'view' ? (
+          <>
+            {/* Left Sidebar: Quick Links */}
+            <div className="lg:w-1/4">
+              <div className="bg-white rounded-2xl shadow-soft border border-slate-100 p-6 sticky top-24">
+                <h3 className="text-sm font-black text-slate-900 uppercase tracking-widest mb-6">Quick links</h3>
+                <div className="space-y-1">
+                  {[
+                    { label: 'Preferences', id: 'preferences', icon: Target },
+                    { label: 'Education', id: 'education', icon: GraduationCap },
+                    { label: 'Key skills', id: 'skills', icon: Award },
+                    { label: 'Languages', id: 'languages', icon: Globe },
+                    { label: 'Internships', id: 'experience', icon: Briefcase },
+                    { label: 'Projects', id: 'projects', icon: Rocket },
+                    { label: 'Resume', id: 'resume', icon: FileText },
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => scrollToSection(item.id)}
+                      className="w-full flex items-center justify-between p-3 rounded-xl text-sm font-bold text-slate-600 hover:bg-brand-50 hover:text-brand-600 transition-all group"
+                    >
+                      <div className="flex items-center gap-3">
+                        <item.icon size={18} className="text-slate-400 group-hover:text-brand-500" />
+                        {item.label}
                       </div>
-                      <span className="text-xs text-slate-400 font-medium">{exp.duration}</span>
-                    </div>
-                    <ul className="mt-2 space-y-1">
-                      {exp.achievements?.map((ach: string, j: number) => (
-                        <li key={j} className="text-sm text-slate-600 flex gap-2">
-                          <span className="text-brand-300 mt-1.5 w-1 h-1 rounded-full bg-brand-500 shrink-0"></span>
-                          {ach}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ))}
+                      <ChevronRight size={14} className="text-slate-300 opacity-0 group-hover:opacity-100 transition-all" />
+                    </button>
+                  ))}
+                </div>
               </div>
-            ) : (
-              <p className="text-slate-400 text-sm italic italic">No work experience added yet.</p>
-            )}
-          </div>
+            </div>
 
-          <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-            <h3 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <span className="text-brand-500">⚡</span> Skills
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {Object.entries(formData.resume.skills_categorized || {}).map(([cat, skills]: [string, any]) => (
-                <div key={cat}>
-                  <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">{cat} Skills</p>
-                  <div className="space-y-3">
-                    {skills.map((skill: any, i: number) => (
-                      <div key={i}>
-                        <div className="flex justify-between mb-1">
-                          <span className="text-sm font-medium text-slate-700">{skill.name}</span>
-                          <span className="text-xs text-slate-400">{skill.level}%</span>
-                        </div>
-                        <div className="h-1.5 w-full bg-slate-50 rounded-full overflow-hidden">
-                          <div className="h-full bg-brand-500 rounded-full" style={{ width: `${skill.level}%` }}></div>
+            {/* Right Content Area */}
+            <div className="lg:w-3/4 space-y-8">
+              {/* Career Preferences Section */}
+              <section id="preferences" className="bg-white rounded-3xl shadow-soft border border-slate-100 overflow-hidden">
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-lg font-black text-slate-900 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-brand-50 text-brand-500 flex items-center justify-center">
+                        <Target size={20} />
+                      </div>
+                      Career Preferences
+                    </h3>
+                    <button onClick={() => onEdit(3)} className="text-brand-600 text-sm font-black uppercase tracking-widest hover:text-brand-700">Edit</button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    <div>
+                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Preferred job type</p>
+                      <div className="flex flex-wrap gap-2">
+                        {formData.looking_for?.length > 0 ? formData.looking_for.map((item: string, i: number) => (
+                          <span key={i} className="px-3 py-1.5 bg-slate-50 text-slate-700 rounded-lg text-xs font-bold border border-slate-100">{item}</span>
+                        )) : <button onClick={() => onEdit(3)} className="text-brand-600 text-xs font-bold hover:underline">Add desired job type</button>}
+                      </div>
+                    </div>
+                    <div>
+                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Availability to work</p>
+                      <div className="flex flex-wrap gap-2">
+                        {formData.work_mode?.length > 0 ? formData.work_mode.map((item: string, i: number) => (
+                          <span key={i} className="px-3 py-1.5 bg-slate-50 text-slate-700 rounded-lg text-xs font-bold border border-slate-100">{item}</span>
+                        )) : <button onClick={() => onEdit(3)} className="text-brand-600 text-xs font-bold hover:underline">Add work availability</button>}
+                      </div>
+                    </div>
+                    <div className="md:col-span-2">
+                      <p className="text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2">Interests</p>
+                      <div className="flex flex-wrap gap-2">
+                        {formData.interests?.length > 0 ? formData.interests.map((item: string, i: number) => (
+                          <span key={i} className="px-3 py-1.5 bg-brand-50 text-brand-700 rounded-lg text-xs font-bold border border-brand-100">{item}</span>
+                        )) : <button onClick={() => onEdit(3)} className="text-brand-600 text-xs font-bold hover:underline">Add interests</button>}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              {/* Education Section */}
+              <section id="education" className="bg-white rounded-3xl shadow-soft border border-slate-100 overflow-hidden">
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-lg font-black text-slate-900 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center">
+                        <GraduationCap size={20} />
+                      </div>
+                      Education
+                    </h3>
+                    <button onClick={() => onEdit(2)} className="text-brand-600 text-sm font-black uppercase tracking-widest hover:text-brand-700">Add</button>
+                  </div>
+                  <div className="space-y-8">
+                    {/* Primary Education */}
+                    <div className="relative pl-8 border-l-2 border-slate-100 group">
+                      <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-white border-2 border-brand-500 shadow-glow" />
+                      <p className="text-lg font-black text-slate-900 mb-1 leading-tight">{formData.course}</p>
+                      <p className="text-sm font-bold text-slate-500 mb-2">{formData.college_name}</p>
+                      <div className="flex items-center gap-3">
+                        <span className="text-[10px] font-black text-brand-600 bg-brand-50 px-2.5 py-1 rounded-lg uppercase tracking-wider">{formData.start_year} - {formData.end_year}</span>
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Full Time</span>
+                      </div>
+                    </div>
+                    
+                    {/* Additional Education Entries */}
+                    {formData.resume?.education_entries?.map((edu: any, i: number) => (
+                      <div key={i} className="relative pl-8 border-l-2 border-slate-100 group">
+                        <div className="absolute -left-[9px] top-1 w-4 h-4 rounded-full bg-white border-2 border-slate-300 group-hover:border-brand-400 transition-colors" />
+                        <p className="text-lg font-black text-slate-900 mb-1 leading-tight">{edu.degree}</p>
+                        <p className="text-sm font-bold text-slate-500 mb-2">{edu.institution}</p>
+                        <div className="flex items-center gap-3">
+                          <span className="text-[10px] font-black text-slate-400 bg-slate-50 px-2.5 py-1 rounded-lg uppercase tracking-wider">Graduated in {edu.year}</span>
                         </div>
                       </div>
                     ))}
+
+                    {!formData.resume?.education_entries?.length && (
+                      <div className="py-4 space-y-4">
+                        <div className="flex items-center justify-between group cursor-pointer" onClick={() => onEdit(2)}>
+                          <div>
+                            <p className="text-sm font-black text-brand-600 hover:underline">Add Class XII Details</p>
+                            <p className="text-xs text-slate-400">Scored Percentage, Passed out in Passing Year</p>
+                          </div>
+                          <Plus size={16} className="text-slate-300" />
+                        </div>
+                        <div className="flex items-center justify-between group cursor-pointer" onClick={() => onEdit(2)}>
+                          <div>
+                            <p className="text-sm font-black text-brand-600 hover:underline">Add Class X Details</p>
+                            <p className="text-xs text-slate-400">Scored Percentage, Passed out in Passing Year</p>
+                          </div>
+                          <Plus size={16} className="text-slate-300" />
+                        </div>
+                      </div>
+                    )}
                   </div>
+                </div>
+              </section>
+
+              {/* Key Skills Section */}
+              <section id="skills" className="bg-white rounded-3xl shadow-soft border border-slate-100 overflow-hidden">
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-lg font-black text-slate-900 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-500 flex items-center justify-center">
+                        <Award size={20} />
+                      </div>
+                      Key skills
+                    </h3>
+                    <button onClick={() => onEdit(4)} className="text-brand-600 text-sm font-black uppercase tracking-widest hover:text-brand-700">Edit</button>
+                  </div>
+                  <div className="flex flex-wrap gap-3">
+                    {Object.values(formData.resume?.skills_categorized || {}).flat().length > 0 ? 
+                      Object.values(formData.resume?.skills_categorized || {}).flat().map((skill: any, i: number) => (
+                        <span key={i} className="px-5 py-2.5 bg-slate-50 text-slate-700 rounded-2xl text-xs font-black border border-slate-100 hover:bg-brand-500 hover:text-white hover:border-brand-500 transition-all cursor-default shadow-sm">
+                          {skill.name}
+                        </span>
+                      )) : (
+                      <p className="text-sm text-slate-400 font-medium">Add your skills to stand out to employers.</p>
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              {/* Languages Section */}
+              <section id="languages" className="bg-white rounded-3xl shadow-soft border border-slate-100 overflow-hidden">
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-lg font-black text-slate-900 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-500 flex items-center justify-center">
+                        <Globe size={20} />
+                      </div>
+                      Languages
+                    </h3>
+                    <button onClick={() => onEdit(1)} className="text-brand-600 text-sm font-black uppercase tracking-widest hover:text-brand-700">Edit</button>
+                  </div>
+                  {formData.languages?.length > 0 ? (
+                    <div className="flex flex-wrap gap-3">
+                      {formData.languages.map((lang: string, i: number) => (
+                        <span key={i} className="px-5 py-2.5 bg-indigo-50/50 text-indigo-700 rounded-2xl text-xs font-black border border-indigo-100">
+                          {lang}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-400 font-medium">Talk about the languages that you can speak, read or write</p>
+                  )}
+                </div>
+              </section>
+
+              {/* Internships/Experience Section */}
+              <section id="experience" className="bg-white rounded-3xl shadow-soft border border-slate-100 overflow-hidden">
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-lg font-black text-slate-900 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-500 flex items-center justify-center">
+                        <Briefcase size={20} />
+                      </div>
+                      Internships
+                    </h3>
+                    <button onClick={() => onEdit(4)} className="text-brand-600 text-sm font-black uppercase tracking-widest hover:text-brand-700">Add</button>
+                  </div>
+                  {formData.resume?.work_experience?.length > 0 ? (
+                    <div className="space-y-10">
+                      {formData.resume.work_experience.map((exp: any, i: number) => (
+                        <div key={i} className="flex gap-6 group">
+                          <div className="flex-grow">
+                            <p className="text-lg font-black text-slate-900 mb-1">{exp.position}</p>
+                            <p className="text-sm font-black text-brand-600 uppercase tracking-widest mb-3">{exp.company}</p>
+                            <p className="text-xs text-slate-500 font-bold mb-4">{exp.duration}</p>
+                            <ul className="space-y-2">
+                              {exp.achievements?.map((ach: string, j: number) => (
+                                <li key={j} className="text-sm text-slate-600 flex gap-3">
+                                  <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-slate-200 shrink-0" />
+                                  {ach}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-400 font-medium italic">Share your professional journey</p>
+                  )}
+                </div>
+              </section>
+
+              {/* Projects Section */}
+              <section id="projects" className="bg-white rounded-3xl shadow-soft border border-slate-100 overflow-hidden">
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-lg font-black text-slate-900 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-500 flex items-center justify-center">
+                        <Rocket size={20} />
+                      </div>
+                      Projects
+                    </h3>
+                    <button onClick={() => onEdit(4)} className="text-brand-600 text-sm font-black uppercase tracking-widest hover:text-brand-700">Add</button>
+                  </div>
+                  {formData.resume?.projects?.length > 0 ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {formData.resume.projects.map((proj: any, i: number) => (
+                        <div key={i} className="p-6 rounded-2xl border border-slate-100 bg-slate-50/50 hover:border-brand-200 transition-all">
+                          <p className="text-base font-black text-slate-900 mb-1">{proj.title}</p>
+                          <p className="text-xs text-slate-500 font-bold mb-3">{proj.duration}</p>
+                          <p className="text-sm text-slate-600 line-clamp-3">{proj.description}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-slate-400 font-medium">Highlight your best work and technical projects</p>
+                  )}
+                </div>
+              </section>
+
+              {/* Resume Section */}
+              <section id="resume" className="bg-white rounded-3xl shadow-soft border border-slate-100 overflow-hidden">
+                <div className="p-8">
+                  <div className="flex items-center justify-between mb-8">
+                    <h3 className="text-lg font-black text-slate-900 flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-500 flex items-center justify-center">
+                        <FileText size={20} />
+                      </div>
+                      Resume
+                    </h3>
+                    <button onClick={() => onEdit(4)} className="text-brand-600 text-sm font-black uppercase tracking-widest hover:text-brand-700">Update</button>
+                  </div>
+                  
+                  <p className="text-sm text-slate-500 font-medium mb-8">
+                    Your resume is the first impression you make on potential employers. Craft it carefully to secure your desired job or internship.
+                  </p>
+
+                  <div className="relative group mb-8">
+                    <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-slate-200 rounded-[2rem] bg-slate-50/30 hover:bg-brand-50/30 hover:border-brand-300 transition-all cursor-pointer">
+                      <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                        <div className="p-4 bg-white rounded-2xl shadow-sm mb-4 text-brand-500">
+                          <Upload size={24} />
+                        </div>
+                        <p className="text-sm font-black text-brand-600">Upload resume</p>
+                        <p className="text-[10px] text-slate-400 mt-1 uppercase tracking-widest font-bold">Supported formats: doc, docx, rtf, pdf, up to 2MB</p>
+                      </div>
+                      <input type="file" className="hidden" onChange={handleResumeUpload} accept=".pdf,.doc,.docx" />
+                    </label>
+                  </div>
+
+                  <div className="flex items-center gap-6 p-6 rounded-3xl bg-blue-50/50 border border-blue-100">
+                    <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-sm text-blue-500 flex-shrink-0">
+                      <FileText size={32} />
+                    </div>
+                    <div className="flex-grow">
+                      <p className="text-base font-black text-slate-900 mb-1">Don't have a resume yet?</p>
+                      <p className="text-xs text-slate-500 font-bold">Create a job-winning resume with our simple resume builder</p>
+                    </div>
+                    <Link to="/resume-maker" className="text-sm font-black text-brand-600 hover:underline">Create resume</Link>
+                  </div>
+
+                  {formData.resume?.resume_file_path && (
+                    <div className="mt-8 pt-8 border-t border-slate-100 flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center">
+                          <Check size={24} />
+                        </div>
+                        <div>
+                          <p className="text-sm font-black text-slate-900">Resume uploaded successfully</p>
+                          <p className="text-xs text-slate-400 font-bold">Last updated: {formData.resume.resume_uploaded_at ? new Date(formData.resume.resume_uploaded_at).toLocaleDateString() : 'Recently'}</p>
+                        </div>
+                      </div>
+                      <a
+                        href={`${import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000'}/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-xs font-black text-slate-700 hover:bg-slate-50 transition-all shadow-sm flex items-center gap-2"
+                      >
+                        <Download size={14} />
+                        Download CV
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </section>
+            </div>
+          </>
+        ) : (
+          <div className="flex-grow bg-white rounded-3xl shadow-soft border border-slate-100 p-12 text-center">
+            <div className="w-20 h-20 bg-brand-50 text-brand-500 rounded-3xl flex items-center justify-center mx-auto mb-6">
+              <Sparkles size={40} />
+            </div>
+            <h3 className="text-2xl font-black text-slate-900 mb-2">Activity Insights</h3>
+            <p className="text-slate-500 font-medium max-w-md mx-auto mb-8">Detailed tracking of your application performance and profile views will appear here soon.</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-2xl mx-auto">
+              {[
+                { label: 'Profile Views', value: '0' },
+                { label: 'Search Appearances', value: '0' },
+                { label: 'Applications', value: formData.resume?.applications?.length || '0' },
+              ].map((stat, i) => (
+                <div key={i} className="p-6 rounded-2xl bg-slate-50 border border-slate-100">
+                  <p className="text-2xl font-black text-slate-900 mb-1">{stat.value}</p>
+                  <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
                 </div>
               ))}
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
@@ -1356,6 +1718,7 @@ const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload }: any) =>
 export function StudentProfileSetup() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const toast = useToast();
   const [step, setStep] = useState(1);
@@ -1364,7 +1727,11 @@ export function StudentProfileSetup() {
   const [error, setError] = useState<string | null>(null);
   const [suggestedSkills, setSuggestedSkills] = useState<string[]>([]);
   const [isViewMode, setIsViewMode] = useState(false);
-  const [hasProfile, setHasProfile] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -1408,181 +1775,212 @@ export function StudentProfileSetup() {
     } as any
   });
 
-  // Watch for Stream changes to update Suggested Skills
+  const hasPreFilled = useRef(false);
+
+  // Main Effect to load data (either from API or from parsed resume)
   useEffect(() => {
-    if (formData.specialization && STREAM_SKILLS_MAPPING[formData.specialization]) {
-      setSuggestedSkills(STREAM_SKILLS_MAPPING[formData.specialization]);
-    } else {
-      setSuggestedSkills([]);
+    // Check if we have parsedData from navigation
+    if (location.state?.parsedData && !hasPreFilled.current) {
+      const { parsedData } = location.state;
+      console.log("Handling pre-filled data from resume:", parsedData);
+      
+      fetchData(parsedData);
+      
+      hasPreFilled.current = true;
+      toast.success("We've pre-filled some details from your resume. Please review and complete the rest.");
+      
+      // Clear the state so it doesn't re-trigger on refresh/back
+      navigate(location.pathname + location.search, { replace: true, state: {} });
+    } else if (!hasPreFilled.current) {
+      // Normal fetch only if not already pre-filled
+      fetchData();
     }
-  }, [formData.specialization]);
+  }, [location.state, toast, navigate, location.pathname, location.search]);
 
-  // Automatically update resume fields based on profile details
-  useEffect(() => {
-    // Combine interests and suggested skills for technical skills
-    const allSkills = new Set<string>();
+   // Watch for Stream changes to update Suggested Skills
+   useEffect(() => {
+     if (formData.specialization && STREAM_SKILLS_MAPPING[formData.specialization]) {
+       setSuggestedSkills(STREAM_SKILLS_MAPPING[formData.specialization]);
+     } else {
+       setSuggestedSkills([]);
+     }
+   }, [formData.specialization]);
 
-    // Add selected interests
-    formData.interests.forEach(interest => {
-      allSkills.add(interest);
-    });
+   // Automatically update resume fields based on profile details
+   useEffect(() => {
+     // Combine interests and suggested skills for technical skills
+     const allSkills = new Set<string>();
 
-    // Add suggested skills based on specialization
-    suggestedSkills.forEach(skill => {
-      allSkills.add(skill);
-    });
+     // Add selected interests
+     formData.interests.forEach(interest => {
+       allSkills.add(interest);
+     });
 
-    // Map to resume skills format
-    const technicalSkills = Array.from(allSkills).map(skill => ({
-      name: skill,
-      level: 60 // Default proficiency level for technical skills
-    }));
+     // Add suggested skills based on specialization
+     suggestedSkills.forEach(skill => {
+       allSkills.add(skill);
+     });
 
-    // Map selected languages to resume language skills
-    const languageSkills = formData.languages.map(lang => ({
-      name: lang,
-      level: 70 // Default proficiency level for languages
-    }));
+     // Map to resume skills format
+     const technicalSkills = Array.from(allSkills).map(skill => ({
+       name: skill,
+       level: 60 // Default proficiency level for technical skills
+     }));
 
-    // Generate career objective based on profile details
-    const careerObjective = formData.specialization && formData.profile_type
-      ? `Motivated ${formData.profile_type} with expertise in ${formData.specialization}, seeking opportunities in ${formData.interests[0] || 'the industry'} to apply my skills and contribute to organizational success.`
-      : '';
+     // Map selected languages to resume language skills
+     const languageSkills = formData.languages.map(lang => ({
+       name: lang,
+       level: 70 // Default proficiency level for languages
+     }));
 
-    // Generate professional title based on specialization
-    const professionalTitle = formData.specialization
-      ? `${formData.specialization} ${formData.profile_type || 'Professional'}`
-      : '';
+     // Generate career objective based on profile details
+     const careerObjective = formData.specialization && formData.profile_type
+       ? `Motivated ${formData.profile_type} with expertise in ${formData.specialization}, seeking opportunities in ${formData.interests[0] || 'the industry'} to apply my skills and contribute to organizational success.`
+       : '';
 
-    setFormData(prev => ({
-      ...prev,
-      resume: {
-        ...prev.resume,
-        career_objective: prev.resume.career_objective || careerObjective,
-        title: prev.resume.title || professionalTitle,
-        skills_categorized: {
-          ...prev.resume.skills_categorized,
-          technical: technicalSkills,
-          languages: languageSkills
-        }
-      }
-    }));
-  }, [formData.interests, suggestedSkills, formData.specialization, formData.profile_type, formData.languages]);
+     // Generate professional title based on specialization
+     const professionalTitle = formData.specialization
+       ? `${formData.specialization} ${formData.profile_type || 'Professional'}`
+       : '';
 
-  const toggleSelection = (field: keyof typeof formData, value: string) => {
-    setFormData(prev => {
-      const current = prev[field] as string[];
-      const updatedValues = current.includes(value)
-        ? current.filter(item => item !== value)
-        : [...current, value];
+     setFormData(prev => ({
+       ...prev,
+       resume: {
+         ...prev.resume,
+         career_objective: prev.resume.career_objective || careerObjective,
+         title: prev.resume.title || professionalTitle,
+         skills_categorized: {
+           ...prev.resume.skills_categorized,
+           technical: technicalSkills,
+           languages: languageSkills
+         }
+       }
+     }));
+   }, [formData.interests, suggestedSkills, formData.specialization, formData.profile_type, formData.languages]);
 
-      return { ...prev, [field]: updatedValues };
-    });
-  };
+   const toggleSelection = (field: keyof typeof formData, value: string) => {
+     setFormData(prev => {
+       const current = prev[field] as string[];
+       const updatedValues = current.includes(value)
+         ? current.filter(item => item !== value)
+         : [...current, value];
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
+       return { ...prev, [field]: updatedValues };
+     });
+   };
 
-  const handleResumeChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      resume: {
-        ...prev.resume,
-        [field]: value
-      }
-    }));
-  };
+   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+     const { name, value } = e.target;
+     setFormData(prev => ({ ...prev, [name]: value }));
+   };
 
-  const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
+   const handleResumeUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+     if (!(e.target.files && e.target.files[0])) return;
 
-      // 1. Client-side validation: File size (5MB)
-      const MAX_SIZE = 5 * 1024 * 1024;
-      if (file.size > MAX_SIZE) {
-        toast.error("File too large. Maximum size allowed is 5MB.");
-        return;
-      }
+     const file = e.target.files[0];
+     const MAX_SIZE = 5 * 1024 * 1024;
+     if (file.size > MAX_SIZE) {
+       toast.error("File too large. Maximum size allowed is 5MB.");
+       return;
+     }
 
-      // 2. Client-side validation: File type
-      const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
-      if (!allowedTypes.includes(file.type)) {
-        toast.error("Invalid file format. Please upload PDF, DOC, or DOCX.");
-        return;
-      }
+     const allowedTypes = [
+       'application/pdf',
+       'application/msword',
+       'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+     ];
+     if (!allowedTypes.includes(file.type)) {
+       toast.error("Invalid file format. Please upload PDF, DOC, or DOCX.");
+       return;
+     }
 
-      const formDataUpload = new FormData();
-      formDataUpload.append("file", file);
+     const formDataUpload = new FormData();
+     formDataUpload.append("file", file);
 
-      try {
-        setLoading(true);
-        const response = await api.post("/students/me/resume/upload", formDataUpload);
-        toast.success("Resume uploaded successfully!");
+     try {
+       setLoading(true);
 
-        // Refresh profile data if in view mode
-        if (isViewMode) {
-          fetchData();
-        }
-      } catch (err) {
-        const error = err as ApiError;
-        toast.error(error.message || "Failed to upload resume.");
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
+       // 1) Parse + auto-fill (primary requirement)
+       // Backend parser route currently supports PDF for parsing.
+       const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+       if (isPdf) {
+         const parseResponse: any = await api.post("/students/me/parse-resume", formDataUpload);
+         if (parseResponse?.success && parseResponse?.data) {
+           await fetchData(parseResponse.data); // merge only known profile-form fields
+           setIsViewMode(false);                // bring user to editable form
+           setStep(1);
+           toast.success("Resume parsed and profile fields auto-filled. Please review and complete missing details.");
+         } else {
+           toast.error("Resume uploaded but parsing failed. Please fill details manually.");
+         }
+       } else {
+         toast.info("Auto-fill is currently available for PDF resumes. You can still fill details manually.");
+       }
 
-  const validateStep = (currentStep: number) => {
-    setError(null);
-    if (currentStep === 1) {
-      if (!formData.first_name || !formData.last_name || !formData.phone_number || !formData.current_city || !formData.gender || formData.languages.length === 0) {
-        setError("Please fill all mandatory fields to proceed.");
-        return false;
-      }
-    } else if (currentStep === 2) {
-      if (!formData.profile_type || !formData.course || !formData.college_name || !formData.specialization || !formData.start_year || !formData.end_year) {
-        setError("Please fill all mandatory fields to proceed.");
-        return false;
-      }
-      if (parseInt(formData.start_year) >= parseInt(formData.end_year)) {
-        setError("Start year must be before the end year.");
-        return false;
-      }
-    } else if (currentStep === 3) {
-      if (!formData.interests.length || !formData.looking_for.length || !formData.work_mode.length) {
-        setError("Please select at least one option for each preference.");
-        return false;
-      }
-    }
-    return true;
-  };
+       // 2) Optional best-effort file upload if backend endpoint is present
+       // (kept silent because some deployments may not expose this route)
+       try {
+         await api.post("/students/me/resume/upload", formDataUpload);
+       } catch {
+         // no-op
+       }
+     } catch (err) {
+       const error = err as ApiError;
+       toast.error(error.message || "Failed to process resume.");
+     } finally {
+       setLoading(false);
+       if (e.target) e.target.value = "";
+     }
+   };
 
-  const handleNext = () => {
-    if (validateStep(step)) {
-      setStep(prev => prev + 1);
-      setError(null);
-    }
-  };
+   const validateStep = (currentStep: number) => {
+     setError(null);
+     if (currentStep === 1) {
+       if (!formData.first_name || !formData.last_name || !formData.phone_number || !formData.current_city || !formData.gender || formData.languages.length === 0) {
+         setError("Please fill all mandatory fields to proceed.");
+         return false;
+       }
+     } else if (currentStep === 2) {
+       if (!formData.profile_type || !formData.course || !formData.college_name || !formData.specialization || !formData.start_year || !formData.end_year) {
+         setError("Please fill all mandatory fields to proceed.");
+         return false;
+       }
+       if (parseInt(formData.start_year) >= parseInt(formData.end_year)) {
+         setError("Start year must be before the end year.");
+         return false;
+       }
+     } else if (currentStep === 3) {
+       if (!formData.interests.length || !formData.looking_for.length || !formData.work_mode.length) {
+         setError("Please select at least one option for each preference.");
+         return false;
+       }
+     }
+     return true;
+   };
 
-  const handleBack = () => {
-    setStep(prev => prev - 1);
-    setError(null);
-  };
+   const handleNext = () => {
+     if (validateStep(step)) {
+       if (step === 3) {
+         navigate('/resume-maker');
+       } else {
+         setStep(prev => prev + 1);
+       }
+       setError(null);
+     }
+   };
 
-  const handleLogout = () => {
-    logout();
-    navigate('/');
-  };
+   const handleBack = () => {
+     setStep(prev => prev - 1);
+     setError(null);
+   };
 
-  const handleEdit = () => {
-    setIsViewMode(false);
-    setStep(1);
-  };
+   const handleEdit = (targetStep: number = 1) => {
+     setIsViewMode(false);
+     setStep(targetStep);
+   };
 
-  const fetchData = async () => {
-    const parseList = (str: string | null) => str ? str.split(", ").filter(Boolean) : [];
+   const fetchData = async (parsedDataOverride?: any) => {
+    const parseList = (str: string | null) => str ? str.split(",").map(s => s.trim()).filter(Boolean) : [];
     const parseJSON = (val: any, fallback: any) => {
       if (!val) return fallback;
       try {
@@ -1590,6 +1988,29 @@ export function StudentProfileSetup() {
       } catch {
         return fallback;
       }
+    };
+    const normalizeParsedEducation = (rawEducation: any): any[] => {
+      if (!Array.isArray(rawEducation)) return [];
+      return rawEducation.map((edu: any) => {
+        const yearText = String(edu?.year || "");
+        const yearMatches = yearText.match(/\b(19|20)\d{2}\b/g) || [];
+        const derivedStartYear = edu?.start_year
+          ? String(edu.start_year)
+          : (yearMatches.length > 1 ? yearMatches[0] : "");
+        const derivedEndYear = edu?.end_year
+          ? String(edu.end_year)
+          : (yearMatches.length > 0 ? yearMatches[yearMatches.length - 1] : "");
+
+        return {
+          degree: edu?.degree || "",
+          institution: edu?.institution || edu?.university || "",
+          year: edu?.year || (derivedStartYear && derivedEndYear ? `${derivedStartYear}-${derivedEndYear}` : ""),
+          gpa: edu?.gpa || "",
+          field_of_study: edu?.field_of_study || edu?.specialization || "",
+          start_year: derivedStartYear,
+          end_year: derivedEndYear,
+        };
+      });
     };
 
     try {
@@ -1599,7 +2020,6 @@ export function StudentProfileSetup() {
       try {
         console.log("Fetching student profile...");
         const profileRes = await api.get<Record<string, any>>("/students/me");
-        console.log("Profile response received:", profileRes);
         profileData = profileRes;
       } catch (err) {
         console.log("No profile found or error fetching profile:", err);
@@ -1614,54 +2034,115 @@ export function StudentProfileSetup() {
         console.log("No resume found");
       }
 
-      if (profileData) {
-        console.log("Profile data exists. Processing...");
-        setHasProfile(true);
-        // Check if edit mode is requested via URL params
-        const isEditMode = searchParams.get("mode") === "edit";
-        console.log("Edit mode requested:", isEditMode);
+      // If we have parsedDataOverride, we'll merge it later
+      const dataToUse = parsedDataOverride || {};
+      const parsedEducationEntries = normalizeParsedEducation(
+        dataToUse.education_entries || dataToUse.education
+      );
+      const primaryParsedEducation = parsedEducationEntries[0] || null;
+      const parsedStartYear = primaryParsedEducation?.start_year
+        ? String(primaryParsedEducation.start_year)
+        : "";
+      const parsedEndYear = primaryParsedEducation?.end_year
+        ? String(primaryParsedEducation.end_year)
+        : "";
 
-        // Simplified Logic: If profile data exists (fetched from API), show View Mode by default
-        // Only show form if explicitly requested via ?mode=edit
-        const shouldView = !isEditMode;
-        console.log("Setting View Mode to:", shouldView);
-        setIsViewMode(shouldView);
-
-        setFormData(prev => ({
+      setFormData(prev => {
+        // Prepare updated fields
+        const updatedFields: any = {
           ...prev,
-          first_name: profileData.first_name || "",
-          last_name: profileData.last_name || "",
-          phone_number: profileData.phone_number || "",
-          current_city: profileData.current_city || "",
-          gender: profileData.gender || "",
-          languages: parseList(profileData.languages),
-          apaar_id: profileData.apaar_id || "",
-          profile_type: profileData.profile_type || "",
-          course: profileData.degree || "",
-          specialization: profileData.department || "",
-          college_name: profileData.university_name || "",
-          start_year: profileData.start_year ? String(profileData.start_year) : "",
-          end_year: profileData.end_year ? String(profileData.end_year) : "",
-          interests: parseList(profileData.interests),
-          looking_for: parseList(profileData.looking_for),
-          work_mode: parseList(profileData.work_mode),
-          resume: resumeData ? {
+          // 1. Profile fields (priority: Parsed > Fetched > Previous)
+          first_name: dataToUse.first_name || (profileData ? profileData.first_name : prev.first_name) || "",
+          last_name: dataToUse.last_name || (profileData ? profileData.last_name : prev.last_name) || "",
+          phone_number: dataToUse.phone_number 
+            ? dataToUse.phone_number.replace(/\D/g, '').slice(-10) // Clean to 10 digits
+            : (profileData ? profileData.phone_number : prev.phone_number) || "",
+          
+          // 2. Fetch-only fields
+          current_city: (profileData ? profileData.current_city : prev.current_city) || "",
+          gender: (profileData ? profileData.gender : prev.gender) || "",
+          languages: profileData ? parseList(profileData.languages) : prev.languages,
+          apaar_id: (profileData ? profileData.apaar_id : prev.apaar_id) || "",
+          profile_type: (profileData ? profileData.profile_type : prev.profile_type) || "",
+          course: dataToUse.course
+            || primaryParsedEducation?.degree
+            || (profileData ? profileData.degree : prev.course)
+            || "",
+          specialization: dataToUse.specialization
+            || primaryParsedEducation?.field_of_study
+            || (profileData ? profileData.department : prev.specialization)
+            || "",
+          college_name: dataToUse.college_name
+            || primaryParsedEducation?.institution
+            || (profileData ? profileData.university_name : prev.college_name)
+            || "",
+          start_year: parsedStartYear
+            || ((profileData && profileData.start_year) ? String(profileData.start_year) : prev.start_year),
+          end_year: parsedEndYear
+            || ((profileData && profileData.end_year) ? String(profileData.end_year) : prev.end_year),
+          
+          // 3. Interests (merge parsed skills into interests)
+          interests: dataToUse.skills 
+            ? [...new Set([...(profileData ? parseList(profileData.interests) : prev.interests), ...dataToUse.skills])]
+            : (profileData ? parseList(profileData.interests) : prev.interests),
+            
+          looking_for: profileData ? parseList(profileData.looking_for) : prev.looking_for,
+          work_mode: profileData ? parseList(profileData.work_mode) : prev.work_mode,
+          
+          // 4. Resume fields
+          resume: {
             ...prev.resume,
-            career_objective: resumeData.career_objective || "",
-            work_experience: parseJSON(resumeData.work_experience, []),
-            projects: parseJSON(resumeData.projects, []),
-            certifications: parseJSON(resumeData.certifications, []),
-            extra_curricular: parseJSON(resumeData.extra_curricular, []),
-            education_entries: parseJSON(resumeData.education_entries, []),
-            skills_categorized: parseJSON(resumeData.skills_categorized, { technical: [], soft: [], languages: [] }),
-            title: resumeData.title || "",
-            linkedin: resumeData.linkedin || "",
-            resume_file_path: resumeData.resume_file_path || null,
-            resume_filename: resumeData.resume_filename || null,
-            resume_file_size: resumeData.resume_file_size || null,
-            resume_uploaded_at: resumeData.resume_uploaded_at || null
-          } : prev.resume
-        }));
+            career_objective: dataToUse.career_objective
+              || (resumeData ? resumeData.career_objective : prev.resume.career_objective)
+              || "",
+            work_experience: dataToUse.experience 
+              ? dataToUse.experience.map((exp: any) => ({
+                  company: exp.company || "",
+                  position: exp.position || "",
+                  duration: exp.duration || "",
+                  achievements: exp.description ? [exp.description] : [""],
+                  attachments: []
+                }))
+              : (resumeData ? parseJSON(resumeData.work_experience, []) : prev.resume.work_experience),
+            
+            projects: Array.isArray(dataToUse.projects)
+              ? dataToUse.projects
+              : (resumeData ? parseJSON(resumeData.projects, []) : prev.resume.projects),
+            certifications: Array.isArray(dataToUse.certifications)
+              ? dataToUse.certifications
+              : (resumeData ? parseJSON(resumeData.certifications, []) : prev.resume.certifications),
+            extra_curricular: resumeData ? parseJSON(resumeData.extra_curricular, []) : prev.resume.extra_curricular,
+            education_entries: parsedEducationEntries.length > 0
+              ? parsedEducationEntries
+              : (resumeData ? parseJSON(resumeData.education_entries, []) : prev.resume.education_entries),
+            
+            skills_categorized: {
+              ...prev.resume.skills_categorized,
+              technical: dataToUse.skills 
+                ? dataToUse.skills.map((s: string) => ({ name: s, level: 70 }))
+                : (resumeData ? parseJSON(resumeData.skills_categorized, { technical: [], soft: [], languages: [] }).technical : prev.resume.skills_categorized.technical),
+              soft: resumeData ? parseJSON(resumeData.skills_categorized, { technical: [], soft: [], languages: [] }).soft : prev.resume.skills_categorized.soft,
+              languages: resumeData ? parseJSON(resumeData.skills_categorized, { technical: [], soft: [], languages: [] }).languages : prev.resume.skills_categorized.languages,
+            },
+            
+            title: (resumeData ? resumeData.title : prev.resume.title) || "",
+            linkedin: (resumeData ? resumeData.linkedin : prev.resume.linkedin) || "",
+            resume_file_path: (resumeData ? resumeData.resume_file_path : prev.resume.resume_file_path) || null,
+            resume_filename: (resumeData ? resumeData.resume_filename : prev.resume.resume_filename) || null,
+            resume_file_size: (resumeData ? resumeData.resume_file_size : prev.resume.resume_file_size) || null,
+            resume_uploaded_at: (resumeData ? resumeData.resume_uploaded_at : prev.resume.resume_uploaded_at) || null
+          }
+        };
+
+        return updatedFields;
+      });
+
+      if (profileData) {
+        // Check if edit mode is requested via URL params
+        const isEditMode = searchParams.get("mode") === "edit" || !!parsedDataOverride;
+        setIsViewMode(!isEditMode);
+      } else {
+        setIsViewMode(false);
       }
     } catch (err) {
       console.error("Error fetching data:", err);
@@ -1669,10 +2150,6 @@ export function StudentProfileSetup() {
       setInitialLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchData();
-  }, []);
 
   const handleSubmit = async () => {
     setLoading(true);
@@ -1727,7 +2204,8 @@ export function StudentProfileSetup() {
       }
 
       toast.success("Profile saved successfully!");
-      navigate("/student");
+      setIsViewMode(true);
+      fetchData(); // Refresh data to show latest
     } catch (err) {
       const error = err as ApiError;
       toast.error(error.message || "Failed to save profile. Please try again.");
@@ -1756,6 +2234,7 @@ export function StudentProfileSetup() {
           onEdit={handleEdit}
           onLogout={handleLogout}
           handleResumeUpload={handleResumeUpload}
+          user={user}
         />
       </div>
     );
@@ -1797,6 +2276,7 @@ export function StudentProfileSetup() {
             loading={loading}
             error={error}
             suggestedSkills={suggestedSkills}
+            navigate={navigate}
           />
         )}
 
@@ -1825,7 +2305,7 @@ export function StudentProfileSetup() {
             )}
             <button
               onClick={handleNext}
-              className="px-8 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 font-medium transition-colors"
+              className="px-8 py-2 bg-brand-500 text-white rounded-lg hover:bg-brand-600 font-medium transition-colors"
             >
               Next
             </button>

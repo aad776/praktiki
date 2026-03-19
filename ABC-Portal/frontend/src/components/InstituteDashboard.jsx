@@ -183,25 +183,33 @@ const InstituteDashboard = () => {
   return (
     <div className="space-y-6 w-full pb-10" ref={dashboardRef}>
       {/* Header with Logout */}
-      <div className="flex justify-between items-center bg-white p-6 rounded-xl shadow-sm no-print">
-        <div className="flex items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-extrabold text-gray-900 tracking-tight">Institute ABC Analytics</h1>
-            <p className="text-sm text-gray-500">View aggregated application statistics (Restricted View)</p>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-xl shadow-sm no-print">
+        <div className="flex items-center gap-3 w-full sm:w-auto">
+          {/* Back Arrow - Only visible on Mobile */}
+          <button 
+            onClick={() => window.history.back()}
+            className="sm:hidden p-2 -ml-2 hover:bg-gray-100 rounded-full transition-colors text-gray-600"
+            aria-label="Go back"
+          >
+            <ArrowLeft size={24} />
+          </button>
+          <div className="flex flex-col">
+            <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Institute ABC Analytics</h1>
+            <p className="text-xs text-gray-500">View aggregated application statistics (Restricted View)</p>
           </div>
           <button
             onClick={handleBackToMain}
-            className="text-sm bg-orange-50 text-orange-600 px-3 py-1 rounded-full border border-orange-100 hover:bg-orange-100 transition-colors flex items-center gap-1.5"
+            className="text-sm bg-orange-50 text-orange-600 px-3 py-1 rounded-full border border-orange-100 hover:bg-orange-100 transition-colors flex items-center gap-1.5 ml-2"
           >
             Back to Praktiki
           </button>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto">
           {/* Notifications UI */}
           <div className="relative" ref={notifRef}>
             <button
               onClick={() => setNotifOpen(!notifOpen)}
-              className={`p-2 rounded-lg transition-colors relative ${notifOpen ? 'bg-orange-100 text-orange-700' : 'text-gray-500 hover:bg-gray-100'}`}
+              className={`p-2.5 rounded-lg transition-colors relative ${notifOpen ? 'bg-orange-100 text-orange-700' : 'text-gray-500 hover:bg-gray-100'}`}
             >
               <Bell size={24} />
               {unreadCount > 0 && (
@@ -212,7 +220,7 @@ const InstituteDashboard = () => {
             </button>
 
             {notifOpen && (
-              <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
+              <div className="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl shadow-2xl border border-gray-100 z-50 overflow-hidden">
                 <div className="p-4 border-b border-gray-50 flex items-center justify-between bg-gray-50/50">
                   <h3 className="font-bold text-gray-900">Notifications</h3>
                   {unreadCount > 0 && (
@@ -224,7 +232,7 @@ const InstituteDashboard = () => {
                     </button>
                   )}
                 </div>
-                <div className="max-h-[400px] overflow-y-auto">
+                <div className="max-h-[350px] overflow-y-auto">
                   {notifications.length > 0 ? (
                     <div className="divide-y divide-gray-50">
                       {notifications.map((notif) => (
@@ -235,7 +243,8 @@ const InstituteDashboard = () => {
                           <p className={`text-sm ${notif.is_read === 0 ? 'text-gray-900 font-medium' : 'text-gray-600'}`}>
                             {notif.message}
                           </p>
-                          <p className="text-[11px] text-gray-400 mt-1.5">
+                          <p className="text-[11px] text-gray-400 mt-2 flex items-center">
+                            <Clock size={12} className="mr-1" />
                             {new Date(notif.created_at).toLocaleString()}
                           </p>
                         </div>
@@ -256,9 +265,10 @@ const InstituteDashboard = () => {
 
           <button
             onClick={handleLogout}
-            className="flex items-center gap-2 text-red-600 hover:text-red-800 transition-colors px-3 py-1 rounded-md hover:bg-red-50"
+            className="flex items-center gap-2 bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 transition-colors font-medium text-sm sm:text-base"
           >
-            <LogOut size={18} /> Logout
+            <LogOut size={20} />
+            <span>Logout</span>
           </button>
         </div>
       </div>
@@ -495,8 +505,8 @@ const InstituteDashboard = () => {
 
       {stats && (
         <>
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 w-full animate-fadeIn">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 w-full animate-fadeIn">
             <div className="bg-white p-6 rounded-lg shadow border-l-4 border-slate-500">
               <h3 className="text-gray-500 text-sm">Total Students</h3>
               <p className="text-3xl font-bold text-slate-700">{stats.total_students || 0}</p>

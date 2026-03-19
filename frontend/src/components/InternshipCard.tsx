@@ -122,7 +122,6 @@ export const InternshipCard: React.FC<InternshipCardProps> = ({ internship }) =>
       <div className="mt-auto">
         <div className="flex items-center justify-between mb-4">
             <div className="px-4 py-1.5 bg-emerald-50 text-emerald-700 rounded-xl text-sm font-black flex items-center gap-2 border border-emerald-100">
-                <span className="text-lg">₹</span>
                 {formatStipend(internship.stipend_amount)}
             </div>
         </div>

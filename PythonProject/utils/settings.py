@@ -24,6 +24,11 @@ class Settings(BaseSettings):
     # OpenAI
     OPENAI_API_KEY: Optional[str] = None
 
+    # Resume Parser Service (external microservice)
+    PARSER_SERVICE_URL: str = "http://127.0.0.1:8002"
+    PARSER_SERVICE_TIMEOUT_SECONDS: int = 45
+    PARSER_SERVICE_API_KEY: Optional[str] = None
+
     # Optional settings for future use
     REDIS_URL: Optional[str] = None
     AWS_S3_BUCKET: Optional[str] = None

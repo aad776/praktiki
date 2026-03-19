@@ -15,7 +15,22 @@ class AutocompleteItem(BaseModel):
     id: int
     name: str
 
+class CollegeLookup(BaseModel):
+    aishe_code: str
+    name: str
+    state: Optional[str] = None
+
 from sqlalchemy import case, or_
+
+@router.get("/aishe-lookup/{code}", response_model=CollegeLookup)
+def lookup_college_by_aishe(code: str, db: Session = Depends(get_db)):
+    from fastapi import HTTPException
+    code = code.strip().upper()
+    college = db.query(College).filter(College.aishe_code == code).first()
+    if not college:
+        # Try without prefix if it's missing (though user screenshot shows prefix)
+        raise HTTPException(status_code=404, detail=f"College not found with AISHE code '{code}'")
+    return CollegeLookup(aishe_code=college.aishe_code, name=college.name, state=college.state)
 
 @router.get("/skills", response_model=List[AutocompleteItem])
 def autocomplete_skills(q: str = Query("", min_length=0), db: Session = Depends(get_db)):

@@ -28,6 +28,11 @@ from utils.settings import settings
 from sqlalchemy import func, desc
 from models.notification import Notification
 from datetime import datetime
+from services.resume_parser_client import (
+    ResumeParserServiceError,
+    parse_resume_via_service,
+)
+
 router = APIRouter()
 
 @router.get("/internships", response_model=List[InternshipOut])
@@ -81,6 +86,43 @@ def get_internship(
         
     return result
 
+@router.post("/me/parse-resume")
+async def parse_my_resume(
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+):
+    """
+    Parse a resume via external parser service and return profile-prefill fields.
+
+    This endpoint is a backend façade:
+    Frontend calls only this route, while parser service can be independently deployed/scaled.
+    """
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Only students can parse resumes")
+
+    # Validate file type
+    if not file.filename or not file.filename.lower().endswith('.pdf'):
+        raise HTTPException(status_code=400, detail="Only PDF resumes are supported for parsing")
+
+    try:
+        file_content = await file.read()
+        if not file_content:
+            raise HTTPException(status_code=400, detail="Uploaded file is empty")
+
+        return await parse_resume_via_service(
+            file_name=file.filename,
+            file_content=file_content,
+            content_type=file.content_type,
+            current_user=current_user,
+        )
+    except ResumeParserServiceError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Error parsing resume via parser service: {e}")
+        raise HTTPException(status_code=500, detail="Failed to parse resume")
+
 @router.get("/internships/metadata")
 def get_internship_metadata(
     db: Session = Depends(get_db)
@@ -108,6 +150,52 @@ def get_internship_metadata(
         "top_locations": top_locations,
         "top_profiles": top_profiles
     }
+
+@router.get("/internships", response_model=List[InternshipOut])
+def list_internships(
+    search: Optional[str] = None,
+    location: Optional[str] = None,
+    mode: Optional[str] = None,
+    limit: int = 10,
+    db: Session = Depends(get_db)
+):
+    """List all available internships with filters"""
+    query = db.query(Internship).join(EmployerProfile)
+    
+    if search:
+        query = query.filter(Internship.title.ilike(f"%{search}%"))
+    if location:
+        query = query.filter(Internship.location.ilike(f"%{location}%"))
+    if mode:
+        query = query.filter(Internship.mode == mode)
+        
+    internships = query.limit(limit).all()
+    
+    # Map company_name and logo_url from employer
+    results = []
+    for i in internships:
+        # Pydantic will handle the mapping if we provide the right object structure
+        # but since we want to add company_name from the joined table, we can do it manually or via property
+        i.company_name = i.employer.company_name if i.employer else "Unknown Company"
+        i.logo_url = i.employer.logo_url if i.employer else None
+        results.append(i)
+        
+    return results
+
+@router.get("/internships/{internship_id}", response_model=InternshipOut)
+def get_internship_details(
+    internship_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get detailed information for a specific internship"""
+    internship = db.query(Internship).filter(Internship.id == internship_id).first()
+    if not internship:
+        raise HTTPException(status_code=404, detail="Internship not found")
+        
+    internship.company_name = internship.employer.company_name if internship.employer else "Unknown Company"
+    internship.logo_url = internship.employer.logo_url if internship.employer else None
+    
+    return internship
 
 @router.get("/me", response_model=StudentProfileOut)
 def get_my_profile(
@@ -180,11 +268,31 @@ def update_or_create_my_profile(
     # Automatically link to institute
     if profile.university_name:
         from models.institute_profile import InstituteProfile
-        institute = db.query(InstituteProfile).filter(
-            InstituteProfile.institute_name.ilike(f"%{profile.university_name}%")
+        from models.college import College
+        
+        # 1. Try exact AISHE code match via the verified colleges table
+        # Since university_name is picked from the Autocomplete (which uses College table)
+        college = db.query(College).filter(
+            College.name == profile.university_name
         ).first()
-        if institute:
-            profile.institute_id = institute.id
+        
+        if college and college.aishe_code:
+            # Find institute that has the same AISHE code (most reliable)
+            institute = db.query(InstituteProfile).filter(
+                InstituteProfile.aishe_code == college.aishe_code.strip().upper()
+            ).first()
+            if institute:
+                profile.institute_id = institute.id
+                print(f"DEBUG: Linked student {current_user.id} to institute {institute.id} via AISHE {college.aishe_code}")
+        
+        # 2. Fallback to direct name match if not linked yet
+        if not profile.institute_id:
+            institute = db.query(InstituteProfile).filter(
+                InstituteProfile.institute_name.ilike(f"%{profile.university_name}%")
+            ).first()
+            if institute:
+                profile.institute_id = institute.id
+                print(f"DEBUG: Linked student {current_user.id} to institute {institute.id} via Name Match")
 
     db.commit()
     db.refresh(profile)

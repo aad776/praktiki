@@ -9,7 +9,7 @@ import faiss
 import difflib
 import re
 from sentence_transformers import SentenceTransformer
-from config import (
+from resume_parser.config import (
     SKILL_LIST, 
     SKILL_ALIASES, 
     SKILL_ONTOLOGY,
@@ -26,12 +26,21 @@ class SkillsExtractor:
     
     def __init__(self):
         """Initialize skills extractor with embedding model and FAISS index"""
+        self.model = None
+        self.index = None
+        self.skill_list = SKILL_LIST
+        self.alias_to_canonical = {}
+        
+        # Create industry standard alias mapping (alias -> canonical)
+        for canonical, aliases in SKILL_ALIASES.items():
+            for alias in aliases:
+                self.alias_to_canonical[alias.lower()] = canonical
+
         try:
             logger.info(f"Loading embedding model: {SENTENCE_TRANSFORMER_MODEL}")
             self.model = SentenceTransformer(SENTENCE_TRANSFORMER_MODEL)
             
             # Create FAISS index for skill embeddings
-            self.skill_list = SKILL_LIST
             self.skill_embeddings = self.model.encode(self.skill_list)
             
             # Build FAISS index (L2 distance, then convert to cosine similarity)
@@ -41,17 +50,13 @@ class SkillsExtractor:
             faiss.normalize_L2(self.skill_embeddings)
             self.index.add(np.array(self.skill_embeddings).astype('float32'))
             
-            # Create industry standard alias mapping (alias -> canonical)
-            self.alias_to_canonical = {}
-            for canonical, aliases in SKILL_ALIASES.items():
-                for alias in aliases:
-                    self.alias_to_canonical[alias.lower()] = canonical
-                    
             logger.info(f"FAISS index built with {len(self.skill_list)} skills and {len(self.alias_to_canonical)} aliases")
         
         except Exception as e:
-            logger.error(f"Error initializing SkillsExtractor: {e}")
-            raise
+            logger.error(f"Error initializing SkillsExtractor semantic matching: {e}")
+            logger.warning("Falling back to exact matching only")
+            self.model = None
+            self.index = None
     
     def extract_skills(self, text: str, use_semantic: bool = True) -> List[str]:
         """
@@ -152,6 +157,9 @@ class SkillsExtractor:
         Returns:
             Set of skills found via semantic matching
         """
+        if not self.model or not self.index:
+            return set()
+
         try:
             semantic_skills: Set[str] = set()
             

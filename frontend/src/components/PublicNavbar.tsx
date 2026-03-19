@@ -12,16 +12,19 @@ export function PublicNavbar() {
     { path: '/contact', label: 'Contact' },
   ];
 
-  const isActive = (path: string) => location.pathname === path;
+  const isActive = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname.startsWith(path);
+  };
 
   return (
     <nav className="bg-white/80 backdrop-blur-lg border-b border-slate-100 sticky top-0 z-50">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+      <div className="mx-auto max-w-7xl px-4 sm:px-5 lg:px-6">
+        <div className="flex items-center justify-between h-14">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-10 h-10 bg-brand-600 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105">
-              <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <Link to="/" className="flex items-center gap-2 group">
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105 ${isActive('/') ? 'bg-brand-700 shadow-lg' : 'bg-brand-600'}`}>
+              <svg className="w-5.5 h-5.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
               </svg>
             </div>
@@ -51,7 +54,7 @@ export function PublicNavbar() {
                   className={`
                     px-4 py-2 rounded-lg text-sm font-medium transition-all
                     ${isActive(link.path)
-                      ? 'bg-brand-50 text-brand-700'
+                      ? 'bg-slate-900 text-white shadow-md shadow-slate-200 scale-[1.02]'
                       : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                     }
                   `}
@@ -127,7 +130,7 @@ export function PublicNavbar() {
                     className={`
                       block px-4 py-3 rounded-lg text-base font-medium transition-colors
                       ${isActive(link.path)
-                        ? 'bg-brand-50 text-brand-700'
+                        ? 'bg-slate-900 text-white'
                         : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
                       }
                     `}

@@ -4,7 +4,7 @@
 
 import { config } from '../config';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 
 interface RequestOptions extends RequestInit {
   params?: Record<string, string>;
@@ -38,22 +38,12 @@ async function apiRequest<T>(
   if (token && token !== 'null' && token !== 'undefined') {
     token = token.trim();
     headers['Authorization'] = `Bearer ${token}`;
-    console.log('Using Auth Token:', token.substring(0, 10) + '...');
-  } else {
-    console.log('No Auth Token found in localStorage');
   }
 
   // Merge custom headers
   if (fetchOptions.headers) {
     Object.assign(headers, fetchOptions.headers);
   }
-
-  console.log('Final API Request:', {
-    url,
-    method: fetchOptions.method || 'GET',
-    headers,
-    hasBody: !!fetchOptions.body
-  });
 
   const response = await fetch(url, {
     ...fetchOptions,
@@ -62,12 +52,9 @@ async function apiRequest<T>(
 
   if (!response.ok) {
     // Handle 401 Unauthorized - token expired or invalid
-    // Skip this for login endpoint to show correct "Invalid credentials" error
     if (response.status === 401 && !endpoint.includes('/auth/login')) {
-      console.warn('Token expired or invalid, clearing auth state');
       localStorage.removeItem(config.auth.tokenKey);
       localStorage.removeItem(config.auth.roleKey);
-      // Redirect to login page
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
@@ -75,8 +62,9 @@ async function apiRequest<T>(
     }
 
     let errorMessage = `Request failed with status ${response.status}`;
+    let errorData = null;
     try {
-      const errorData = await response.json();
+      errorData = await response.json();
       if (errorData.detail) {
         if (Array.isArray(errorData.detail)) {
           errorMessage = errorData.detail.map((d: any) => d.msg || JSON.stringify(d)).join(', ');
@@ -93,7 +81,7 @@ async function apiRequest<T>(
     }
     const error = new Error(errorMessage) as any;
     error.status = response.status;
-    error.url = url;
+    error.data = errorData;
     throw error;
   }
 
@@ -101,7 +89,11 @@ async function apiRequest<T>(
     return response.blob() as unknown as T;
   }
 
-  return response.json();
+  try {
+    return await response.json() as T;
+  } catch (e) {
+    return {} as T;
+  }
 }
 
 /**
@@ -163,7 +155,12 @@ export function clearAuthToken(): void {
 }
 
 // Export types for error handling
-export type ApiError = Error;
+export interface ApiError extends Error {
+  response?: {
+    status: number;
+    data?: any;
+  };
+}
 
 // Export default API client
 export default api;

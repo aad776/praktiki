@@ -13,7 +13,7 @@ logging.basicConfig(
 )
 
 # Model Configuration
-SPACY_MODEL = "en_core_web_trf"  # Transformer-based model for high accuracy
+SPACY_MODEL = "en_core_web_md"  # Using medium model for better performance and reliability
 SENTENCE_TRANSFORMER_MODEL = "all-MiniLM-L6-v2"  # Lightweight embedding model
 FAISS_INDEX_DIM = 384  # Embedding dimension for MiniLM
 
