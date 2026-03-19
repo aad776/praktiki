@@ -50,8 +50,16 @@ PHONE_PATTERN = re.compile(
 )
 
 # Experience extraction patterns
+# Matches both "2024-2025" and "Nov 2024 – Sep 2025" and "Aug 2023 – Jul 2027"
+_MONTH_PREFIX = (
+    r'(?:(?:Jan(?:uary)?|Feb(?:ruary)?|Mar(?:ch)?|Apr(?:il)?|May|Jun(?:e)?|'
+    r'Jul(?:y)?|Aug(?:ust)?|Sep(?:tember)?|Oct(?:ober)?|Nov(?:ember)?|Dec(?:ember)?)\s+)?'
+)
 YEAR_RANGE_PATTERN = re.compile(
-    r'(?:19|20)\d{2}\s*[-\u2013\u2014to]\s*(?:(?:19|20)\d{2}|Present|Current|Now)',
+    _MONTH_PREFIX +
+    r'(?:19|20)\d{2}\s*[-\u2013\u2014to]+\s*' +
+    _MONTH_PREFIX +
+    r'(?:(?:19|20)\d{2}|Present|Current|Now)',
     re.IGNORECASE
 )
 

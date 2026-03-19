@@ -79,32 +79,48 @@ class PDFProcessor:
     
     def _clean_text(self, text: str) -> str:
         """
-        Clean and normalize extracted text
+        Clean and normalize extracted text while PRESERVING line structure.
+        The section detector relies on newlines to detect headings.
         
         Args:
             text: Raw text from PDF
             
         Returns:
-            Cleaned text
+            Cleaned text with preserved line breaks
         """
         if not text:
             return ""
         
-        # Replace multiple whitespace with single space
         import re
-        text = re.sub(r'\s+', ' ', text)
         
-        # Remove extra newlines
-        text = re.sub(r'\n\s*\n', '\n\n', text)
+        # Remove CID references from icon fonts (e.g. FontAwesome phone/email icons)
+        # These appear as (cid:NNN) and corrupt entity extraction
+        text = re.sub(r'\(cid:\d+\)', ' ', text)
         
-        # Strip leading/trailing whitespace
+        # Remove other common PDF artifacts
+        text = re.sub(r'\x00', '', text)  # null bytes
+        text = re.sub(r'\ufeff', '', text)  # BOM
+        
+        # Normalize horizontal whitespace ONLY (tabs, multiple spaces) but KEEP newlines
+        text = re.sub(r'[^\S\n]+', ' ', text)
+        
+        # Collapse 3+ consecutive blank lines into 2
+        text = re.sub(r'\n\s*\n\s*\n', '\n\n', text)
+        
+        # Strip leading/trailing whitespace from each line
+        lines = text.split('\n')
+        lines = [line.strip() for line in lines]
+        text = '\n'.join(lines)
+        
+        # Strip leading/trailing whitespace from the whole text
         text = text.strip()
         
         return text
     
     def extract_text_from_bytes(self, pdf_bytes: bytes) -> Optional[str]:
         """
-        Extract text from PDF bytes (for FastAPI file uploads)
+        Extract text from PDF bytes (for FastAPI file uploads).
+        Uses layout-preserving extraction to maintain line structure.
         
         Args:
             pdf_bytes: PDF file content as bytes
@@ -122,7 +138,22 @@ class PDFProcessor:
                 
                 for page_num, page in enumerate(pdf.pages, start=1):
                     try:
+                        # Try standard extraction first
                         page_text = page.extract_text()
+                        
+                        # If standard extraction yields very little text,
+                        # try layout-preserving mode which handles complex PDFs better
+                        if not page_text or len(page_text.strip()) < 50:
+                            try:
+                                layout_text = page.extract_text(
+                                    layout=True,
+                                    x_density=3,
+                                    y_density=3,
+                                )
+                                if layout_text and len(layout_text.strip()) > len((page_text or "").strip()):
+                                    page_text = layout_text
+                            except Exception:
+                                pass  # layout mode not available in older pdfplumber
                         
                         if page_text:
                             page_text = self._clean_text(page_text)

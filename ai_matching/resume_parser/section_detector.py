@@ -56,12 +56,13 @@ _HEADING_PATTERNS: Dict[SectionLabel, re.Pattern] = {
     ),
     SectionLabel.EXPERIENCE: re.compile(
         r"^(?:work\s+)?(?:experience|employment|professional\s+experience|"
-        r"work\s+history|career\s+history|relevant\s+experience)",
+        r"work\s+history|career\s+history|relevant\s+experience|"
+        r"internships?|work\s+experience)",
         re.IGNORECASE,
     ),
     SectionLabel.EDUCATION: re.compile(
         r"^(?:education|academic|qualifications|educational\s+background"
-        r"|academic\s+background|degrees?)",
+        r"|academic\s+background|degrees?|relevant\s+coursework)",
         re.IGNORECASE,
     ),
     SectionLabel.SKILLS: re.compile(
