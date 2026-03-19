@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, BackgroundTasks, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form, BackgroundTasks, status
 from sqlalchemy.orm import Session
 from db.session import get_db
 from models.user import User
@@ -7,7 +7,7 @@ from models.application import Application
 from models.certificate import Certificate
 from schemas.certificate import CertificateCreate, CertificateResponse, CertificateUpdate
 from utils.dependencies import get_current_student, get_current_user
-from typing import List
+from typing import List, Optional
 import shutil
 import os
 import uuid
@@ -122,9 +122,9 @@ def process_certificate_background(
 @router.post("/upload", response_model=CertificateResponse, status_code=status.HTTP_201_CREATED)
 def upload_certificate(
     background_tasks: BackgroundTasks,
-    application_id: int = None,
-    hours: int = None,
-    policy_type: str = "UGC",
+    application_id: Optional[int] = Form(None),
+    hours: Optional[int] = Form(None),
+    policy_type: str = Form("UGC"),
     file: UploadFile = File(...),
     current_student: User = Depends(get_current_student),
     db: Session = Depends(get_db)

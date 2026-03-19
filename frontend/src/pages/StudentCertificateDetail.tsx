@@ -105,8 +105,8 @@ export function StudentCertificateDetail() {
   if (!cert) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50/50 p-4 md:p-6 lg:p-10">
-      <div className="max-w-[1600px] mx-auto w-full">
+    <div className="min-h-screen bg-slate-50/50 py-8">
+      <div className="container-wide">
         {/* Header */}
         <div className="bg-white rounded-[2rem] border border-slate-200 sticky top-0 z-20 shadow-sm mb-8">
           <div className="px-6 md:px-10 h-24 flex items-center justify-between">
@@ -252,131 +252,128 @@ export function StudentCertificateDetail() {
             </div>
           </div>
         </div>
+
+        {/* Edit Modal */}
+        {isEditModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+            <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+                <div>
+                  <h2 className="text-lg font-black text-slate-900">Edit Certificate Details</h2>
+                  <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Manual Correction</p>
+                </div>
+                <button 
+                  onClick={() => setIsEditModalOpen(false)}
+                  className="p-2 hover:bg-slate-100 rounded-xl text-slate-500 transition-all"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <form onSubmit={handleUpdateCertificate} className="p-6 space-y-4 overflow-y-auto max-h-[70vh]">
+                <div className="grid grid-cols-1 gap-4">
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Student Name</label>
+                    <input 
+                      type="text"
+                      value={editFormData.student_name || ''}
+                      onChange={(e) => setEditFormData({...editFormData, student_name: e.target.value})}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all"
+                      placeholder="Enter student name"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Organization Name</label>
+                    <input 
+                      type="text"
+                      value={editFormData.organization_name || ''}
+                      onChange={(e) => setEditFormData({...editFormData, organization_name: e.target.value})}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all"
+                      placeholder="Enter organization name"
+                    />
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Internship Role</label>
+                    <input 
+                      type="text"
+                      value={editFormData.internship_title || ''}
+                      onChange={(e) => setEditFormData({...editFormData, internship_title: e.target.value})}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all"
+                      placeholder="Enter internship role"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Total Hours</label>
+                      <input 
+                        type="number"
+                        value={editFormData.total_hours || ''}
+                        onChange={(e) => setEditFormData({...editFormData, total_hours: parseInt(e.target.value)})}
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all"
+                        placeholder="e.g. 160"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Completion Date</label>
+                      <input 
+                        type="date"
+                        value={editFormData.end_date || ''}
+                        onChange={(e) => setEditFormData({...editFormData, end_date: e.target.value})}
+                        className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Performance Remark</label>
+                    <textarea 
+                      value={editFormData.performance_remark || ''}
+                      onChange={(e) => setEditFormData({...editFormData, performance_remark: e.target.value})}
+                      rows={3}
+                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all resize-none"
+                      placeholder="Enter remarks..."
+                    />
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 pt-4">
+                  <button 
+                    type="button"
+                    onClick={() => setIsEditModalOpen(false)}
+                    className="flex-1 px-6 py-3 border border-slate-200 text-slate-600 font-bold rounded-2xl hover:bg-slate-50 transition-all text-sm"
+                  >
+                    Cancel
+                  </button>
+                  <button 
+                    type="submit"
+                    disabled={isUpdating}
+                    className="flex-1 px-6 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 disabled:opacity-50 text-sm"
+                  >
+                    {isUpdating ? (
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    ) : (
+                      <>
+                        <Check className="w-4 h-4" />
+                        Save Changes
+                      </>
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
 }
 
-      {/* Edit Modal */}
-      {isEditModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
-          <div className="bg-white w-full max-w-lg rounded-3xl shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in duration-200">
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <div>
-                <h2 className="text-lg font-black text-slate-900">Edit Certificate Details</h2>
-                <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Manual Correction</p>
-              </div>
-              <button 
-                onClick={() => setIsEditModalOpen(false)}
-                className="p-2 hover:bg-slate-100 rounded-xl text-slate-500 transition-all"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleUpdateCertificate} className="p-6 space-y-4 overflow-y-auto max-h-[70vh]">
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Student Name</label>
-                  <input 
-                    type="text"
-                    value={editFormData.student_name || ''}
-                    onChange={(e) => setEditFormData({...editFormData, student_name: e.target.value})}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all"
-                    placeholder="Enter student name"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Organization Name</label>
-                  <input 
-                    type="text"
-                    value={editFormData.organization_name || ''}
-                    onChange={(e) => setEditFormData({...editFormData, organization_name: e.target.value})}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all"
-                    placeholder="Enter organization name"
-                  />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Internship Role</label>
-                  <input 
-                    type="text"
-                    value={editFormData.internship_title || ''}
-                    onChange={(e) => setEditFormData({...editFormData, internship_title: e.target.value})}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all"
-                    placeholder="Enter internship role"
-                  />
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Total Hours</label>
-                    <input 
-                      type="number"
-                      value={editFormData.total_hours || ''}
-                      onChange={(e) => setEditFormData({...editFormData, total_hours: parseInt(e.target.value)})}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all"
-                      placeholder="e.g. 160"
-                    />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Completion Date</label>
-                    <input 
-                      type="date"
-                      value={editFormData.end_date || ''}
-                      onChange={(e) => setEditFormData({...editFormData, end_date: e.target.value})}
-                      className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Performance Remark</label>
-                  <textarea 
-                    value={editFormData.performance_remark || ''}
-                    onChange={(e) => setEditFormData({...editFormData, performance_remark: e.target.value})}
-                    rows={3}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-brand-500 focus:border-transparent outline-none transition-all resize-none"
-                    placeholder="Enter remarks..."
-                  />
-                </div>
-              </div>
-
-              <div className="flex items-center gap-3 pt-4">
-                <button 
-                  type="button"
-                  onClick={() => setIsEditModalOpen(false)}
-                  className="flex-1 px-6 py-3 border border-slate-200 text-slate-600 font-bold rounded-2xl hover:bg-slate-50 transition-all text-sm"
-                >
-                  Cancel
-                </button>
-                <button 
-                  type="submit"
-                  disabled={isUpdating}
-                  className="flex-1 px-6 py-3 bg-slate-900 text-white font-bold rounded-2xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 disabled:opacity-50 text-sm"
-                >
-                  {isUpdating ? (
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  ) : (
-                    <>
-                      <Check className="w-4 h-4" />
-                      Save Changes
-                    </>
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
 const InfoRow = ({ icon, label, value }: { icon: React.ReactNode, label: string, value: string | number }) => (
-  <div className="flex items-center gap-4 group/item">
-    <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover/item:bg-brand-50 group-hover/item:text-brand-600 transition-all duration-300 shrink-0">
+  <div className="flex items-center gap-4 group">
+    <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center text-slate-400 group-hover:bg-brand-50 group-hover:text-brand-600 transition-all duration-300 shrink-0">
       {React.cloneElement(icon as React.ReactElement, { size: 18 })}
     </div>
     <div className="flex-1">

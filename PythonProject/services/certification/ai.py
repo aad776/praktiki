@@ -1,22 +1,23 @@
 
-import openai
 import os
 import json
+from openai import OpenAI
 from typing import Dict, Any
 
 # Ensure OpenAI API key is set
-openai.api_key = os.getenv("OPENAI_API_KEY")
+api_key = os.getenv("OPENAI_API_KEY")
 
 def extract_info(text: str) -> Dict[str, Any]:
     """
-    Extract certificate details using OpenAI GPT-3.5
-    Formats the output to match the TP folder's 'extractor.py' structure
+    Extract certificate details using OpenAI GPT-3.5 or GPT-4.
+    Formats the output to match the system's expected structure.
     """
-    if not openai.api_key:
+    if not api_key:
         return {"error": "No OpenAI API Key found"}
         
     try:
-        response = openai.ChatCompletion.create(
+        client = OpenAI(api_key=api_key)
+        response = client.chat.completions.create(
             model="gpt-3.5-turbo",
             messages=[
                 {"role": "system", "content": """
@@ -47,7 +48,8 @@ def extract_info(text: str) -> Dict[str, Any]:
                 4. Infer 'internship_title' if not explicit (e.g. 'Web Development Intern').
                 """},
                 {"role": "user", "content": text}
-            ]
+            ],
+            response_format={"type": "json_object"}
         )
         content = response.choices[0].message.content
         return json.loads(content)

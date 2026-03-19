@@ -6,6 +6,7 @@ from backend.database import Base
 class UserRole:
     STUDENT = "student"
     EMPLOYER = "employer"
+    COMPANY = "employer" # Alias for compatibility
     INSTITUTE = "institute"
     ADMIN = "admin"
 

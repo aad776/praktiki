@@ -71,11 +71,7 @@ _spacy_nlp = None
 
 @app.on_event("startup")
 async def startup_event():
-    global (
-        pdf_processor, entity_extractor, experience_extractor,
-        skills_extractor, education_extractor, section_detector,
-        segmented_processor, _spacy_nlp,
-    )
+    global pdf_processor, entity_extractor, experience_extractor, skills_extractor, education_extractor, section_detector, segmented_processor, _spacy_nlp
 
     logger.info("Initializing Resume Parser API v2.0 ...")
 

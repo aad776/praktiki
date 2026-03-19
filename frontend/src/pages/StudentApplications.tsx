@@ -76,7 +76,7 @@ export function StudentApplications() {
         completed: appsRes.filter(app => app.status === 'completed' || app.is_credit_requested),
         pending: appsRes.filter(app => (app.status === 'pending' || app.status === 'shortlisted' || app.status === 'applied') && !app.is_credit_requested),
         rejected: appsRes.filter(app => app.status === 'rejected' && !app.is_credit_requested),
-        external: certsRes || []
+        external: (certsRes || []).filter(cert => !cert.application_id || cert.application_id === null)
       };
 
       if (categorized.ongoing.length === 0) {
@@ -123,7 +123,7 @@ export function StudentApplications() {
     completed: applications.filter(app => app.status === 'completed' || app.is_credit_requested),
     pending: applications.filter(app => (app.status === 'pending' || app.status === 'shortlisted' || app.status === 'applied') && !app.is_credit_requested),
     rejected: applications.filter(app => app.status === 'rejected' && !app.is_credit_requested),
-    external: certificates.filter(cert => !cert.application_id)
+    external: certificates.filter(cert => !cert.application_id || cert.application_id === null)
   };
 
   // Helper to get consistent credit label
@@ -261,26 +261,29 @@ export function StudentApplications() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 md:py-12">
+    <div className="min-h-screen bg-slate-50 py-8 md:py-12 lg:py-16">
       <div className="container-wide">
-        <div className="flex items-center justify-between mb-10 gap-6 flex-wrap">
+        <div className="flex items-center justify-between mb-12 gap-8 flex-wrap">
           <div>
-            <h1>My Applications</h1>
-            <p className="text-slate-500 font-medium">Track your internship progress and earn credits</p>
+            <div className="px-4 py-1.5 bg-brand-50 text-brand-600 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] border border-brand-100 shadow-sm inline-block mb-4">
+              My Journey
+            </div>
+            <h1 className="text-4xl md:text-5xl font-black text-slate-900 tracking-tight leading-tight">My Applications</h1>
+            <p className="text-lg text-slate-500 font-medium mt-2">Track your internship progress and earn credits</p>
           </div>
           <button 
             onClick={() => navigate('/student/certificate-upload')}
-            className="btn-primary flex items-center gap-2"
+            className="btn-primary"
           >
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
             </svg>
             Upload Certificate
           </button>
         </div>
 
         {/* Tabs */}
-        <div className="flex border-b border-slate-200 mb-8 overflow-x-auto scrollbar-hide gap-2">
+        <div className="flex border-b-2 border-slate-100 mb-12 overflow-x-auto scrollbar-hide gap-4">
           {[
             { id: 'ongoing', label: 'Ongoing', count: categorizedApps.ongoing.length },
             { id: 'pending', label: 'Applied', count: categorizedApps.pending.length },
@@ -291,16 +294,16 @@ export function StudentApplications() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-6 py-3.5 text-sm font-bold whitespace-nowrap border-b-2 transition-all
+              className={`px-8 py-5 text-xs font-black uppercase tracking-widest whitespace-nowrap border-b-4 transition-all relative
                 ${activeTab === tab.id 
                   ? 'border-slate-900 text-slate-900' 
-                  : 'border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-300'
+                  : 'border-transparent text-slate-400 hover:text-slate-600 hover:border-slate-200'
                 }`}
             >
               {tab.label}
               {tab.count > 0 && (
-                <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-black ${
-                  activeTab === tab.id ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-500'
+                <span className={`ml-3 px-2.5 py-1 rounded-lg text-[9px] font-black shadow-sm ${
+                  activeTab === tab.id ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-400'
                 }`}>
                   {tab.count}
                 </span>

@@ -65,12 +65,13 @@ def get_admin_analytics(db: Session = Depends(get_db), current_user: User = Depe
     formatted_monthly_stats = [{"month": int(m[0]), "count": m[1]} for m in monthly_stats if m[0] is not None]
 
     # Institute-wise activity (Top 5 by approved credits)
+    from backend.models.user import StudentProfile
     institute_activity = db.query(
-        User.institute_name,
+        StudentProfile.university_name,
         func.sum(CreditRequest.credits_calculated).label('total_credits')
-    ).join(User, CreditRequest.student_id == User.id)\
+    ).join(StudentProfile, CreditRequest.student_id == StudentProfile.id)\
      .filter(CreditRequest.status == CreditStatus.APPROVED)\
-     .group_by(User.institute_name)\
+     .group_by(StudentProfile.university_name)\
      .order_by(desc('total_credits'))\
      .limit(5).all()
      

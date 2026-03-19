@@ -8,7 +8,7 @@
 @layer base {
   body {
     @apply font-sans text-slate-700 bg-slate-50 min-h-screen;
-    font-size: 16px;
+    font-size: 18px; /* Increased from 16px for better readability on laptops */
     line-height: 1.6;
     -webkit-font-smoothing: antialiased;
   }
@@ -185,7 +185,6 @@
   .stat-label {
     @apply text-xs font-black text-slate-400 uppercase tracking-widest;
   }
-}
 
   /* Skeleton Loading */
   .skeleton {

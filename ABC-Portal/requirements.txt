@@ -2,6 +2,7 @@ fastapi
 uvicorn
 sqlalchemy
 pydantic
+bcrypt
 python-jose[cryptography]
 passlib[bcrypt]
 python-multipart
@@ -10,3 +11,6 @@ matplotlib
 requests
 psycopg2-binary
 python-dotenv
+pyjwt
+thefuzz
+python-Levenshtein
