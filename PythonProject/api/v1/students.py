@@ -90,9 +90,11 @@ def get_internship(
 async def parse_my_resume(
     file: UploadFile = File(...),
     current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     """
-    Parse a resume via external parser service and return profile-prefill fields.
+    Parse a resume via external parser service, persist parsed data to DB,
+    save the uploaded file, and return profile-prefill fields.
 
     This endpoint is a backend façade:
     Frontend calls only this route, while parser service can be independently deployed/scaled.
@@ -109,12 +111,113 @@ async def parse_my_resume(
         if not file_content:
             raise HTTPException(status_code=400, detail="Uploaded file is empty")
 
-        return await parse_resume_via_service(
+        result = await parse_resume_via_service(
             file_name=file.filename,
             file_content=file_content,
             content_type=file.content_type,
             current_user=current_user,
         )
+
+        # --- Persist parsed data to DB ---
+        try:
+            parsed_data = result.get("data", {})
+
+            # 1. Save the uploaded PDF file
+            upload_dir = "secure_uploads/resumes"
+            os.makedirs(upload_dir, exist_ok=True)
+            file_ext = os.path.splitext(file.filename)[1] or ".pdf"
+            saved_filename = f"{current_user.id}_{uuid.uuid4().hex}{file_ext}"
+            saved_path = os.path.join(upload_dir, saved_filename)
+            with open(saved_path, "wb") as f:
+                f.write(file_content)
+
+            # 2. Get or create student profile
+            profile = db.query(StudentProfile).filter(
+                StudentProfile.user_id == current_user.id
+            ).first()
+            if not profile:
+                profile = StudentProfile(user_id=current_user.id)
+                db.add(profile)
+                db.flush()  # Get profile.id
+
+            # 3. Update profile with parsed basic fields (only if currently empty)
+            first_name = parsed_data.get("first_name", "")
+            last_name = parsed_data.get("last_name", "")
+            phone_number = parsed_data.get("phone_number", "")
+            parsed_skills = parsed_data.get("skills", [])
+
+            if first_name and not profile.first_name:
+                profile.first_name = first_name
+            if last_name and not profile.last_name:
+                profile.last_name = last_name
+            if phone_number and not getattr(current_user, "phone_number", None):
+                # Clean phone to digits only, last 10
+                clean_phone = ''.join(c for c in phone_number if c.isdigit())[-10:]
+                if clean_phone:
+                    current_user.phone_number = clean_phone
+            if parsed_skills and not profile.skills:
+                profile.skills = ", ".join(parsed_skills) if isinstance(parsed_skills, list) else str(parsed_skills)
+
+            # Set full_name if not set
+            if (first_name or last_name) and not profile.full_name:
+                profile.full_name = f"{first_name} {last_name}".strip()
+
+            # 4. Get or create student resume
+            resume = db.query(StudentResume).filter(
+                StudentResume.student_id == profile.id
+            ).first()
+            if not resume:
+                resume = StudentResume(student_id=profile.id)
+                db.add(resume)
+
+            # 5. Save parsed fields to resume (only if currently empty)
+            resume.resume_file_path = saved_path
+            resume.resume_filename = file.filename
+            resume.resume_file_size = len(file_content)
+
+            # Save work experience
+            experience = parsed_data.get("experience", [])
+            if experience and not resume.work_experience:
+                resume.work_experience = json.dumps(experience)
+
+            # Save projects
+            projects = parsed_data.get("projects", [])
+            if projects and not resume.projects:
+                resume.projects = json.dumps(projects)
+
+            # Save certifications
+            certifications = parsed_data.get("certifications", [])
+            if certifications and not resume.certifications:
+                resume.certifications = json.dumps(certifications)
+
+            # Save education entries
+            education = parsed_data.get("education_entries", []) or parsed_data.get("education", [])
+            if education and not resume.education_entries:
+                resume.education_entries = json.dumps(education)
+
+            # Save skills categorized
+            if parsed_skills and not resume.skills_categorized:
+                skills_cat = {
+                    "technical": [{"name": s, "level": 70} for s in parsed_skills],
+                    "soft": [],
+                    "languages": []
+                }
+                resume.skills_categorized = json.dumps(skills_cat)
+
+            db.commit()
+            print(f"Successfully saved parsed resume data for user {current_user.id}")
+
+        except Exception as save_err:
+            print(f"Warning: Failed to save parsed data to DB: {save_err}")
+            # Don't fail the entire request if DB save fails —
+            # the parsed data is still returned to the frontend for manual saving
+            try:
+                db.rollback()
+            except Exception:
+                pass
+
+        return result
+
     except ResumeParserServiceError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
     except HTTPException:
@@ -122,6 +225,7 @@ async def parse_my_resume(
     except Exception as e:
         print(f"Error parsing resume via parser service: {e}")
         raise HTTPException(status_code=500, detail="Failed to parse resume")
+
 
 @router.get("/internships/metadata")
 def get_internship_metadata(
