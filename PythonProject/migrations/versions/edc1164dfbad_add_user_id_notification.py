@@ -1,4 +1,4 @@
-  """add_user_id_notification
+"""add_user_id_notification
 
 Revision ID: edc1164dfbad
 Revises: 4a6589f74ce4

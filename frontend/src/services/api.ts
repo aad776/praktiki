@@ -38,22 +38,12 @@ async function apiRequest<T>(
   if (token && token !== 'null' && token !== 'undefined') {
     token = token.trim();
     headers['Authorization'] = `Bearer ${token}`;
-    console.log('Using Auth Token:', token.substring(0, 10) + '...');
-  } else {
-    console.log('No Auth Token found in localStorage');
   }
 
   // Merge custom headers
   if (fetchOptions.headers) {
     Object.assign(headers, fetchOptions.headers);
   }
-
-  console.log('Final API Request:', {
-    url,
-    method: fetchOptions.method || 'GET',
-    headers,
-    hasBody: !!fetchOptions.body
-  });
 
   const response = await fetch(url, {
     ...fetchOptions,
@@ -62,12 +52,9 @@ async function apiRequest<T>(
 
   if (!response.ok) {
     // Handle 401 Unauthorized - token expired or invalid
-    // Skip this for login endpoint to show correct "Invalid credentials" error
     if (response.status === 401 && !endpoint.includes('/auth/login')) {
-      console.warn('Token expired or invalid, clearing auth state');
       localStorage.removeItem(config.auth.tokenKey);
       localStorage.removeItem(config.auth.roleKey);
-      // Redirect to login page
       if (window.location.pathname !== '/login') {
         window.location.href = '/login';
       }
@@ -79,28 +66,34 @@ async function apiRequest<T>(
     try {
       errorData = await response.json();
       if (errorData.detail) {
-        errorMessage = errorData.detail;
+        if (Array.isArray(errorData.detail)) {
+          errorMessage = errorData.detail.map((d: any) => d.msg || JSON.stringify(d)).join(', ');
+        } else if (typeof errorData.detail === 'object') {
+          errorMessage = JSON.stringify(errorData.detail);
+        } else {
+          errorMessage = errorData.detail;
+        }
       } else if (errorData.message) {
         errorMessage = errorData.message;
       }
     } catch (e) {
-      // If response is not JSON, use status text
       errorMessage = response.statusText || errorMessage;
     }
-    
-    const apiError = new Error(errorMessage) as ApiError;
-    apiError.response = {
-      status: response.status,
-      data: errorData
-    };
-    throw apiError;
+    const error = new Error(errorMessage) as any;
+    error.status = response.status;
+    error.data = errorData;
+    throw error;
   }
 
   if (responseType === 'blob') {
     return response.blob() as unknown as T;
   }
 
-  return response.json();
+  try {
+    return await response.json() as T;
+  } catch (e) {
+    return {} as T;
+  }
 }
 
 /**

@@ -183,7 +183,7 @@ const InstituteDashboard = () => {
   return (
     <div className="space-y-6 w-full pb-10" ref={dashboardRef}>
       {/* Header with Logout */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-xl shadow-sm">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-xl shadow-sm no-print">
         <div className="flex items-center gap-3 w-full sm:w-auto">
           {/* Back Arrow - Only visible on Mobile */}
           <button 
@@ -194,7 +194,7 @@ const InstituteDashboard = () => {
             <ArrowLeft size={24} />
           </button>
           <div className="flex flex-col">
-            <h1 className="text-xl sm:text-2xl font-bold text-gray-800">Institute Portal</h1>
+            <h1 className="text-xl sm:text-2xl font-black text-gray-900 tracking-tight">Institute ABC Analytics</h1>
             <p className="text-xs text-gray-500">View aggregated application statistics (Restricted View)</p>
           </div>
           <button

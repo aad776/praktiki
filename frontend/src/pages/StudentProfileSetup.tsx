@@ -552,7 +552,7 @@ const Step2 = ({ formData, handleChange, setFormData }: any) => (
   </div>
 );
 
-const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggestedSkills }: any) => (
+const Step3 = ({ formData, toggleSelection, handleNext, loading, error, suggestedSkills, navigate }: any) => (
   <div className="space-y-6 animate-fadeIn">
     <div className="text-center mb-8">
       <h2 className="text-2xl font-bold text-gray-800">Your preferences 🎯</h2>
@@ -1141,18 +1141,59 @@ const Step4 = ({ formData, setFormData, handleResumeUpload, handleSubmit, loadin
 
 // --- Profile View Component (Card-based Interface) ---
 
-const ProfileView = ({ formData, onEdit, handleResumeUpload, user }: { 
+const ProfileView = ({ formData, onEdit, onLogout, handleResumeUpload, user }: { 
   formData: any, 
   onEdit: (step: number) => void, 
+  onLogout: () => void,
   handleResumeUpload: (e: any) => void, 
   user: any 
 }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const certInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const [certUploading, setCertUploading] = useState(false);
   const [activeTab, setActiveTab] = useState('view');
+  const toast = useToast();
+
+  const onFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setUploading(true);
+      try {
+        await handleResumeUpload(e);
+      } finally {
+        setUploading(false);
+      }
+    }
+  };
 
   const scrollToSection = (id: string) => {
     const element = document.getElementById(id);
     if (element) {
       element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
+
+  const onCertChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setCertUploading(true);
+      const file = e.target.files[0];
+      const formDataUpload = new FormData();
+      formDataUpload.append("file", file);
+
+      try {
+        const response: any = await api.post("/certificates/upload", formDataUpload);
+        
+        if (response.verification_data) {
+          toast.success("Certificate uploaded & verified! Submitted to Institute.");
+        } else {
+          toast.info("Certificate uploaded. Manual verification pending.");
+        }
+      } catch (error) {
+        console.error("Certificate upload failed:", error);
+        toast.error("Failed to upload certificate.");
+      } finally {
+        setCertUploading(false);
+      }
     }
   };
 
@@ -1173,7 +1214,24 @@ const ProfileView = ({ formData, onEdit, handleResumeUpload, user }: {
   const completion = calculateCompletion();
 
   return (
-    <div className="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8 animate-fadeIn bg-[#f8fafc]">
+    <div className="container-wide py-8 animate-fadeIn bg-[#f8fafc]">
+      {/* Upload Resume Hidden Input */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={onFileChange}
+        accept=".pdf,.doc,.docx"
+        className="hidden"
+      />
+
+      <input
+        type="file"
+        ref={certInputRef}
+        onChange={onCertChange}
+        accept=".pdf,.jpg,.jpeg,.png"
+        className="hidden"
+      />
+
       {/* Top Header Card */}
       <div className="bg-white rounded-3xl shadow-soft border border-slate-100 overflow-hidden mb-8 relative">
         <div className="p-8 flex flex-col md:flex-row gap-8 items-center md:items-start">
@@ -1281,6 +1339,88 @@ const ProfileView = ({ formData, onEdit, handleResumeUpload, user }: {
             </button>
           </div>
         </div>
+      </div>
+
+      <div className="flex flex-wrap gap-3 mb-6">
+        {/* Prominent Upload Resume Button */}
+        <button
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
+          className={`px-6 py-2 bg-brand-600 text-white rounded-xl text-sm font-bold hover:bg-brand-700 shadow-md transition-all flex items-center gap-2 ${uploading ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}
+        >
+          {uploading ? (
+            <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            <Upload size={18} />
+          )}
+          {uploading ? 'Uploading...' : 'Upload Resume'}
+        </button>
+
+        {/* Verify Certificate Button */}
+        <button
+          onClick={() => certInputRef.current?.click()}
+          disabled={certUploading}
+          className={`px-6 py-2 bg-emerald-600 text-white rounded-xl text-sm font-bold hover:bg-emerald-700 shadow-md transition-all flex items-center gap-2 ${certUploading ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}
+        >
+          {certUploading ? (
+            <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+          ) : (
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            </svg>
+          )}
+          {certUploading ? 'Verifying...' : 'Verify Certificate'}
+        </button>
+
+        {formData.resume?.resume_file_path && (
+          <a
+            href={`${import.meta.env.VITE_API_URL || 'http://localhost:8000'}/students/resume/download/${formData.resume.resume_file_path.split('/').pop()}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-6 py-2 bg-blue-50 text-blue-700 border border-blue-100 rounded-xl text-sm font-semibold hover:bg-blue-100 transition-all flex items-center gap-2"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+            View Resume
+          </a>
+        )}
+
+        <button
+          onClick={onLogout}
+          className="px-6 py-2 bg-red-50 text-red-600 border border-red-100 rounded-xl text-sm font-semibold hover:bg-red-100 transition-all flex items-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+          </svg>
+          Logout
+        </button>
+
+        <button
+          onClick={() => onEdit(1)}
+          className="px-6 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-all flex items-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+          </svg>
+          Edit Profile
+        </button>
+
+        <Link
+          to="/resume-maker"
+          className="px-6 py-2 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/40 hover:scale-105 transition-all flex items-center gap-2"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+          </svg>
+          Enhance Resume
+        </Link>
       </div>
 
       {/* Navigation Tabs */}
@@ -1648,7 +1788,7 @@ const ProfileView = ({ formData, onEdit, handleResumeUpload, user }: {
 
 
 export function StudentProfileSetup() {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
@@ -1659,6 +1799,11 @@ export function StudentProfileSetup() {
   const [error, setError] = useState<string | null>(null);
   const [suggestedSkills, setSuggestedSkills] = useState<string[]>([]);
   const [isViewMode, setIsViewMode] = useState(false);
+
+  const handleLogout = () => {
+    logout();
+    navigate('/login');
+  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -2160,6 +2305,7 @@ export function StudentProfileSetup() {
         <ProfileView
           formData={formData}
           onEdit={handleEdit}
+          onLogout={handleLogout}
           handleResumeUpload={handleResumeUpload}
           user={user}
         />
@@ -2203,6 +2349,7 @@ export function StudentProfileSetup() {
             loading={loading}
             error={error}
             suggestedSkills={suggestedSkills}
+            navigate={navigate}
           />
         )}
 

@@ -21,7 +21,7 @@ export function ForgotPasswordPage() {
 
     setLoading(true);
     try {
-      await api.post(`/auth/forgot-password?email=${encodeURIComponent(email.trim())}`);
+      await api.post(`/auth/forgot-password?email=${encodeURIComponent(email.trim().toLowerCase())}`);
       setSubmitted(true);
       toast.success('Password reset instructions sent to your email.');
     } catch (err) {

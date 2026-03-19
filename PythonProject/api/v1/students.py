@@ -22,6 +22,8 @@ import shutil
 import os
 import uuid
 import json
+import requests
+from utils.settings import settings
 
 from sqlalchemy import func, desc
 from models.notification import Notification
@@ -32,6 +34,57 @@ from services.resume_parser_client import (
 )
 
 router = APIRouter()
+
+@router.get("/internships", response_model=List[InternshipOut])
+def list_internships(
+    search: Optional[str] = None,
+    location: Optional[str] = None,
+    mode: Optional[str] = None,
+    limit: int = 100,
+    db: Session = Depends(get_db)
+):
+    """List all active internships with optional filters."""
+    query = db.query(Internship).filter(Internship.status == "active")
+    
+    if search:
+        query = query.filter(Internship.title.ilike(f"%{search}%"))
+    if location:
+        query = query.filter(Internship.location.ilike(f"%{location}%"))
+    if mode and mode != "All Modes":
+        query = query.filter(Internship.mode == mode.lower())
+        
+    internships = query.options(joinedload(Internship.employer)).limit(limit).all()
+    
+    # Manually populate company_name and logo_url for InternshipOut schema
+    results = []
+    for i in internships:
+        item = InternshipOut.from_orm(i)
+        if i.employer:
+            item.company_name = i.employer.company_name
+            item.logo_url = i.employer.logo_url
+        results.append(item)
+        
+    return results
+
+@router.get("/internships/{internship_id}", response_model=InternshipOut)
+def get_internship(
+    internship_id: int,
+    db: Session = Depends(get_db)
+):
+    """Get details of a specific internship."""
+    internship = db.query(Internship).filter(Internship.id == internship_id).options(
+        joinedload(Internship.employer)
+    ).first()
+    
+    if not internship:
+        raise HTTPException(status_code=404, detail="Internship not found")
+        
+    result = InternshipOut.from_orm(internship)
+    if internship.employer:
+        result.company_name = internship.employer.company_name
+        result.logo_url = internship.employer.logo_url
+        
+    return result
 
 @router.post("/me/parse-resume")
 async def parse_my_resume(
@@ -69,7 +122,6 @@ async def parse_my_resume(
     except Exception as e:
         print(f"Error parsing resume via parser service: {e}")
         raise HTTPException(status_code=500, detail="Failed to parse resume")
-
 
 @router.get("/internships/metadata")
 def get_internship_metadata(
@@ -286,6 +338,13 @@ def upload_certificate(
         current_user: User = Depends(get_current_user),
         db: Session = Depends(get_db)
 ):
+    """
+    Workflow for Certificate Verification:
+    1. Upload to Main Backend (here).
+    2. Forward to Certificate Verification Service (Port 8003).
+    3. Verification Service performs OCR/QR/AI Extraction.
+    4. Main Backend receives extracted data and notifies Institute.
+    """
     if current_user.role != "student":
         raise HTTPException(status_code=403, detail="Only students can upload certificates")
 
@@ -293,22 +352,69 @@ def upload_certificate(
     if not profile:
         raise HTTPException(status_code=404, detail="Student profile not found")
 
-    # Securely save the file
+    # Save file locally first
     upload_dir = "secure_uploads/certificates"
     os.makedirs(upload_dir, exist_ok=True)
     file_extension = os.path.splitext(file.filename)[1]
     file_name = f"{current_user.id}_{uuid.uuid4().hex}{file_extension}"
     file_path = os.path.join(upload_dir, file_name)
 
+    # Re-seek to start because we might need to send it again
+    file.file.seek(0)
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
 
-    # For now, let's just store the path in the student's profile
-    # In a real app, we'd have a separate table for certificates
-    profile.certificate_url = file_path
-    db.commit()
-
-    return {"message": "Certificate uploaded successfully", "file_path": file_path}
+    # Forward to Verification Service (Port 8003)
+    try:
+        # We need to send the file to the other service
+        file.file.seek(0)
+        files = {"file": (file.filename, file.file, file.content_type)}
+        # Forwarding student_id if needed by the other service
+        response = requests.post(
+            settings.CERT_VERIFICATION_URL, 
+            files=files,
+            headers={"Authorization": f"Bearer {current_user.id}"} # Placeholder auth if required
+        )
+        
+        if response.status_code == 200:
+            extracted_data = response.json()
+            # Update profile or store verification result
+            profile.certificate_url = file_path
+            
+            # Notify Institute if student is mapped
+            if profile.institute_id:
+                institute = db.query(InstituteProfile).filter(InstituteProfile.id == profile.institute_id).first()
+                if institute:
+                    notif = Notification(
+                        user_id=institute.user_id,
+                        message=f"New internship certificate uploaded by {profile.first_name} {profile.last_name} ({profile.apaar_id}). Verification pending institute approval."
+                    )
+                    db.add(notif)
+            
+            db.commit()
+            return {
+                "message": "Certificate uploaded and verified successfully", 
+                "file_path": file_path,
+                "verification_data": extracted_data
+            }
+        else:
+            # Fallback if verification service fails but file is saved
+            profile.certificate_url = file_path
+            db.commit()
+            return {
+                "message": "Certificate uploaded, but automated verification failed. Manual review required.",
+                "file_path": file_path,
+                "error": response.text
+            }
+            
+    except Exception as e:
+        print(f"Error forwarding to verification service: {e}")
+        profile.certificate_url = file_path
+        db.commit()
+        return {
+            "message": "Certificate uploaded locally. Automated verification service is currently unavailable.",
+            "file_path": file_path
+        }
 
 @router.get("/me/resume", response_model=StudentResumeOut)
 def get_my_resume(
@@ -335,6 +441,75 @@ def get_my_resume(
         resume.profile_picture = f"https://api.dicebear.com/7.x/avataaars/svg?seed={current_user.full_name or 'student'}"
     
     return resume
+
+@router.get("/recommendations", response_model=List[RecommendedInternship])
+def get_recommendations(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Only students can get recommendations")
+        
+    profile = db.query(StudentProfile).filter(StudentProfile.user_id == current_user.id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Student profile not found")
+        
+    return ai_service.get_recommendations(db, profile)
+
+@router.post("/apply", response_model=ApplicationOut)
+def apply_to_internship(
+    application_in: ApplicationCreate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    if current_user.role != "student":
+        raise HTTPException(status_code=403, detail="Only students can apply")
+        
+    profile = db.query(StudentProfile).filter(StudentProfile.user_id == current_user.id).first()
+    if not profile:
+        raise HTTPException(status_code=404, detail="Student profile not found")
+        
+    # Check if internship exists
+    internship = db.query(Internship).filter(Internship.id == application_in.internship_id).first()
+    if not internship:
+        raise HTTPException(status_code=404, detail="Internship not found")
+        
+    # Check if already applied
+    existing_app = db.query(Application).filter(
+        Application.student_id == profile.id,
+        Application.internship_id == application_in.internship_id
+    ).first()
+    if existing_app:
+        raise HTTPException(status_code=400, detail="Already applied to this internship")
+        
+    new_app = Application(
+        student_id=profile.id,
+        internship_id=application_in.internship_id,
+        status="pending"
+    )
+    db.add(new_app)
+    
+    # Notification for employer
+    notif = Notification(
+        user_id=internship.employer.user_id,
+        message=f"New application received for '{internship.title}' from {profile.full_name or current_user.full_name}."
+    )
+    db.add(notif)
+    
+    db.commit()
+    db.refresh(new_app)
+    return new_app
+
+@router.post("/feedback")
+def record_feedback(
+    feedback: FeedbackAction,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # This would typically be sent to the AI Matching service
+    # For now, we'll just acknowledge it
+    print(f"Feedback received from user {current_user.id}: {feedback.action} on internship {feedback.internship_id}")
+    return {"status": "success"}
 
 @router.get("/my-applications", response_model=List[ApplicationOut])
 def get_my_applications(

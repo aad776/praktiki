@@ -160,7 +160,7 @@ export function SignupPage() {
     try {
       let endpoint = '/auth/signup';
       let payload: Record<string, string> = {
-        email: email.trim(),
+        email: email.trim().toLowerCase(),
         full_name: fullName.trim(),
         password,
       };

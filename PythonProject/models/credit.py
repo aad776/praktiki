@@ -8,7 +8,8 @@ class CreditRequest(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     student_id = Column(Integer, ForeignKey("student_profiles.id"), nullable=False)
-    application_id = Column(Integer, ForeignKey("applications.id"), nullable=False)
+    application_id = Column(Integer, ForeignKey("applications.id"), nullable=True)
+    certificate_id = Column(Integer, ForeignKey("certificates.id"), nullable=True)
     hours = Column(Integer, nullable=False)
     credits_calculated = Column(Float, nullable=False)
     policy_type = Column(String, nullable=False) # UGC or AICTE

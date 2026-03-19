@@ -195,13 +195,13 @@ nginx -t
 log_info "Setting correct permissions..."
 chown -R $APP_USER:$APP_USER $APP_DIR
 
-# Step 8: Start Praktiki Backend Service
+#-------------------------------------------------------------------------------
+# Step 8: Final Deployment
 #-------------------------------------------------------------------------------
 log_info "Starting Praktiki backend service..."
-
 systemctl daemon-reload
 systemctl enable ${SERVICE_NAME}
-systemctl start ${SERVICE_NAME}
+systemctl restart ${SERVICE_NAME}
 
 #===============================================================================
 # ABC-PORTAL BACKEND SERVICE (port 8003)

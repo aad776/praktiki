@@ -13,6 +13,11 @@ class UserCreate(BaseModel):
     # Allow empty string or 12 digits
     apaar_id: Optional[str] = Field(None, description="12 digit APAAR ID (required for students)")
 
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        return v.lower().strip()
+
     @field_validator('apaar_id')
     @classmethod
     def validate_apaar(cls, v: Optional[str]) -> Optional[str]:
@@ -33,6 +38,11 @@ class UserOut(BaseModel):
     full_name: str
     role: str
 
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        return v.lower().strip()
+
     class Config:
         from_attributes = True
 
@@ -44,6 +54,11 @@ class LoginRequest(BaseModel):
     role: str  # Mandatory role check
     # Allow empty string or 12 digits
     apaar_id: Optional[str] = Field(None, description="12 digit APAAR ID")
+
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        return v.lower().strip()
 
     @field_validator('apaar_id')
     @classmethod

@@ -19,15 +19,26 @@ def post_internship(internship: InternshipCreate, db: Session = Depends(get_db),
     if current_user.role != UserRole.COMPANY:
         raise HTTPException(status_code=403, detail="Not authorized")
     
+    # Get the employer profile for the current user
+    from backend.models.user import EmployerProfile
+    employer = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
+    if not employer:
+        # Create profile if missing
+        employer = EmployerProfile(user_id=current_user.id, company_name=current_user.full_name)
+        db.add(employer)
+        db.flush()
+
     new_internship = Internship(
         title=internship.title,
         description=internship.description,
-        company_id=current_user.id,
-        duration=internship.duration,
-        expected_hours=internship.expected_hours,
+        employer_id=employer.id,
+        duration_weeks=internship.duration_weeks,
         policy=internship.policy,
         start_date=internship.start_date,
-        end_date=internship.end_date
+        location=internship.location,
+        mode=internship.mode,
+        stipend_amount=internship.stipend_amount,
+        deadline=internship.deadline
     )
     db.add(new_internship)
     db.commit()
@@ -44,7 +55,12 @@ def view_applications(db: Session = Depends(get_db), current_user: User = Depend
         raise HTTPException(status_code=403, detail="Not authorized")
     
     # Get all applications for internships posted by this company
-    apps = db.query(Application).join(Internship).filter(Internship.company_id == current_user.id).all()
+    from backend.models.user import EmployerProfile
+    employer = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
+    if not employer:
+        return []
+    
+    apps = db.query(Application).join(Internship).filter(Internship.employer_id == employer.id).all()
     return apps
 
 @router.post("/application/{app_id}/accept")
@@ -56,7 +72,9 @@ def accept_application(app_id: int, db: Session = Depends(get_db), current_user:
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
     
-    if app.internship.company_id != current_user.id:
+    from backend.models.user import EmployerProfile
+    employer = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
+    if not employer or app.internship.employer_id != employer.id:
         raise HTTPException(status_code=403, detail="Not your intern")
     
     app.status = ApplicationStatus.ACCEPTED
@@ -83,7 +101,9 @@ def complete_internship(app_id: int, completion: CompletionRequest, db: Session 
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
     
-    if app.internship.company_id != current_user.id:
+    from backend.models.user import EmployerProfile
+    employer = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
+    if not employer or app.internship.employer_id != employer.id:
         raise HTTPException(status_code=403, detail="Not your intern")
     
     # Forward to Institute for Review (Institute will calculate credits)
@@ -118,7 +138,9 @@ def reject_application(app_id: int, reject_data: RejectRequest, db: Session = De
     if not app:
         raise HTTPException(status_code=404, detail="Application not found")
     
-    if app.internship.company_id != current_user.id:
+    from backend.models.user import EmployerProfile
+    employer = db.query(EmployerProfile).filter(EmployerProfile.user_id == current_user.id).first()
+    if not employer or app.internship.employer_id != employer.id:
         raise HTTPException(status_code=403, detail="Not your intern")
     
     app.status = ApplicationStatus.REJECTED

@@ -442,7 +442,7 @@ const StudentDashboard = () => {
 
       {/* INTERNSHIPS TAB */}
       {activeTab === 'internships' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 w-full animate-fadeIn">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 w-full animate-fadeIn">
             {internships.length === 0 && (
                 <div className="col-span-2 text-center p-8 text-gray-500 bg-white rounded-lg shadow">
                     No active internships available at the moment.

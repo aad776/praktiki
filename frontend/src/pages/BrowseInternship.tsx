@@ -290,7 +290,7 @@ export function BrowseInternshipsPage() {
                     <p className="text-slate-500">No recommendations available yet. This could be because there are no internships matching your profile or your profile needs more details.</p>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {recommendations.map(rec => (
                         <div key={rec.internship_id} className="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow group relative">
                             {/* Match Score Badge */}
@@ -340,7 +340,7 @@ export function BrowseInternshipsPage() {
                     </button>
                 </div>
             ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {filteredInternships.map(internship => (
                         <InternshipCard key={internship.id} internship={internship} />
                     ))}

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, field_validator
 from typing import Optional, List
 from datetime import datetime
 
@@ -8,6 +8,11 @@ class EmployerCreate(BaseModel):
     password: str
     company_name: str
     contact_number: str
+
+    @field_validator('email')
+    @classmethod
+    def validate_email(cls, v: str) -> str:
+        return v.lower().strip()
 
 class EmployerProfileUpdate(BaseModel):
     company_name: Optional[str] = None
@@ -62,6 +67,13 @@ class InternshipCreate(BaseModel):
     application_link: Optional[str] = None
     application_email: Optional[str] = None
     policy: Optional[str] = "UGC"
+
+    @field_validator('contact_email', 'application_email')
+    @classmethod
+    def validate_emails(cls, v: Optional[str]) -> Optional[str]:
+        if v:
+            return v.lower().strip()
+        return v
 
 
 class InternshipOut(BaseModel):

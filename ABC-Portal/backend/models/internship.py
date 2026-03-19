@@ -42,7 +42,7 @@ class Internship(Base):
     policy = Column(String)
     created_at = Column(DateTime, server_default=func.now())
 
-    employer = relationship("backend.models.user.EmployerProfile", back_populates="internships")
+    employer = relationship("EmployerProfile", back_populates="internships")
 
     @property
     def company_name(self):
@@ -66,4 +66,4 @@ class Application(Base):
     applied_at = Column(DateTime(timezone=True), server_default=func.now(), name="applied_at")
 
     internship = relationship("Internship", backref="applications")
-    student = relationship("backend.models.user.StudentProfile", back_populates="applications")
+    student = relationship("StudentProfile", back_populates="applications")
