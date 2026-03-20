@@ -172,6 +172,12 @@ def _build_prefill_payload(parsed_data: Dict[str, Any], current_user: Any) -> Di
 
     education_entries = _normalize_education(parsed_data.get("education"))
 
+    # Map LLM's "summary" → "career_objective" for the frontend
+    career_objective = _safe_str(
+        parsed_data.get("career_objective")
+        or parsed_data.get("summary")
+    )
+
     return {
         "first_name": first_name,
         "last_name": last_name,
@@ -184,6 +190,9 @@ def _build_prefill_payload(parsed_data: Dict[str, Any], current_user: Any) -> Di
         "education": education_entries,
         "projects": _normalize_projects(parsed_data.get("projects")),
         "certifications": _normalize_certifications(parsed_data.get("certifications")),
+        "career_objective": career_objective,
+        "linkedin": _safe_str(parsed_data.get("linkedin")),
+        "github": _safe_str(parsed_data.get("github")),
         "detected_stacks": parsed_data.get("detected_stacks") if isinstance(parsed_data.get("detected_stacks"), list) else [],
         "total_experience_years": parsed_data.get("total_experience_years"),
         "confidence": parsed_data.get("confidence"),

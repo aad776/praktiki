@@ -120,8 +120,11 @@ export function Layout({ children }: LayoutProps) {
   const [notifOpen, setNotifOpen] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
+  const hasFetchedNotifs = useRef(false);
+
   useEffect(() => {
-    if (isAuthenticated) {
+    if (isAuthenticated && !hasFetchedNotifs.current) {
+      hasFetchedNotifs.current = true;
       fetchNotifications();
       const interval = setInterval(fetchNotifications, 30000); // every 30s
       return () => clearInterval(interval);

@@ -149,6 +149,8 @@ export interface ResumeParseResponse {
   last_name?: string;
   email?: string;
   phone_number?: string;
+  linkedin?: string;
+  github?: string;
   raw_text_preview?: string;
 }
 
@@ -199,6 +201,8 @@ export const parseResume = (file: File): Promise<ResumeParseResponse> => {
       last_name: payload.last_name,
       email: payload.email,
       phone_number: payload.phone_number,
+      linkedin: payload.linkedin,
+      github: payload.github,
       raw_text_preview: payload.raw_text_preview,
     };
 

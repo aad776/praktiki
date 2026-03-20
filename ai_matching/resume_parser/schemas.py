@@ -91,6 +91,9 @@ class ResumeData(BaseModel):
     name: Optional[str] = Field(None, description="Full name of the candidate")
     email: Optional[str] = Field(None, description="Email address")
     phone: Optional[str] = Field(None, description="Phone number")
+    summary: Optional[str] = Field(None, description="Professional summary / career objective")
+    linkedin: Optional[str] = Field(None, description="LinkedIn profile URL")
+    github: Optional[str] = Field(None, description="GitHub profile URL")
     skills: List[str] = Field(default_factory=list, description="Extracted skills")
     skills_categorized: Optional[Dict[str, List[str]]] = Field(
         None, description="Skills grouped by domain"

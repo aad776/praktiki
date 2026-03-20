@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../services/api';
 
@@ -7,27 +7,45 @@ interface Metadata {
     top_profiles: string[];
 }
 
+// Module-level cache so metadata is fetched only once per app session
+let cachedMetadata: Metadata | null = null;
+let metadataFetchPromise: Promise<Metadata> | null = null;
+
 export function InternshipMegaMenu() {
     const [isOpen, setIsOpen] = useState(false);
     const [activeCategory, setActiveCategory] = useState<'locations' | 'profiles'>('locations');
-    const [metadata, setMetadata] = useState<Metadata | null>(null);
+    const [metadata, setMetadata] = useState<Metadata | null>(cachedMetadata);
     const [loading, setLoading] = useState(false);
+    const hasFetchedRef = useRef(false);
 
     useEffect(() => {
+        if (hasFetchedRef.current) return;
+        hasFetchedRef.current = true;
+
+        // If already cached, no need to fetch
+        if (cachedMetadata) {
+            setMetadata(cachedMetadata);
+            return;
+        }
+
         const fetchMetadata = async () => {
             try {
                 setLoading(true);
-                // Using a direct fetch or existing api client if it supports public generic GET
-                const res = await api.get<Metadata>('/students/internships/metadata');
+                // Reuse in-flight promise to avoid duplicate requests
+                if (!metadataFetchPromise) {
+                    metadataFetchPromise = api.get<Metadata>('/students/internships/metadata');
+                }
+                const res = await metadataFetchPromise;
+                cachedMetadata = res;
                 setMetadata(res);
             } catch (err) {
                 console.error("Failed to fetch menu metadata", err);
+                metadataFetchPromise = null; // Allow retry on error
             } finally {
                 setLoading(false);
             }
         };
 
-        // Fetch only once essentially or when component mounts
         fetchMetadata();
     }, []);
 

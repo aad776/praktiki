@@ -188,61 +188,56 @@ export function StudentDashboard() {
     }
   }, [searchLocation, masterLocations]);
 
+  // Ref to prevent StrictMode double-fetching
+  const hasFetchedRef = useRef(false);
+  const toastRef = useRef(toast);
+  toastRef.current = toast;
+
   const fetchDashboardData = useCallback(async () => {
     setPageLoading(true);
     try {
-      // Fetch profile
-      const profileRes = await api.get<StudentProfile>('/students/me');
-      setProfile(profileRes);
+      // Parallelize all independent API calls
+      const [profileResult, resumeResult, appsResult, creditsResult] = await Promise.allSettled([
+        api.get<StudentProfile>('/students/me'),
+        api.get<Resume>('/students/me/resume'),
+        api.get<Application[]>('/students/my-applications'),
+        api.get<CreditSummary>('/credits/summary'),
+      ]);
 
-      // Fetch resume (optional)
-      try {
-        const resumeRes = await api.get<Resume>('/students/me/resume');
-        setResume(resumeRes);
-      } catch {
-        // Resume doesn't exist yet
+      if (profileResult.status === 'fulfilled') {
+        setProfile(profileResult.value);
+      } else {
+        const error = profileResult.reason as ApiError;
+        if (error.response?.status !== 404) {
+          toastRef.current.error(error.message || 'Could not load profile');
+        }
       }
 
-      // Fetch all internships once to build master lists for suggestions
-      const allInternships = await api.get<Internship[]>('/students/internships?limit=1000');
-      if (Array.isArray(allInternships)) {
-        setMasterTitles(Array.from(new Set(allInternships.map(i => i.title).filter(Boolean))));
-        setMasterLocations(Array.from(new Set(allInternships.map(i => i.location).filter(Boolean))));
+      if (resumeResult.status === 'fulfilled') {
+        setResume(resumeResult.value);
+      }
+      // Resume 404 is expected if not created yet — no error
+
+      if (appsResult.status === 'fulfilled') {
+        setApplications(appsResult.value);
       }
 
-      // Fetch applications
-      const appsRes = await api.get<Application[]>('/students/my-applications');
-      setApplications(appsRes);
-
-      // Fetch credit summary (optional)
-      try {
-        const creditsRes = await api.get<CreditSummary>('/credits/summary');
-        setCreditSummary(creditsRes);
-      } catch {
-        // Credits not available yet
+      if (creditsResult.status === 'fulfilled') {
+        setCreditSummary(creditsResult.value);
       }
+      // Credits not available is fine — no error
 
-      // Fetch recommendations (optional)
-      try {
-        const recsRes = await api.get<RecommendedInternship[]>('/students/recommendations');
-        setRecommendations(recsRes);
-      } catch {
-        // Recommendations not available yet
-      }
     } catch (err) {
-      const error = err as ApiError;
-      console.error(error);
-      // Don't show error for 404 on profile (it means setup is needed)
-      if (error.response?.status !== 404) {
-        toast.error(error.message || 'Could not load dashboard data');
-      }
+      console.error('Dashboard data fetch error:', err);
     } finally {
       setPageLoading(false);
     }
-  }, [toast]);
+  }, []);
 
-  // Fetch initial data
+  // Fetch initial data (only once, guarded against StrictMode double-mount)
   useEffect(() => {
+    if (hasFetchedRef.current) return;
+    hasFetchedRef.current = true;
     fetchDashboardData();
   }, [fetchDashboardData]);
 
@@ -301,9 +296,21 @@ export function StudentDashboard() {
         
         const internshipsRes = await api.get<Internship[]>(`/students/internships?${params.toString()}`);
         setInternships(internshipsRes);
+
+        // Build master title/location lists from fetched internships (for autocomplete)
+        if (Array.isArray(internshipsRes)) {
+          setMasterTitles(prev => {
+            const merged = new Set([...prev, ...internshipsRes.map(i => i.title).filter(Boolean)]);
+            return Array.from(merged);
+          });
+          setMasterLocations(prev => {
+            const merged = new Set([...prev, ...internshipsRes.map(i => i.location).filter(Boolean)]);
+            return Array.from(merged);
+          });
+        }
       } catch (err) {
         console.error(err);
-        toast.error('Failed to load internships');
+        toastRef.current.error('Failed to load internships');
       } finally {
         setSearchLoading(false);
       }
